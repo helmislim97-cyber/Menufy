@@ -228,6 +228,9 @@ const fr: Dict = {
   "menu.addPhoto": "Ajouter une photo",
   "menu.changePhoto": "Changer",
   "menu.removePhoto": "Supprimer",
+
+  "client.searchPlaceholder": "Rechercher un plat...",
+  "client.noResults": "Aucun résultat pour cette recherche.",
 };
 
 const ar: Dict = {
@@ -454,6 +457,9 @@ const ar: Dict = {
   "menu.addPhoto": "إضافة صورة",
   "menu.changePhoto": "تغيير",
   "menu.removePhoto": "حذف",
+
+  "client.searchPlaceholder": "ابحث عن طبق...",
+  "client.noResults": "لا توجد نتائج لهذا البحث.",
 };
 
 const dicts: Record<Locale, Dict> = { fr, ar };
