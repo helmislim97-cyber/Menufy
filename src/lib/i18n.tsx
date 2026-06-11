@@ -198,6 +198,17 @@ const fr: Dict = {
   "kitchen.exit": "Quitter",
   "kitchen.openKitchen": "Mode cuisine",
   "kitchen.newOrder": "Nouvelle",
+
+  "cashier.title": "Caisse",
+  "cashier.subtitle": "Additions par table — encaissez en un clic.",
+  "cashier.empty": "Aucune addition en attente.",
+  "cashier.table": "Table",
+  "cashier.total": "Total à payer",
+  "cashier.markPaid": "Encaisser",
+  "cashier.exit": "Quitter",
+  "cashier.openCashier": "Mode caisse",
+  "cashier.ordersCount": "commande(s)",
+  "cashier.confirmPaid": "Marquer cette table comme payée ?",
 };
 
 const ar: Dict = {
@@ -394,6 +405,17 @@ const ar: Dict = {
   "kitchen.exit": "خروج",
   "kitchen.openKitchen": "وضع المطبخ",
   "kitchen.newOrder": "جديدة",
+
+  "cashier.title": "الصندوق",
+  "cashier.subtitle": "الفواتير حسب الطاولة — اضغط للدفع.",
+  "cashier.empty": "لا توجد فواتير في الانتظار.",
+  "cashier.table": "طاولة",
+  "cashier.total": "المجموع المطلوب",
+  "cashier.markPaid": "تحصيل الدفع",
+  "cashier.exit": "خروج",
+  "cashier.openCashier": "وضع الصندوق",
+  "cashier.ordersCount": "طلب(ات)",
+  "cashier.confirmPaid": "تعليم هذه الطاولة كمدفوعة؟",
 };
 
 const dicts: Record<Locale, Dict> = { fr, ar };

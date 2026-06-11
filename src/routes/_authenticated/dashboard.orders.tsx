@@ -7,7 +7,7 @@ import { Logo } from "@/components/logo";
 import { LangSwitch } from "@/components/lang-switch";
 import { BottomNav } from "@/components/bottom-nav";
 import { Button } from "@/components/ui/button";
-import { Clock, StickyNote, ChefHat } from "lucide-react";
+import { Clock, StickyNote, ChefHat, Wallet } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/dashboard/orders")({
   component: OrdersPage,
@@ -144,12 +144,20 @@ function OrdersPage() {
             <h1 className="text-2xl font-extrabold">{t("orders.title")}</h1>
             <p className="mt-1 text-sm text-muted-foreground">{t("orders.subtitle")}</p>
           </div>
-          <Link to="/kitchen">
-            <Button size="sm" variant="outline" className="gap-1.5 shrink-0">
-              <ChefHat className="h-4 w-4" />
-              {t("kitchen.openKitchen")}
-            </Button>
-          </Link>
+          <div className="flex shrink-0 gap-2">
+            <Link to="/kitchen">
+              <Button size="sm" variant="outline" className="gap-1.5">
+                <ChefHat className="h-4 w-4" />
+                {t("kitchen.openKitchen")}
+              </Button>
+            </Link>
+            <Link to="/cashier">
+              <Button size="sm" variant="outline" className="gap-1.5">
+                <Wallet className="h-4 w-4" />
+                {t("cashier.openCashier")}
+              </Button>
+            </Link>
+          </div>
         </div>
 
         {loading ? (
