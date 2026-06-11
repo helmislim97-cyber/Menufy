@@ -14,6 +14,7 @@ import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedKitchenRouteImport } from './routes/_authenticated/kitchen'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
+import { Route as AuthenticatedCashierRouteImport } from './routes/_authenticated/cashier'
 import { Route as AuthenticatedDashboardIndexRouteImport } from './routes/_authenticated/dashboard.index'
 import { Route as MenuRestaurantIdTableNumberRouteImport } from './routes/menu.$restaurantId.$tableNumber'
 import { Route as AuthenticatedDashboardSettingsRouteImport } from './routes/_authenticated/dashboard.settings'
@@ -42,6 +43,11 @@ const AuthenticatedKitchenRoute = AuthenticatedKitchenRouteImport.update({
 const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedCashierRoute = AuthenticatedCashierRouteImport.update({
+  id: '/cashier',
+  path: '/cashier',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedDashboardIndexRoute =
@@ -78,6 +84,7 @@ const AuthenticatedDashboardMenuRoute =
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/cashier': typeof AuthenticatedCashierRoute
   '/dashboard': typeof AuthenticatedDashboardRouteWithChildren
   '/kitchen': typeof AuthenticatedKitchenRoute
   '/dashboard/menu': typeof AuthenticatedDashboardMenuRoute
@@ -89,6 +96,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/cashier': typeof AuthenticatedCashierRoute
   '/kitchen': typeof AuthenticatedKitchenRoute
   '/dashboard/menu': typeof AuthenticatedDashboardMenuRoute
   '/dashboard/orders': typeof AuthenticatedDashboardOrdersRoute
@@ -101,6 +109,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
+  '/_authenticated/cashier': typeof AuthenticatedCashierRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRouteWithChildren
   '/_authenticated/kitchen': typeof AuthenticatedKitchenRoute
   '/_authenticated/dashboard/menu': typeof AuthenticatedDashboardMenuRoute
@@ -114,6 +123,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/auth'
+    | '/cashier'
     | '/dashboard'
     | '/kitchen'
     | '/dashboard/menu'
@@ -125,6 +135,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/auth'
+    | '/cashier'
     | '/kitchen'
     | '/dashboard/menu'
     | '/dashboard/orders'
@@ -136,6 +147,7 @@ export interface FileRouteTypes {
     | '/'
     | '/_authenticated'
     | '/auth'
+    | '/_authenticated/cashier'
     | '/_authenticated/dashboard'
     | '/_authenticated/kitchen'
     | '/_authenticated/dashboard/menu'
@@ -187,6 +199,13 @@ declare module '@tanstack/react-router' {
       path: '/dashboard'
       fullPath: '/dashboard'
       preLoaderRoute: typeof AuthenticatedDashboardRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/cashier': {
+      id: '/_authenticated/cashier'
+      path: '/cashier'
+      fullPath: '/cashier'
+      preLoaderRoute: typeof AuthenticatedCashierRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/dashboard/': {
@@ -248,11 +267,13 @@ const AuthenticatedDashboardRouteWithChildren =
   )
 
 interface AuthenticatedRouteRouteChildren {
+  AuthenticatedCashierRoute: typeof AuthenticatedCashierRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRouteWithChildren
   AuthenticatedKitchenRoute: typeof AuthenticatedKitchenRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedCashierRoute: AuthenticatedCashierRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRouteWithChildren,
   AuthenticatedKitchenRoute: AuthenticatedKitchenRoute,
 }

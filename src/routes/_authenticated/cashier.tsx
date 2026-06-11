@@ -97,7 +97,6 @@ function CashierPage() {
     setOrders((prev) => prev.filter((o) => !orderIds.includes(o.id)));
     await supabase.from("orders").update({ status: "paid" }).in("id", orderIds);
   };
-
   return (
     <div className="min-h-screen bg-background p-4">
       <header className="mb-4 flex items-center justify-between">
@@ -131,4 +130,45 @@ function CashierPage() {
             }
 
             return (
-              <div
+              <div key={table.tableNumber} className="flex flex-col rounded-2xl border-2 border-border bg-surface p-4">
+                <div className="flex items-center justify-between">
+                  <span className="text-3xl font-extrabold">
+                    {table.tableNumber || "—"}
+                  </span>
+                  <span className="flex items-center gap-1 rounded-full bg-background px-3 py-1 text-xs font-semibold text-muted-foreground">
+                    <Receipt className="h-3.5 w-3.5" />
+                    {table.orders.length} {t("cashier.ordersCount")}
+                  </span>
+                </div>
+
+                <div className="mt-3 flex-1 space-y-1.5 border-t border-border/60 pt-3">
+                  {Array.from(merged.values()).map((item) => (
+                    <div key={item.name} className="flex items-center justify-between text-sm">
+                      <span>
+                        <span className="font-bold text-primary">{item.qty}×</span> {item.name}
+                      </span>
+                      <span className="text-muted-foreground">{(item.price * item.qty).toFixed(2)} DT</span>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="mt-3 flex items-center justify-between border-t border-border/60 pt-3">
+                  <span className="text-sm font-semibold text-muted-foreground">{t("cashier.total")}</span>
+                  <span className="text-xl font-extrabold text-gold">{table.total.toFixed(2)} DT</span>
+                </div>
+
+                <Button
+                  onClick={() => markPaid(table.orders.map((o) => o.id))}
+                  className="mt-4 h-12 w-full gap-2 text-base font-bold"
+                >
+                  <Wallet className="h-5 w-5" />
+                  {t("cashier.markPaid")}
+                </Button>
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
