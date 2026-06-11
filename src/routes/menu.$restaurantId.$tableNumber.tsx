@@ -13,7 +13,8 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
-import { ShoppingCart, Plus, Minus, CheckCircle2 } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { ShoppingCart, Plus, Minus, CheckCircle2, Search } from "lucide-react";
 
 export const Route = createFileRoute("/menu/$restaurantId/$tableNumber")({
   head: () => ({
@@ -59,6 +60,7 @@ function MenuPage() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
   const [activeCategory, setActiveCategory] = useState<string>("");
+  const [searchQuery, setSearchQuery] = useState("");
 
   const [cart, setCart] = useState<Record<string, number>>({});
   const [cartOpen, setCartOpen] = useState(false);
@@ -129,9 +131,15 @@ function MenuPage() {
   }, [categories, products, t]);
 
   const activeProducts = useMemo(() => {
+    if (searchQuery.trim()) {
+      const q = searchQuery.trim().toLowerCase();
+      return products.filter(
+        (p) => p.name.toLowerCase().includes(q) || (p.description ?? "").toLowerCase().includes(q),
+      );
+    }
     if (activeCategory === UNCATEGORIZED) return products.filter((p) => p.category_id === null);
     return products.filter((p) => p.category_id === activeCategory);
-  }, [products, activeCategory]);
+  }, [products, activeCategory, searchQuery]);
 
   const cartItems = useMemo(() => {
     return Object.entries(cart)
@@ -268,12 +276,27 @@ function MenuPage() {
           </p>
         </div>
 
+        <div className="mx-auto max-w-md px-4 pb-3">
+          <div className="relative">
+            <Search className="pointer-events-none absolute start-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder={t("client.searchPlaceholder")}
+              className="ps-9"
+            />
+          </div>
+        </div>
+
         {visibleCategories.length > 0 && (
-          <div className="scrollbar-none flex gap-2 overflow-x-auto px-4 pb-3">
+          <div className={`scrollbar-none flex gap-2 overflow-x-auto px-4 pb-3 ${searchQuery.trim() ? "opacity-40" : ""}`}>
             {visibleCategories.map((c) => (
               <button
                 key={c.id}
-                onClick={() => setActiveCategory(c.id)}
+                onClick={() => {
+                  setActiveCategory(c.id);
+                  setSearchQuery("");
+                }}
                 className={`shrink-0 rounded-full border px-4 py-1.5 text-sm font-semibold transition-colors ${
                   activeCategory === c.id
                     ? "border-primary bg-primary text-primary-foreground"
@@ -290,6 +313,8 @@ function MenuPage() {
       <main className="mx-auto max-w-md px-4 py-4">
         {visibleCategories.length === 0 ? (
           <p className="mt-10 text-center text-sm text-muted-foreground">{t("client.empty")}</p>
+        ) : activeProducts.length === 0 ? (
+          <p className="mt-10 text-center text-sm text-muted-foreground">{t("client.noResults")}</p>
         ) : (
           <div className="space-y-3">
             {activeProducts.map((p) => {
