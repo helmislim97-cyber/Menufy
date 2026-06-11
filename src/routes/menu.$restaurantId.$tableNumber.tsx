@@ -43,6 +43,7 @@ interface Product {
   description: string | null;
   price: number;
   emoji: string | null;
+  image_url: string | null;
   is_available: boolean;
   position: number;
 }
@@ -91,7 +92,7 @@ function MenuPage() {
           .order("position"),
         supabase
           .from("products")
-          .select("id, category_id, name, description, price, emoji, is_available, position")
+          .select("id, category_id, name, description, price, emoji, image_url, is_available, position")
           .eq("restaurant_id", restaurantId)
           .eq("is_available", true)
           .order("position"),
@@ -295,8 +296,12 @@ function MenuPage() {
               const qty = cart[p.id] ?? 0;
               return (
                 <div key={p.id} className="flex items-center gap-3 rounded-2xl border border-border bg-surface p-3">
-                  <div className="grid h-12 w-12 shrink-0 place-items-center rounded-xl bg-background text-2xl">
-                    {p.emoji || "🍽️"}
+                  <div className="grid h-12 w-12 shrink-0 place-items-center overflow-hidden rounded-xl bg-background text-2xl">
+                    {p.image_url ? (
+                      <img src={p.image_url} alt={p.name} className="h-full w-full object-cover" />
+                    ) : (
+                      p.emoji || "🍽️"
+                    )}
                   </div>
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-sm font-bold">{p.name}</p>

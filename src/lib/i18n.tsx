@@ -223,6 +223,11 @@ const fr: Dict = {
 
   "orders.todayRevenue": "Revenus aujourd'hui",
   "orders.todayOrders": "Commandes payées",
+
+  "menu.photo": "Photo",
+  "menu.addPhoto": "Ajouter une photo",
+  "menu.changePhoto": "Changer",
+  "menu.removePhoto": "Supprimer",
 };
 
 const ar: Dict = {
@@ -444,6 +449,11 @@ const ar: Dict = {
 
   "orders.todayRevenue": "إيرادات اليوم",
   "orders.todayOrders": "الطلبات المدفوعة",
+
+  "menu.photo": "صورة",
+  "menu.addPhoto": "إضافة صورة",
+  "menu.changePhoto": "تغيير",
+  "menu.removePhoto": "حذف",
 };
 
 const dicts: Record<Locale, Dict> = { fr, ar };

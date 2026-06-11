@@ -25,7 +25,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Plus, Pencil, Trash2 } from "lucide-react";
+import { Plus, Pencil, Trash2, ImagePlus, X } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/dashboard/menu")({
@@ -45,6 +45,7 @@ interface Product {
   description: string | null;
   price: number;
   emoji: string | null;
+  image_url: string | null;
   is_available: boolean;
   position: number;
 }
@@ -78,13 +79,17 @@ function MenuManagement() {
     is_available: true,
   });
   const [savingProd, setSavingProd] = useState(false);
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [imageUrl, setImageUrl] = useState<string | null>(null);
+  const [uploadingImage, setUploadingImage] = useState(false);
 
   const loadData = async (rid: string) => {
     const [{ data: cats }, { data: prods }] = await Promise.all([
       supabase.from("categories").select("id, name, position").eq("restaurant_id", rid).order("position"),
       supabase
         .from("products")
-        .select("id, category_id, name, description, price, emoji, is_available, position")
+        .select("id, category_id, name, description, price, emoji, image_url, is_available, position")
         .eq("restaurant_id", rid)
         .order("position"),
     ]);
@@ -155,6 +160,9 @@ function MenuManagement() {
   // ───────────── Products ─────────────
   const openNewProduct = (categoryId?: string) => {
     setEditingProd(null);
+    setImageFile(null);
+    setImagePreview(null);
+    setImageUrl(null);
     setProdForm({
       name: "",
       description: "",
@@ -168,6 +176,9 @@ function MenuManagement() {
 
   const openEditProduct = (p: Product) => {
     setEditingProd(p);
+    setImageFile(null);
+    setImagePreview(p.image_url);
+    setImageUrl(p.image_url);
     setProdForm({
       name: p.name,
       description: p.description ?? "",
@@ -179,15 +190,54 @@ function MenuManagement() {
     setProdDialogOpen(true);
   };
 
+  const uploadProductImage = async (file: File): Promise<string | null> => {
+    if (!restaurantId) return null;
+    const ext = file.name.split(".").pop();
+    const path = `${restaurantId}/${crypto.randomUUID()}.${ext}`;
+    const { error } = await supabase.storage.from("product-images").upload(path, file, { upsert: true });
+    if (error) {
+      toast.error(error.message);
+      return null;
+    }
+    const { data } = supabase.storage.from("product-images").getPublicUrl(path);
+    return data.publicUrl;
+  };
+
+  const onImageSelect = (file: File | null) => {
+    if (!file) return;
+    setImageFile(file);
+    setImagePreview(URL.createObjectURL(file));
+  };
+
+  const removeImage = () => {
+    setImageFile(null);
+    setImagePreview(null);
+    setImageUrl(null);
+  };
+
   const saveProduct = async () => {
     if (!restaurantId || !prodForm.name.trim()) return;
     setSavingProd(true);
+
+    let finalImageUrl = imageUrl;
+    if (imageFile) {
+      setUploadingImage(true);
+      const uploaded = await uploadProductImage(imageFile);
+      setUploadingImage(false);
+      if (!uploaded) {
+        setSavingProd(false);
+        return;
+      }
+      finalImageUrl = uploaded;
+    }
+
     const category_id = prodForm.category_id === UNCATEGORIZED ? null : prodForm.category_id;
     const payload = {
       name: prodForm.name.trim(),
       description: prodForm.description.trim() || null,
       price: parseFloat(prodForm.price) || 0,
       emoji: prodForm.emoji.trim() || null,
+      image_url: finalImageUrl,
       category_id,
       is_available: prodForm.is_available,
     };
@@ -313,8 +363,12 @@ function MenuManagement() {
                           key={p.id}
                           className="flex items-center gap-3 rounded-2xl border border-border bg-surface p-3"
                         >
-                          <div className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-background text-xl">
-                            {p.emoji || "🍽️"}
+                          <div className="grid h-10 w-10 shrink-0 place-items-center overflow-hidden rounded-xl bg-background text-xl">
+                            {p.image_url ? (
+                              <img src={p.image_url} alt={p.name} className="h-full w-full object-cover" />
+                            ) : (
+                              p.emoji || "🍽️"
+                            )}
                           </div>
                           <div className="min-w-0 flex-1">
                             <p className="truncate text-sm font-semibold">{p.name}</p>
@@ -406,6 +460,41 @@ function MenuManagement() {
             </div>
 
             <div className="space-y-2">
+              <Label>{t("menu.photo")}</Label>
+              <div className="flex items-center gap-3">
+                <div className="grid h-16 w-16 shrink-0 place-items-center overflow-hidden rounded-xl border border-border bg-background">
+                  {imagePreview ? (
+                    <img src={imagePreview} alt="" className="h-full w-full object-cover" />
+                  ) : (
+                    <span className="text-2xl">{prodForm.emoji || "🍽️"}</span>
+                  )}
+                </div>
+                <div className="flex flex-col gap-2">
+                  <label className="inline-flex cursor-pointer items-center gap-1.5 rounded-xl border border-border bg-surface px-3 py-2 text-xs font-semibold hover:bg-accent">
+                    <ImagePlus className="h-3.5 w-3.5" />
+                    {imagePreview ? t("menu.changePhoto") : t("menu.addPhoto")}
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={(e) => onImageSelect(e.target.files?.[0] ?? null)}
+                    />
+                  </label>
+                  {imagePreview && (
+                    <button
+                      type="button"
+                      onClick={removeImage}
+                      className="inline-flex items-center gap-1.5 text-xs font-semibold text-muted-foreground hover:text-destructive"
+                    >
+                      <X className="h-3.5 w-3.5" />
+                      {t("menu.removePhoto")}
+                    </button>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            <div className="space-y-2">
               <Label htmlFor="prod-desc">{t("menu.description")}</Label>
               <Textarea
                 id="prod-desc"
@@ -466,7 +555,7 @@ function MenuManagement() {
             <Button variant="outline" onClick={() => setProdDialogOpen(false)}>
               {t("menu.cancel")}
             </Button>
-            <Button onClick={saveProduct} disabled={savingProd || !prodForm.name.trim()}>
+            <Button onClick={saveProduct} disabled={savingProd || uploadingImage || !prodForm.name.trim()}>
               {t("menu.save")}
             </Button>
           </DialogFooter>
