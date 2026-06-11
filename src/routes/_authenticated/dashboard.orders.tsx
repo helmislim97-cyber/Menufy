@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
@@ -7,7 +7,7 @@ import { Logo } from "@/components/logo";
 import { LangSwitch } from "@/components/lang-switch";
 import { BottomNav } from "@/components/bottom-nav";
 import { Button } from "@/components/ui/button";
-import { Clock, StickyNote } from "lucide-react";
+import { Clock, StickyNote, ChefHat } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/dashboard/orders")({
   component: OrdersPage,
@@ -139,8 +139,18 @@ function OrdersPage() {
       </header>
 
       <main className="mx-auto max-w-3xl px-4 py-6">
-        <h1 className="text-2xl font-extrabold">{t("orders.title")}</h1>
-        <p className="mt-1 text-sm text-muted-foreground">{t("orders.subtitle")}</p>
+        <div className="flex items-start justify-between gap-3">
+          <div>
+            <h1 className="text-2xl font-extrabold">{t("orders.title")}</h1>
+            <p className="mt-1 text-sm text-muted-foreground">{t("orders.subtitle")}</p>
+          </div>
+          <Link to="/kitchen">
+            <Button size="sm" variant="outline" className="gap-1.5 shrink-0">
+              <ChefHat className="h-4 w-4" />
+              {t("kitchen.openKitchen")}
+            </Button>
+          </Link>
+        </div>
 
         {loading ? (
           <p className="mt-10 text-center text-sm text-muted-foreground">{t("menu.loading")}</p>

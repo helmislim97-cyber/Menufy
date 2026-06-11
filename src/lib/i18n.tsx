@@ -191,6 +191,13 @@ const fr: Dict = {
   "settings.tableDeleted": "Table supprimée",
   "settings.save": "Enregistrer",
   "settings.cancel": "Annuler",
+
+  "kitchen.title": "Cuisine",
+  "kitchen.subtitle": "Mode cuisine — appuyez pour faire avancer une commande.",
+  "kitchen.empty": "Aucune commande en attente.",
+  "kitchen.exit": "Quitter",
+  "kitchen.openKitchen": "Mode cuisine",
+  "kitchen.newOrder": "Nouvelle",
 };
 
 const ar: Dict = {
@@ -380,6 +387,13 @@ const ar: Dict = {
   "settings.tableDeleted": "تم حذف الطاولة",
   "settings.save": "حفظ",
   "settings.cancel": "إلغاء",
+
+  "kitchen.title": "المطبخ",
+  "kitchen.subtitle": "وضع المطبخ — اضغط لتمرير الطلب للمرحلة التالية.",
+  "kitchen.empty": "لا توجد طلبات في الانتظار.",
+  "kitchen.exit": "خروج",
+  "kitchen.openKitchen": "وضع المطبخ",
+  "kitchen.newOrder": "جديدة",
 };
 
 const dicts: Record<Locale, Dict> = { fr, ar };
