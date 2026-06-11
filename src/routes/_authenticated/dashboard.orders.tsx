@@ -129,6 +129,14 @@ function OrdersPage() {
   const activeOrders = orders.filter((o) => o.status === "pending" || o.status === "preparing" || o.status === "ready");
   const historyOrders = orders.filter((o) => o.status === "paid" || o.status === "cancelled");
 
+  const isToday = (iso: string) => {
+    const d = new Date(iso);
+    const now = new Date();
+    return d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth() && d.getDate() === now.getDate();
+  };
+  const todayPaidOrders = orders.filter((o) => o.status === "paid" && isToday(o.created_at));
+  const todayRevenue = todayPaidOrders.reduce((sum, o) => sum + Number(o.total), 0);
+
   return (
     <div className="min-h-screen bg-background pb-24">
       <header className="sticky top-0 z-30 border-b border-border/50 bg-background/85 backdrop-blur-xl">
@@ -169,6 +177,17 @@ function OrdersPage() {
           </div>
         ) : (
           <div className="mt-6 space-y-6">
+            <div className="grid grid-cols-2 gap-3">
+              <div className="rounded-2xl border border-border bg-surface p-4">
+                <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{t("orders.todayRevenue")}</p>
+                <p className="mt-1 text-2xl font-extrabold text-gold">{todayRevenue.toFixed(2)} DT</p>
+              </div>
+              <div className="rounded-2xl border border-border bg-surface p-4">
+                <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{t("orders.todayOrders")}</p>
+                <p className="mt-1 text-2xl font-extrabold">{todayPaidOrders.length}</p>
+              </div>
+            </div>
+
             {activeOrders.length > 0 && (
               <section>
                 <h2 className="mb-2 text-sm font-bold uppercase tracking-wider text-muted-foreground">

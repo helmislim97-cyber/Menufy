@@ -16,7 +16,7 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
-import { Plus, Trash2, QrCode, LogOut, ExternalLink, Download } from "lucide-react";
+import { Plus, Trash2, QrCode, LogOut, ExternalLink, Download, Pencil } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/dashboard/settings")({
@@ -26,6 +26,8 @@ export const Route = createFileRoute("/_authenticated/dashboard/settings")({
 interface Restaurant {
   id: string;
   name: string;
+  address: string | null;
+  phone: string | null;
 }
 
 interface RestaurantTable {
@@ -47,6 +49,12 @@ function SettingsPage() {
   const [adding, setAdding] = useState(false);
   const [qrTable, setQrTable] = useState<RestaurantTable | null>(null);
 
+  const [editOpen, setEditOpen] = useState(false);
+  const [editName, setEditName] = useState("");
+  const [editAddress, setEditAddress] = useState("");
+  const [editPhone, setEditPhone] = useState("");
+  const [savingRestaurant, setSavingRestaurant] = useState(false);
+
   const loadTables = async (restaurantId: string) => {
     const { data } = await supabase
       .from("tables")
@@ -60,7 +68,7 @@ function SettingsPage() {
     if (!user) return;
     supabase
       .from("restaurants")
-      .select("id, name")
+      .select("id, name, address, phone")
       .eq("owner_id", user.id)
       .maybeSingle()
       .then(async ({ data }) => {
@@ -103,6 +111,28 @@ function SettingsPage() {
     loadTables(restaurant.id);
   };
 
+  const openEditRestaurant = () => {
+    if (!restaurant) return;
+    setEditName(restaurant.name);
+    setEditAddress(restaurant.address ?? "");
+    setEditPhone(restaurant.phone ?? "");
+    setEditOpen(true);
+  };
+
+  const saveRestaurant = async () => {
+    if (!restaurant || !editName.trim()) return;
+    setSavingRestaurant(true);
+    const { error } = await supabase
+      .from("restaurants")
+      .update({ name: editName.trim(), address: editAddress.trim() || null, phone: editPhone.trim() || null })
+      .eq("id", restaurant.id);
+    setSavingRestaurant(false);
+    if (error) return toast.error(error.message);
+    setRestaurant({ ...restaurant, name: editName.trim(), address: editAddress.trim() || null, phone: editPhone.trim() || null });
+    toast.success(t("settings.restaurantUpdated"));
+    setEditOpen(false);
+  };
+
   const menuUrl = (tableNumber: number) =>
     `${window.location.origin}/menu/${restaurant?.id}/${tableNumber}`;
 
@@ -128,10 +158,24 @@ function SettingsPage() {
         ) : (
           <>
             <section className="mt-6 rounded-2xl border border-border bg-surface p-4">
-              <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                {t("settings.restaurant")}
-              </p>
-              <p className="mt-1 text-lg font-extrabold">{restaurant.name}</p>
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                    {t("settings.restaurant")}
+                  </p>
+                  <p className="mt-1 text-lg font-extrabold">{restaurant.name}</p>
+                  <p className="mt-1 text-sm text-muted-foreground">
+                    {restaurant.address || t("settings.noAddress")}
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    {restaurant.phone || t("settings.noPhone")}
+                  </p>
+                </div>
+                <Button size="sm" variant="outline" onClick={openEditRestaurant} className="shrink-0 gap-1.5">
+                  <Pencil className="h-3.5 w-3.5" />
+                  {t("settings.editRestaurant")}
+                </Button>
+              </div>
             </section>
 
             <section className="mt-6">
@@ -241,6 +285,32 @@ function SettingsPage() {
                 </a>
               </>
             )}
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={editOpen} onOpenChange={setEditOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{t("settings.editRestaurantTitle")}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            <div>
+              <label className="text-xs font-semibold text-muted-foreground">{t("settings.restaurantName")}</label>
+              <Input value={editName} onChange={(e) => setEditName(e.target.value)} className="mt-1" />
+            </div>
+            <div>
+              <label className="text-xs font-semibold text-muted-foreground">{t("settings.address")}</label>
+              <Input value={editAddress} onChange={(e) => setEditAddress(e.target.value)} placeholder={t("settings.addressPlaceholder")} className="mt-1" />
+            </div>
+            <div>
+              <label className="text-xs font-semibold text-muted-foreground">{t("settings.phone")}</label>
+              <Input value={editPhone} onChange={(e) => setEditPhone(e.target.value)} placeholder={t("settings.phonePlaceholder")} className="mt-1" />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditOpen(false)}>{t("settings.cancel")}</Button>
+            <Button onClick={saveRestaurant} disabled={savingRestaurant || !editName.trim()}>{t("settings.save")}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

@@ -252,6 +252,7 @@ function Header() {
 function PriceCard({ name, price, period, desc, features, highlight, badge }: {
   name: string; price: string; period?: string; desc: string; features: string[]; highlight?: boolean; badge?: string;
 }) {
+  const { t } = useI18n();
   return (
     <div className={`relative rounded-3xl border p-6 ${highlight ? "border-primary bg-surface shadow-glow" : "border-border bg-surface"}`}>
       {badge && (
@@ -278,8 +279,7 @@ function PriceCard({ name, price, period, desc, features, highlight, badge }: {
         search={{ mode: "register" }}
         className={`mt-6 inline-flex w-full items-center justify-center rounded-xl px-4 py-3 text-sm font-bold transition-transform hover:scale-[1.01] ${highlight ? "bg-gradient-brand text-primary-foreground" : "bg-accent text-foreground hover:bg-accent/80"}`}
       >
-        {/* pricing CTA shared label */}
-        Commencer
+        {t("pricing.cta")}
       </Link>
     </div>
   );

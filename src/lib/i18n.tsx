@@ -209,6 +209,20 @@ const fr: Dict = {
   "cashier.openCashier": "Mode caisse",
   "cashier.ordersCount": "commande(s)",
   "cashier.confirmPaid": "Marquer cette table comme payée ?",
+
+  "settings.editRestaurant": "Modifier",
+  "settings.editRestaurantTitle": "Modifier le restaurant",
+  "settings.restaurantName": "Nom",
+  "settings.address": "Adresse",
+  "settings.phone": "Téléphone",
+  "settings.addressPlaceholder": "Ex : Avenue Habib Bourguiba, Tunis",
+  "settings.phonePlaceholder": "Ex : +216 12 345 678",
+  "settings.restaurantUpdated": "Restaurant mis à jour ✅",
+  "settings.noAddress": "Adresse non renseignée",
+  "settings.noPhone": "Téléphone non renseigné",
+
+  "orders.todayRevenue": "Revenus aujourd'hui",
+  "orders.todayOrders": "Commandes payées",
 };
 
 const ar: Dict = {
@@ -416,6 +430,20 @@ const ar: Dict = {
   "cashier.openCashier": "وضع الصندوق",
   "cashier.ordersCount": "طلب(ات)",
   "cashier.confirmPaid": "تعليم هذه الطاولة كمدفوعة؟",
+
+  "settings.editRestaurant": "تعديل",
+  "settings.editRestaurantTitle": "تعديل المطعم",
+  "settings.restaurantName": "الاسم",
+  "settings.address": "العنوان",
+  "settings.phone": "الهاتف",
+  "settings.addressPlaceholder": "مثال: شارع الحبيب بورقيبة، تونس",
+  "settings.phonePlaceholder": "مثال: ٢١٦+ ١٢ ٣٤٥ ٦٧٨",
+  "settings.restaurantUpdated": "تم تحديث المطعم ✅",
+  "settings.noAddress": "العنوان غير محدد",
+  "settings.noPhone": "الهاتف غير محدد",
+
+  "orders.todayRevenue": "إيرادات اليوم",
+  "orders.todayOrders": "الطلبات المدفوعة",
 };
 
 const dicts: Record<Locale, Dict> = { fr, ar };
