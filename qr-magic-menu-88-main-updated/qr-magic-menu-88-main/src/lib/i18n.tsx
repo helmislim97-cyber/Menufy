@@ -1,0 +1,296 @@
+import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
+
+export type Locale = "fr" | "ar";
+
+type Dict = Record<string, string>;
+
+const fr: Dict = {
+  "nav.features": "Fonctionnalités",
+  "nav.pricing": "Tarifs",
+  "nav.howItWorks": "Comment ça marche",
+  "nav.login": "Connexion",
+  "nav.register": "Commencer",
+
+  "hero.badge": "Nouveau · Tunisie 🇹🇳",
+  "hero.title": "Votre restaurant, digitalisé en 48h",
+  "hero.subtitle": "Vos clients scannent un QR code, commandent depuis leur téléphone et vous recevez les commandes en cuisine en temps réel.",
+  "hero.cta": "Commencer gratuitement",
+  "hero.cta2": "Voir une démo",
+
+  "how.title": "Comment ça marche",
+  "how.subtitle": "Trois étapes, zéro friction",
+  "how.step1.title": "Scanner",
+  "how.step1.desc": "Le client scanne le QR code posé sur la table.",
+  "how.step2.title": "Commander",
+  "how.step2.desc": "Il parcourt votre menu et passe commande en quelques secondes.",
+  "how.step3.title": "Servir",
+  "how.step3.desc": "La cuisine reçoit la commande instantanément et la prépare.",
+
+  "features.title": "Tout ce qu'il vous faut",
+  "features.subtitle": "Une plateforme complète pour digitaliser votre restaurant",
+  "features.1.title": "Menu digital",
+  "features.1.desc": "Modifiez vos plats, prix et disponibilités en un clic.",
+  "features.2.title": "Cuisine temps réel",
+  "features.2.desc": "Les commandes arrivent instantanément sur l'écran cuisine.",
+  "features.3.title": "QR codes par table",
+  "features.3.desc": "Un QR unique par table, à imprimer en un clic.",
+  "features.4.title": "Caisse intégrée",
+  "features.4.desc": "Imprimez les additions et marquez les paiements.",
+  "features.5.title": "Bilingue AR/FR",
+  "features.5.desc": "Vos clients commandent dans leur langue.",
+  "features.6.title": "Mobile-first",
+  "features.6.desc": "Gérez votre restaurant depuis votre téléphone.",
+
+  "pricing.title": "Des tarifs simples",
+  "pricing.subtitle": "Choisissez le plan adapté à votre restaurant",
+  "pricing.free.name": "Gratuit",
+  "pricing.free.price": "0 DT",
+  "pricing.free.desc": "Pour tester Menufy",
+  "pricing.pro.name": "Pro",
+  "pricing.pro.price": "199 DT",
+  "pricing.pro.period": "/mois",
+  "pricing.pro.desc": "Pour les restaurants actifs",
+  "pricing.entr.name": "Entreprise",
+  "pricing.entr.price": "Sur devis",
+  "pricing.entr.desc": "Pour les chaînes",
+  "pricing.cta": "Commencer",
+  "pricing.popular": "Populaire",
+  "pricing.feat.tables": "tables",
+  "pricing.feat.unlimited": "Tables illimitées",
+  "pricing.feat.menu": "Menu illimité",
+  "pricing.feat.realtime": "Commandes temps réel",
+  "pricing.feat.qr": "QR codes imprimables",
+  "pricing.feat.support": "Support prioritaire",
+  "pricing.feat.multi": "Multi-restaurants",
+  "pricing.feat.api": "API personnalisée",
+
+  "cta.title": "Prêt à digitaliser votre restaurant ?",
+  "cta.subtitle": "Rejoignez les restaurateurs tunisiens qui modernisent leur service.",
+  "cta.button": "Commencer gratuitement",
+
+  "footer.tagline": "La solution QR menu pour les restaurants tunisiens.",
+  "footer.rights": "Tous droits réservés.",
+
+  "auth.login.title": "Bienvenue",
+  "auth.login.subtitle": "Connectez-vous à votre espace restaurant",
+  "auth.register.title": "Créer votre restaurant",
+  "auth.register.subtitle": "Lancez votre menu digital en quelques secondes",
+  "auth.email": "Email",
+  "auth.password": "Mot de passe",
+  "auth.fullName": "Votre nom",
+  "auth.restaurantName": "Nom du restaurant",
+  "auth.login.button": "Se connecter",
+  "auth.register.button": "Créer mon restaurant",
+  "auth.toRegister": "Pas encore de compte ?",
+  "auth.toLogin": "Déjà un compte ?",
+  "auth.signUp": "S'inscrire",
+  "auth.signIn": "Se connecter",
+
+  "nav.dashboard.home": "Accueil",
+  "nav.dashboard.orders": "Commandes",
+  "nav.dashboard.menu": "Menu",
+  "nav.dashboard.settings": "Réglages",
+
+  "menu.title": "Mon menu",
+  "menu.subtitle": "Gérez vos catégories et vos produits.",
+  "menu.addCategory": "Nouvelle catégorie",
+  "menu.addProduct": "Ajouter un produit",
+  "menu.editCategory": "Modifier la catégorie",
+  "menu.editProduct": "Modifier le produit",
+  "menu.categoryName": "Nom de la catégorie",
+  "menu.categoryNamePlaceholder": "Ex : Boissons",
+  "menu.noCategoriesYet": "Aucune catégorie pour le moment.",
+  "menu.noCategoriesHint": "Créez votre première catégorie pour commencer à ajouter des produits.",
+  "menu.noProducts": "Aucun produit dans cette catégorie.",
+  "menu.productName": "Nom du produit",
+  "menu.productNamePlaceholder": "Ex : Couscous",
+  "menu.description": "Description",
+  "menu.descriptionPlaceholder": "Optionnel",
+  "menu.price": "Prix (DT)",
+  "menu.emoji": "Émoji",
+  "menu.category": "Catégorie",
+  "menu.available": "Disponible",
+  "menu.unavailable": "Indisponible",
+  "menu.save": "Enregistrer",
+  "menu.cancel": "Annuler",
+  "menu.edit": "Modifier",
+  "menu.delete": "Supprimer",
+  "menu.uncategorized": "Sans catégorie",
+  "menu.categoryAdded": "Catégorie ajoutée ✅",
+  "menu.categoryUpdated": "Catégorie mise à jour ✅",
+  "menu.categoryDeleted": "Catégorie supprimée",
+  "menu.productAdded": "Produit ajouté ✅",
+  "menu.productUpdated": "Produit mis à jour ✅",
+  "menu.productDeleted": "Produit supprimé",
+  "menu.confirmDeleteCategory": "Supprimer cette catégorie et tous ses produits ?",
+  "menu.confirmDeleteProduct": "Supprimer ce produit ?",
+  "menu.loading": "Chargement…",
+  "menu.noRestaurant": "Aucun restaurant trouvé pour ce compte.",
+};
+
+const ar: Dict = {
+  "nav.features": "المميزات",
+  "nav.pricing": "الأسعار",
+  "nav.howItWorks": "كيف يعمل",
+  "nav.login": "تسجيل الدخول",
+  "nav.register": "ابدأ الآن",
+
+  "hero.badge": "جديد · تونس 🇹🇳",
+  "hero.title": "مطعمك رقمي في 48 ساعة",
+  "hero.subtitle": "زبائنك يمسحون رمز QR، يطلبون من هواتفهم، وتصل الطلبات للمطبخ مباشرة.",
+  "hero.cta": "ابدأ مجاناً",
+  "hero.cta2": "شاهد عرض",
+
+  "how.title": "كيف يعمل",
+  "how.subtitle": "ثلاث خطوات بسيطة",
+  "how.step1.title": "امسح",
+  "how.step1.desc": "الزبون يمسح رمز QR على الطاولة.",
+  "how.step2.title": "اطلب",
+  "how.step2.desc": "يتصفح القائمة ويطلب في ثوانٍ.",
+  "how.step3.title": "قدّم",
+  "how.step3.desc": "المطبخ يستلم الطلب فوراً ويحضّره.",
+
+  "features.title": "كل ما تحتاجه",
+  "features.subtitle": "منصة كاملة لرقمنة مطعمك",
+  "features.1.title": "قائمة رقمية",
+  "features.1.desc": "عدّل الأطباق والأسعار بنقرة.",
+  "features.2.title": "مطبخ فوري",
+  "features.2.desc": "الطلبات تصل مباشرة على شاشة المطبخ.",
+  "features.3.title": "رموز QR للطاولات",
+  "features.3.desc": "رمز فريد لكل طاولة، جاهز للطباعة.",
+  "features.4.title": "صندوق متكامل",
+  "features.4.desc": "اطبع الفواتير وسجّل الدفع.",
+  "features.5.title": "عربي/فرنسي",
+  "features.5.desc": "زبائنك يطلبون بلغتهم.",
+  "features.6.title": "هاتف أولاً",
+  "features.6.desc": "أدر مطعمك من هاتفك.",
+
+  "pricing.title": "أسعار بسيطة",
+  "pricing.subtitle": "اختر الخطة المناسبة لمطعمك",
+  "pricing.free.name": "مجاني",
+  "pricing.free.price": "0 د.ت",
+  "pricing.free.desc": "لتجربة Menufy",
+  "pricing.pro.name": "احترافي",
+  "pricing.pro.price": "199 د.ت",
+  "pricing.pro.period": "/شهر",
+  "pricing.pro.desc": "للمطاعم النشطة",
+  "pricing.entr.name": "مؤسسة",
+  "pricing.entr.price": "حسب الطلب",
+  "pricing.entr.desc": "للسلاسل",
+  "pricing.cta": "ابدأ",
+  "pricing.popular": "الأكثر طلباً",
+  "pricing.feat.tables": "طاولات",
+  "pricing.feat.unlimited": "طاولات غير محدودة",
+  "pricing.feat.menu": "قائمة غير محدودة",
+  "pricing.feat.realtime": "طلبات فورية",
+  "pricing.feat.qr": "رموز QR للطباعة",
+  "pricing.feat.support": "دعم أولوية",
+  "pricing.feat.multi": "عدة مطاعم",
+  "pricing.feat.api": "واجهة مخصصة",
+
+  "cta.title": "جاهز لرقمنة مطعمك؟",
+  "cta.subtitle": "انضم لأصحاب المطاعم التونسيين الذين يطوّرون خدمتهم.",
+  "cta.button": "ابدأ مجاناً",
+
+  "footer.tagline": "حل قائمة QR للمطاعم التونسية.",
+  "footer.rights": "جميع الحقوق محفوظة.",
+
+  "auth.login.title": "مرحباً",
+  "auth.login.subtitle": "ادخل إلى مساحة مطعمك",
+  "auth.register.title": "أنشئ مطعمك",
+  "auth.register.subtitle": "أطلق قائمتك الرقمية في ثوانٍ",
+  "auth.email": "البريد الإلكتروني",
+  "auth.password": "كلمة المرور",
+  "auth.fullName": "اسمك",
+  "auth.restaurantName": "اسم المطعم",
+  "auth.login.button": "تسجيل الدخول",
+  "auth.register.button": "أنشئ مطعمي",
+  "auth.toRegister": "ليس لديك حساب؟",
+  "auth.toLogin": "لديك حساب؟",
+  "auth.signUp": "سجّل",
+  "auth.signIn": "ادخل",
+
+  "nav.dashboard.home": "الرئيسية",
+  "nav.dashboard.orders": "الطلبات",
+  "nav.dashboard.menu": "القائمة",
+  "nav.dashboard.settings": "الإعدادات",
+
+  "menu.title": "قائمتي",
+  "menu.subtitle": "أدر فئاتك ومنتجاتك.",
+  "menu.addCategory": "فئة جديدة",
+  "menu.addProduct": "أضف منتج",
+  "menu.editCategory": "تعديل الفئة",
+  "menu.editProduct": "تعديل المنتج",
+  "menu.categoryName": "اسم الفئة",
+  "menu.categoryNamePlaceholder": "مثال: مشروبات",
+  "menu.noCategoriesYet": "لا توجد فئات بعد.",
+  "menu.noCategoriesHint": "أنشئ فئتك الأولى لتبدأ في إضافة المنتجات.",
+  "menu.noProducts": "لا توجد منتجات في هذه الفئة.",
+  "menu.productName": "اسم المنتج",
+  "menu.productNamePlaceholder": "مثال: كسكسي",
+  "menu.description": "الوصف",
+  "menu.descriptionPlaceholder": "اختياري",
+  "menu.price": "السعر (د.ت)",
+  "menu.emoji": "إيموجي",
+  "menu.category": "الفئة",
+  "menu.available": "متوفر",
+  "menu.unavailable": "غير متوفر",
+  "menu.save": "حفظ",
+  "menu.cancel": "إلغاء",
+  "menu.edit": "تعديل",
+  "menu.delete": "حذف",
+  "menu.uncategorized": "بدون فئة",
+  "menu.categoryAdded": "تمت إضافة الفئة ✅",
+  "menu.categoryUpdated": "تم تحديث الفئة ✅",
+  "menu.categoryDeleted": "تم حذف الفئة",
+  "menu.productAdded": "تمت إضافة المنتج ✅",
+  "menu.productUpdated": "تم تحديث المنتج ✅",
+  "menu.productDeleted": "تم حذف المنتج",
+  "menu.confirmDeleteCategory": "حذف هذه الفئة وكل منتجاتها؟",
+  "menu.confirmDeleteProduct": "حذف هذا المنتج؟",
+  "menu.loading": "جاري التحميل…",
+  "menu.noRestaurant": "لم يتم العثور على مطعم لهذا الحساب.",
+};
+
+const dicts: Record<Locale, Dict> = { fr, ar };
+
+interface I18nCtx {
+  locale: Locale;
+  dir: "ltr" | "rtl";
+  setLocale: (l: Locale) => void;
+  t: (key: string) => string;
+}
+
+const Ctx = createContext<I18nCtx | null>(null);
+
+export function I18nProvider({ children }: { children: ReactNode }) {
+  const [locale, setLocaleState] = useState<Locale>("fr");
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const saved = localStorage.getItem("menufy.locale") as Locale | null;
+    if (saved === "fr" || saved === "ar") setLocaleState(saved);
+  }, []);
+
+  useEffect(() => {
+    if (typeof document === "undefined") return;
+    document.documentElement.lang = locale;
+    document.documentElement.dir = locale === "ar" ? "rtl" : "ltr";
+  }, [locale]);
+
+  const setLocale = (l: Locale) => {
+    setLocaleState(l);
+    if (typeof window !== "undefined") localStorage.setItem("menufy.locale", l);
+  };
+
+  const t = (key: string) => dicts[locale][key] ?? key;
+  const dir = locale === "ar" ? "rtl" : "ltr";
+
+  return <Ctx.Provider value={{ locale, dir, setLocale, t }}>{children}</Ctx.Provider>;
+}
+
+export function useI18n() {
+  const ctx = useContext(Ctx);
+  if (!ctx) throw new Error("useI18n must be inside I18nProvider");
+  return ctx;
+}
