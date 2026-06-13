@@ -285,6 +285,7 @@ function MenuPage() {
         address={restaurant.address}
         phone={restaurant.phone}
         description={restaurant.description}
+        wifi={restaurant.wifi}
         categories={categoryCards}
         onSelect={(id) => {
           setActiveCategory(id);
