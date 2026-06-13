@@ -234,6 +234,9 @@ const fr: Dict = {
   "client.noResults": "Aucun résultat pour cette recherche.",
   "client.orderNow": "Commander",
   "client.followUs": "Suivez-nous",
+  "settings.description": "Description",
+  "settings.descriptionPlaceholder": "Ex : Cuisine tunisienne traditionnelle, ouvert 7j/7…",
+  "client.info": "Informations",
 
   "settings.logo": "Logo",
   "settings.facebook": "Facebook",
@@ -471,6 +474,9 @@ const ar: Dict = {
   "client.noResults": "لا توجد نتائج لهذا البحث.",
   "client.orderNow": "اطلب الآن",
   "client.followUs": "تابعونا",
+  "settings.description": "الوصف",
+  "settings.descriptionPlaceholder": "مثال: مطبخ تونسي أصيل، مفتوح كل أيام الأسبوع…",
+  "client.info": "معلومات",
 
   "settings.logo": "الشعار",
   "settings.facebook": "فيسبوك",

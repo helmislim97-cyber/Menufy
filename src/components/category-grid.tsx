@@ -1,4 +1,4 @@
-import { ArrowLeft, Facebook, Instagram } from "lucide-react";
+import { ArrowLeft, Facebook, Instagram, MapPin, Phone } from "lucide-react";
 import { LangSwitch } from "@/components/lang-switch";
 import { useI18n } from "@/lib/i18n";
 
@@ -13,14 +13,18 @@ interface CategoryGridProps {
   logoUrl: string | null;
   facebookUrl: string | null;
   instagramUrl: string | null;
+  address: string | null;
+  phone: string | null;
+  description: string | null;
   categories: CategoryCard[];
   onSelect: (id: string) => void;
   onBack: () => void;
 }
 
-export function CategoryGrid({ name, logoUrl, facebookUrl, instagramUrl, categories, onSelect, onBack }: CategoryGridProps) {
+export function CategoryGrid({ name, logoUrl, facebookUrl, instagramUrl, address, phone, description, categories, onSelect, onBack }: CategoryGridProps) {
   const { t } = useI18n();
   const hasSocial = !!(facebookUrl || instagramUrl);
+  const hasInfo = !!(description || address || phone);
 
   return (
     <div className="min-h-screen animate-fade-in bg-[#f3efe4] px-5 py-4 text-[#1c1f16]">
@@ -49,8 +53,27 @@ export function CategoryGrid({ name, logoUrl, facebookUrl, instagramUrl, categor
         ))}
       </div>
 
+      {hasInfo && (
+        <div className="mt-8 rounded-2xl border border-[#1c1f16]/15 bg-white/50 px-5 py-4 space-y-3">
+          <p className="text-xs font-bold uppercase tracking-[0.25em] text-[#1c1f16]/50">{t("client.info")}</p>
+          {description && <p className="text-sm leading-relaxed text-[#1c1f16]/80">{description}</p>}
+          {address && (
+            <div className="flex items-start gap-2">
+              <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-[#1c1f16]/40" />
+              <p className="text-sm text-[#1c1f16]/70">{address}</p>
+            </div>
+          )}
+          {phone && (
+            <div className="flex items-center gap-2">
+              <Phone className="h-4 w-4 shrink-0 text-[#1c1f16]/40" />
+              <a href={`tel:${phone}`} className="text-sm text-[#1c1f16]/70">{phone}</a>
+            </div>
+          )}
+        </div>
+      )}
+
       {hasSocial && (
-        <div className="mt-8 flex flex-col items-center gap-3 pb-8">
+        <div className="mt-6 flex flex-col items-center gap-3 pb-8">
           <p className="text-xs font-bold uppercase tracking-[0.3em] text-[#1c1f16]/50">{t("client.followUs")}</p>
           <div className="flex gap-4">
             {facebookUrl && <a href={facebookUrl} target="_blank" rel="noreferrer" className="grid h-10 w-10 place-items-center rounded-full border border-[#1c1f16]/25" aria-label="Facebook"><Facebook className="h-4 w-4" /></a>}

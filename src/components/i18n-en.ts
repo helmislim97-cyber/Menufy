@@ -226,6 +226,9 @@ export const en: Record<string, string> = {
   "client.noResults": "No results for this search.",
   "client.orderNow": "Order now",
   "client.followUs": "Follow us",
+  "settings.description": "Description",
+  "settings.descriptionPlaceholder": "E.g. Traditional Tunisian cuisine, open 7 days a week…",
+  "client.info": "Information",
 
   "settings.logo": "Logo",
   "settings.facebook": "Facebook",

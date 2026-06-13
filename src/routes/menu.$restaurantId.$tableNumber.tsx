@@ -34,6 +34,9 @@ interface Restaurant {
   logo_url: string | null;
   facebook_url: string | null;
   instagram_url: string | null;
+  address: string | null;
+  phone: string | null;
+  description: string | null;
 }
 
 interface Category {
@@ -82,7 +85,7 @@ function MenuPage() {
     async function load() {
       const { data: rest } = await supabase
         .from("restaurants")
-        .select("id, name, logo_url, facebook_url, instagram_url")
+        .select("id, name, logo_url, facebook_url, instagram_url, address, phone, description")
         .eq("id", restaurantId)
         .eq("is_active", true)
         .maybeSingle();
@@ -278,6 +281,9 @@ function MenuPage() {
         logoUrl={restaurant.logo_url}
         facebookUrl={restaurant.facebook_url}
         instagramUrl={restaurant.instagram_url}
+        address={restaurant.address}
+        phone={restaurant.phone}
+        description={restaurant.description}
         categories={categoryCards}
         onSelect={(id) => {
           setActiveCategory(id);
