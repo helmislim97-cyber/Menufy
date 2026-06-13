@@ -4,6 +4,7 @@ import { ChevronDown } from "lucide-react";
 export const LANGUAGES: { code: Locale; label: string; flag: string }[] = [
   { code: "fr", label: "Français", flag: "🇫🇷" },
   { code: "ar", label: "العربية", flag: "🇹🇳" },
+  { code: "en", label: "English", flag: "🇬🇧" },
 ];
 
 export function LangSwitch({ className = "", variant = "default" }: { className?: string; variant?: "default" | "light" }) {
