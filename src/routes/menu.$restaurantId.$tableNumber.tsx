@@ -15,7 +15,8 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { RestaurantCover } from "@/components/restaurant-cover";
-import { ShoppingCart, Plus, Minus, CheckCircle2, Search } from "lucide-react";
+import { CategoryGrid } from "@/components/category-grid";
+import { ShoppingCart, Plus, Minus, CheckCircle2, Search, ArrowLeft } from "lucide-react";
 
 export const Route = createFileRoute("/menu/$restaurantId/$tableNumber")({
   head: () => ({
@@ -67,6 +68,7 @@ function MenuPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [showCover, setShowCover] = useState(true);
   const [coverLeaving, setCoverLeaving] = useState(false);
+  const [showCategories, setShowCategories] = useState(true);
 
   const [cart, setCart] = useState<Record<string, number>>({});
   const [cartOpen, setCartOpen] = useState(false);
@@ -135,6 +137,15 @@ function MenuPage() {
     }
     return cats;
   }, [categories, products, t]);
+
+  const categoryCards = useMemo(() => {
+    return visibleCategories.map((c) => {
+      const match = products.find(
+        (p) => (c.id === UNCATEGORIZED ? p.category_id === null : p.category_id === c.id) && p.image_url,
+      );
+      return { id: c.id, name: c.name, imageUrl: match?.image_url ?? null };
+    });
+  }, [visibleCategories, products]);
 
   const activeProducts = useMemo(() => {
     if (searchQuery.trim()) {
@@ -260,6 +271,23 @@ function MenuPage() {
     );
   }
 
+  if (showCategories && categoryCards.length > 0) {
+    return (
+      <CategoryGrid
+        name={restaurant.name}
+        logoUrl={restaurant.logo_url}
+        facebookUrl={restaurant.facebook_url}
+        instagramUrl={restaurant.instagram_url}
+        categories={categoryCards}
+        onSelect={(id) => {
+          setActiveCategory(id);
+          setShowCategories(false);
+        }}
+        onBack={() => setShowCover(true)}
+      />
+    );
+  }
+
   if (placedOrder) {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center bg-background px-6 text-center">
@@ -289,7 +317,13 @@ function MenuPage() {
     <div className="min-h-screen animate-fade-in bg-background pb-28">
       <header className="sticky top-0 z-30 border-b border-border/50 bg-background/85 backdrop-blur-xl">
         <div className="mx-auto flex max-w-md items-center justify-between px-4 py-3">
-          <Logo size="sm" />
+          <button
+            onClick={() => setShowCategories(true)}
+            className="grid h-9 w-9 place-items-center rounded-full border border-border text-muted-foreground hover:bg-accent"
+            aria-label="Back"
+          >
+            <ArrowLeft className="h-4 w-4" />
+          </button>
           <LangSwitch />
         </div>
         <div className="mx-auto max-w-md px-4 pb-3">

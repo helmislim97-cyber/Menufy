@@ -225,6 +225,7 @@ export const en: Record<string, string> = {
   "client.searchPlaceholder": "Search for a dish...",
   "client.noResults": "No results for this search.",
   "client.orderNow": "Order now",
+  "client.followUs": "Follow us",
 
   "settings.logo": "Logo",
   "settings.facebook": "Facebook",

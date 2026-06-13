@@ -233,6 +233,7 @@ const fr: Dict = {
   "client.searchPlaceholder": "Rechercher un plat...",
   "client.noResults": "Aucun résultat pour cette recherche.",
   "client.orderNow": "Commander",
+  "client.followUs": "Suivez-nous",
 
   "settings.logo": "Logo",
   "settings.facebook": "Facebook",
@@ -469,6 +470,7 @@ const ar: Dict = {
   "client.searchPlaceholder": "ابحث عن طبق...",
   "client.noResults": "لا توجد نتائج لهذا البحث.",
   "client.orderNow": "اطلب الآن",
+  "client.followUs": "تابعونا",
 
   "settings.logo": "الشعار",
   "settings.facebook": "فيسبوك",
