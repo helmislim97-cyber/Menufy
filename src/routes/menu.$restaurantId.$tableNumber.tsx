@@ -66,6 +66,7 @@ function MenuPage() {
   const [activeCategory, setActiveCategory] = useState<string>("");
   const [searchQuery, setSearchQuery] = useState("");
   const [showCover, setShowCover] = useState(true);
+  const [coverLeaving, setCoverLeaving] = useState(false);
 
   const [cart, setCart] = useState<Record<string, number>>({});
   const [cartOpen, setCartOpen] = useState(false);
@@ -250,7 +251,11 @@ function MenuPage() {
         facebookUrl={restaurant.facebook_url}
         instagramUrl={restaurant.instagram_url}
         tableNumber={tableNumber}
-        onOrder={() => setShowCover(false)}
+        leaving={coverLeaving}
+        onOrder={() => {
+          setCoverLeaving(true);
+          setTimeout(() => setShowCover(false), 250);
+        }}
       />
     );
   }
@@ -281,7 +286,7 @@ function MenuPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background pb-28">
+    <div className="min-h-screen animate-fade-in bg-background pb-28">
       <header className="sticky top-0 z-30 border-b border-border/50 bg-background/85 backdrop-blur-xl">
         <div className="mx-auto flex max-w-md items-center justify-between px-4 py-3">
           <Logo size="sm" />
