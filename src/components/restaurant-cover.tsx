@@ -8,15 +8,16 @@ interface RestaurantCoverProps {
   facebookUrl: string | null;
   instagramUrl: string | null;
   tableNumber: string;
+  leaving?: boolean;
   onOrder: () => void;
 }
 
-export function RestaurantCover({ name, logoUrl, facebookUrl, instagramUrl, tableNumber, onOrder }: RestaurantCoverProps) {
+export function RestaurantCover({ name, logoUrl, facebookUrl, instagramUrl, tableNumber, leaving, onOrder }: RestaurantCoverProps) {
   const { t } = useI18n();
   const hasSocial = !!(facebookUrl || instagramUrl);
 
   return (
-    <div className="relative flex h-[100dvh] flex-col items-center justify-between overflow-hidden bg-[#f3efe4] px-6 py-4 text-[#1c1f16]">
+    <div className={`relative flex h-[100dvh] flex-col items-center justify-between overflow-hidden bg-[#f3efe4] px-6 py-4 text-[#1c1f16] transition-opacity duration-300 ease-out ${leaving ? "opacity-0" : "opacity-100"}`}>
       <div className="absolute right-4 top-4 z-10">
         <LangSwitch variant="light" />
       </div>
@@ -50,7 +51,11 @@ export function RestaurantCover({ name, logoUrl, facebookUrl, instagramUrl, tabl
         <p className="mb-2 text-center text-xs font-bold uppercase tracking-[0.3em] text-[#1c1f16]/50">
           {t("client.table")} {tableNumber}
         </p>
-        <button onClick={onOrder} className="w-full rounded-2xl bg-[#1c1f16] py-3.5 text-base font-extrabold uppercase tracking-widest text-[#f3efe4] transition-transform active:scale-[0.98]">
+        <button
+          onClick={onOrder}
+          disabled={leaving}
+          className="w-full rounded-2xl bg-[#1c1f16] py-3.5 text-base font-extrabold uppercase tracking-widest text-[#f3efe4] transition-transform active:scale-[0.98]"
+        >
           {t("client.orderNow")}
         </button>
       </div>
