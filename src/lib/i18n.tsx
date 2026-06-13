@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
+import { en } from "../components/i18n-en";
 
-export type Locale = "fr" | "ar";
+export type Locale = "fr" | "ar" | "en";
 
 type Dict = Record<string, string>;
 
