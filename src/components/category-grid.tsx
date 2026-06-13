@@ -1,4 +1,4 @@
-import { ArrowLeft, Facebook, Instagram, MapPin, Phone } from "lucide-react";
+import { ArrowLeft, Facebook, Instagram, MapPin, Phone, Info, Wifi } from "lucide-react";
 import { LangSwitch } from "@/components/lang-switch";
 import { useI18n } from "@/lib/i18n";
 
@@ -16,15 +16,15 @@ interface CategoryGridProps {
   address: string | null;
   phone: string | null;
   description: string | null;
+  wifi: string | null;
   categories: CategoryCard[];
   onSelect: (id: string) => void;
   onBack: () => void;
 }
 
-export function CategoryGrid({ name, logoUrl, facebookUrl, instagramUrl, address, phone, description, categories, onSelect, onBack }: CategoryGridProps) {
+export function CategoryGrid({ name, logoUrl, facebookUrl, instagramUrl, address, phone, description, wifi, categories, onSelect, onBack }: CategoryGridProps) {
   const { t } = useI18n();
   const hasSocial = !!(facebookUrl || instagramUrl);
-  const hasInfo = !!(description || address || phone);
 
   return (
     <div className="min-h-screen animate-fade-in bg-[#f3efe4] px-5 py-4 text-[#1c1f16]">
@@ -53,24 +53,47 @@ export function CategoryGrid({ name, logoUrl, facebookUrl, instagramUrl, address
         ))}
       </div>
 
-      {hasInfo && (
-        <div className="mt-8 rounded-2xl border border-[#1c1f16]/15 bg-white/50 px-5 py-4 space-y-3">
-          <p className="text-xs font-bold uppercase tracking-[0.25em] text-[#1c1f16]/50">{t("client.info")}</p>
-          {description && <p className="text-sm leading-relaxed text-[#1c1f16]/80">{description}</p>}
-          {address && (
-            <div className="flex items-start gap-2">
-              <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-[#1c1f16]/40" />
-              <p className="text-sm text-[#1c1f16]/70">{address}</p>
+      <div className="mt-8 space-y-3">
+        {description && (
+          <div className="flex items-start gap-3 rounded-2xl bg-white/60 px-4 py-4 border border-[#1c1f16]/10">
+            <Info className="mt-0.5 h-5 w-5 shrink-0 text-[#1c1f16]/40" />
+            <div>
+              <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#1c1f16]/40">{t("client.info")}</p>
+              <p className="mt-1 text-sm leading-relaxed text-[#1c1f16]/80">{description}</p>
             </div>
-          )}
-          {phone && (
-            <div className="flex items-center gap-2">
-              <Phone className="h-4 w-4 shrink-0 text-[#1c1f16]/40" />
-              <a href={`tel:${phone}`} className="text-sm text-[#1c1f16]/70">{phone}</a>
+          </div>
+        )}
+
+        {address && (
+          <div className="flex items-start gap-3 rounded-2xl bg-white/60 px-4 py-4 border border-[#1c1f16]/10">
+            <MapPin className="mt-0.5 h-5 w-5 shrink-0 text-[#1c1f16]/40" />
+            <div>
+              <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#1c1f16]/40">{t("client.address")}</p>
+              <p className="mt-1 text-sm text-[#1c1f16]/80">{address}</p>
             </div>
-          )}
-        </div>
-      )}
+          </div>
+        )}
+
+        {phone && (
+          <div className="flex items-start gap-3 rounded-2xl bg-white/60 px-4 py-4 border border-[#1c1f16]/10">
+            <Phone className="mt-0.5 h-5 w-5 shrink-0 text-[#1c1f16]/40" />
+            <div>
+              <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#1c1f16]/40">{t("client.reservation")}</p>
+              <a href={`tel:${phone}`} className="mt-1 block text-sm text-[#1c1f16]/80">{phone}</a>
+            </div>
+          </div>
+        )}
+
+        {wifi && (
+          <div className="flex items-start gap-3 rounded-2xl bg-white/60 px-4 py-4 border border-[#1c1f16]/10">
+            <Wifi className="mt-0.5 h-5 w-5 shrink-0 text-[#1c1f16]/40" />
+            <div>
+              <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#1c1f16]/40">{t("client.wifi")}</p>
+              <p className="mt-1 text-sm font-mono tracking-wide text-[#1c1f16]/80">{wifi}</p>
+            </div>
+          </div>
+        )}
+      </div>
 
       {hasSocial && (
         <div className="mt-6 flex flex-col items-center gap-3 pb-8">

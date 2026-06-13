@@ -32,6 +32,7 @@ interface Restaurant {
   facebook_url: string | null;
   instagram_url: string | null;
   description: string | null;
+  wifi: string | null;
 }
 
 interface RestaurantTable {
@@ -61,6 +62,7 @@ function SettingsPage() {
   const [editFacebook, setEditFacebook] = useState("");
   const [editInstagram, setEditInstagram] = useState("");
   const [editDescription, setEditDescription] = useState("");
+  const [editWifi, setEditWifi] = useState("");
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
   const [logoUrl, setLogoUrl] = useState<string | null>(null);
@@ -79,7 +81,7 @@ function SettingsPage() {
     if (!user) return;
     supabase
       .from("restaurants")
-      .select("id, name, address, phone, logo_url, facebook_url, instagram_url, description")
+      .select("id, name, address, phone, logo_url, facebook_url, instagram_url, description, wifi")
       .eq("owner_id", user.id)
       .maybeSingle()
       .then(async ({ data }) => {
@@ -130,6 +132,7 @@ function SettingsPage() {
     setEditFacebook(restaurant.facebook_url ?? "");
     setEditInstagram(restaurant.instagram_url ?? "");
     setEditDescription(restaurant.description ?? "");
+    setEditWifi(restaurant.wifi ?? "");
     setLogoFile(null);
     setLogoPreview(restaurant.logo_url);
     setLogoUrl(restaurant.logo_url);
@@ -185,6 +188,7 @@ function SettingsPage() {
       instagram_url: editInstagram.trim() || null,
       logo_url: finalLogoUrl,
       description: editDescription.trim() || null,
+      wifi: editWifi.trim() || null,
     };
     const { error } = await supabase.from("restaurants").update(updates).eq("id", restaurant.id);
     setSavingRestaurant(false);
@@ -420,6 +424,10 @@ function SettingsPage() {
             <div>
               <label className="text-xs font-semibold text-muted-foreground">{t("settings.description")}</label>
               <textarea value={editDescription} onChange={(e) => setEditDescription(e.target.value)} placeholder={t("settings.descriptionPlaceholder")} rows={3} className="mt-1 w-full rounded-xl border border-border bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50" />
+            </div>
+            <div>
+              <label className="text-xs font-semibold text-muted-foreground">{t("settings.wifi")}</label>
+              <Input value={editWifi} onChange={(e) => setEditWifi(e.target.value)} placeholder={t("settings.wifiPlaceholder")} className="mt-1" />
             </div>
           </div>
           <DialogFooter>

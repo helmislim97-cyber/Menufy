@@ -37,6 +37,7 @@ interface Restaurant {
   address: string | null;
   phone: string | null;
   description: string | null;
+  wifi: string | null;
 }
 
 interface Category {
@@ -85,7 +86,7 @@ function MenuPage() {
     async function load() {
       const { data: rest } = await supabase
         .from("restaurants")
-        .select("id, name, logo_url, facebook_url, instagram_url, address, phone, description")
+        .select("id, name, logo_url, facebook_url, instagram_url, address, phone, description, wifi")
         .eq("id", restaurantId)
         .eq("is_active", true)
         .maybeSingle();

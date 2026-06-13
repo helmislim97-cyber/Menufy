@@ -229,6 +229,11 @@ export const en: Record<string, string> = {
   "settings.description": "Description",
   "settings.descriptionPlaceholder": "E.g. Traditional Tunisian cuisine, open 7 days a week…",
   "client.info": "Information",
+  "client.address": "Address",
+  "client.reservation": "Reservations",
+  "client.wifi": "Wi-Fi",
+  "settings.wifi": "Wi-Fi password",
+  "settings.wifiPlaceholder": "E.g. MyRestaurant2024",
 
   "settings.logo": "Logo",
   "settings.facebook": "Facebook",
