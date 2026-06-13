@@ -283,7 +283,7 @@ function MenuPage() {
           setActiveCategory(id);
           setShowCategories(false);
         }}
-        onBack={() => setShowCover(true)}
+        onBack={() => { setCoverLeaving(false); setShowCover(true); }}
       />
     );
   }
