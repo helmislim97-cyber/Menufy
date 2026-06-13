@@ -476,7 +476,7 @@ const ar: Dict = {
   "settings.instagramPlaceholder": "https://instagram.com/youraccount",
 };
 
-const dicts: Record<Locale, Dict> = { fr, ar };
+const dicts: Record<Locale, Dict> = { fr, ar, en };
 
 interface I18nCtx {
   locale: Locale;
@@ -493,7 +493,7 @@ export function I18nProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (typeof window === "undefined") return;
     const saved = localStorage.getItem("menufy.locale") as Locale | null;
-    if (saved === "fr" || saved === "ar") setLocaleState(saved);
+    if (saved === "fr" || saved === "ar" || saved === "en") setLocaleState(saved);
   }, []);
 
   useEffect(() => {
