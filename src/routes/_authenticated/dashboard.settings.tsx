@@ -31,7 +31,8 @@ interface Restaurant {
   logo_url: string | null;
   facebook_url: string | null;
   instagram_url: string | null;
-  description: string | null;
+  description: string | null
+          wifi: string | null;
   wifi: string | null;
 }
 
@@ -193,7 +194,7 @@ function SettingsPage() {
     const { error } = await supabase.from("restaurants").update(updates).eq("id", restaurant.id);
     setSavingRestaurant(false);
     if (error) return toast.error(error.message);
-    setRestaurant({ ...restaurant, ...updates });
+    setRestaurant({ ...restaurant, ...updates, wifi: editWifi.trim() || null });
     toast.success(t("settings.restaurantUpdated"));
     setEditOpen(false);
   };
