@@ -14,6 +14,7 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { RestaurantCover } from "@/components/restaurant-cover";
 import { ShoppingCart, Plus, Minus, CheckCircle2, Search } from "lucide-react";
 
 export const Route = createFileRoute("/menu/$restaurantId/$tableNumber")({
@@ -29,6 +30,9 @@ export const Route = createFileRoute("/menu/$restaurantId/$tableNumber")({
 interface Restaurant {
   id: string;
   name: string;
+  logo_url: string | null;
+  facebook_url: string | null;
+  instagram_url: string | null;
 }
 
 interface Category {
@@ -61,6 +65,7 @@ function MenuPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [activeCategory, setActiveCategory] = useState<string>("");
   const [searchQuery, setSearchQuery] = useState("");
+  const [showCover, setShowCover] = useState(true);
 
   const [cart, setCart] = useState<Record<string, number>>({});
   const [cartOpen, setCartOpen] = useState(false);
@@ -74,7 +79,7 @@ function MenuPage() {
     async function load() {
       const { data: rest } = await supabase
         .from("restaurants")
-        .select("id, name")
+        .select("id, name, logo_url, facebook_url, instagram_url")
         .eq("id", restaurantId)
         .eq("is_active", true)
         .maybeSingle();
@@ -234,6 +239,19 @@ function MenuPage() {
           <p className="mt-2 text-sm text-muted-foreground">{t("client.notFound.subtitle")}</p>
         </main>
       </div>
+    );
+  }
+
+  if (showCover) {
+    return (
+      <RestaurantCover
+        name={restaurant.name}
+        logoUrl={restaurant.logo_url}
+        facebookUrl={restaurant.facebook_url}
+        instagramUrl={restaurant.instagram_url}
+        tableNumber={tableNumber}
+        onOrder={() => setShowCover(false)}
+      />
     );
   }
 

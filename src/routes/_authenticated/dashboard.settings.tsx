@@ -16,7 +16,7 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
-import { Plus, Trash2, QrCode, LogOut, ExternalLink, Download, Pencil } from "lucide-react";
+import { Plus, Trash2, QrCode, LogOut, ExternalLink, Download, Pencil, ImagePlus, X } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/dashboard/settings")({
@@ -28,6 +28,9 @@ interface Restaurant {
   name: string;
   address: string | null;
   phone: string | null;
+  logo_url: string | null;
+  facebook_url: string | null;
+  instagram_url: string | null;
 }
 
 interface RestaurantTable {
@@ -54,6 +57,12 @@ function SettingsPage() {
   const [editAddress, setEditAddress] = useState("");
   const [editPhone, setEditPhone] = useState("");
   const [savingRestaurant, setSavingRestaurant] = useState(false);
+  const [editFacebook, setEditFacebook] = useState("");
+  const [editInstagram, setEditInstagram] = useState("");
+  const [logoFile, setLogoFile] = useState<File | null>(null);
+  const [logoPreview, setLogoPreview] = useState<string | null>(null);
+  const [logoUrl, setLogoUrl] = useState<string | null>(null);
+  const [uploadingLogo, setUploadingLogo] = useState(false);
 
   const loadTables = async (restaurantId: string) => {
     const { data } = await supabase
@@ -68,7 +77,7 @@ function SettingsPage() {
     if (!user) return;
     supabase
       .from("restaurants")
-      .select("id, name, address, phone")
+      .select("id, name, address, phone, logo_url, facebook_url, instagram_url")
       .eq("owner_id", user.id)
       .maybeSingle()
       .then(async ({ data }) => {
@@ -116,19 +125,67 @@ function SettingsPage() {
     setEditName(restaurant.name);
     setEditAddress(restaurant.address ?? "");
     setEditPhone(restaurant.phone ?? "");
+    setEditFacebook(restaurant.facebook_url ?? "");
+    setEditInstagram(restaurant.instagram_url ?? "");
+    setLogoFile(null);
+    setLogoPreview(restaurant.logo_url);
+    setLogoUrl(restaurant.logo_url);
     setEditOpen(true);
+  };
+
+  const uploadRestaurantLogo = async (file: File): Promise<string | null> => {
+    if (!restaurant) return null;
+    const ext = file.name.split(".").pop();
+    const path = `${restaurant.id}/${crypto.randomUUID()}.${ext}`;
+    const { error } = await supabase.storage.from("restaurant-logos").upload(path, file, { upsert: true });
+    if (error) {
+      toast.error(error.message);
+      return null;
+    }
+    const { data } = supabase.storage.from("restaurant-logos").getPublicUrl(path);
+    return data.publicUrl;
+  };
+
+  const onLogoSelect = (file: File | null) => {
+    if (!file) return;
+    setLogoFile(file);
+    setLogoPreview(URL.createObjectURL(file));
+  };
+
+  const removeLogo = () => {
+    setLogoFile(null);
+    setLogoPreview(null);
+    setLogoUrl(null);
   };
 
   const saveRestaurant = async () => {
     if (!restaurant || !editName.trim()) return;
     setSavingRestaurant(true);
-    const { error } = await supabase
-      .from("restaurants")
-      .update({ name: editName.trim(), address: editAddress.trim() || null, phone: editPhone.trim() || null })
-      .eq("id", restaurant.id);
+
+    let finalLogoUrl = logoUrl;
+    if (logoFile) {
+      setUploadingLogo(true);
+      const uploaded = await uploadRestaurantLogo(logoFile);
+      setUploadingLogo(false);
+      if (!uploaded) {
+        setSavingRestaurant(false);
+        return;
+      }
+      finalLogoUrl = uploaded;
+    }
+
+    const updates = {
+      name: editName.trim(),
+      address: editAddress.trim() || null,
+      phone: editPhone.trim() || null,
+      facebook_url: editFacebook.trim() || null,
+      instagram_url: editInstagram.trim() || null,
+      logo_url: finalLogoUrl,
+    };
+    const { error } = await supabase.from("restaurants").update(updates).eq("id", restaurant.id);
     setSavingRestaurant(false);
     if (error) return toast.error(error.message);
-    setRestaurant({ ...restaurant, name: editName.trim(), address: editAddress.trim() || null, phone: editPhone.trim() || null });
+    setRestaurant({ ...restaurant, ...updates });
     toast.success(t("settings.restaurantUpdated"));
     setEditOpen(false);
   };
@@ -159,17 +216,24 @@ function SettingsPage() {
           <>
             <section className="mt-6 rounded-2xl border border-border bg-surface p-4">
               <div className="flex items-start justify-between gap-3">
-                <div>
-                  <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                    {t("settings.restaurant")}
-                  </p>
-                  <p className="mt-1 text-lg font-extrabold">{restaurant.name}</p>
-                  <p className="mt-1 text-sm text-muted-foreground">
-                    {restaurant.address || t("settings.noAddress")}
-                  </p>
-                  <p className="text-sm text-muted-foreground">
-                    {restaurant.phone || t("settings.noPhone")}
-                  </p>
+                <div className="flex items-start gap-3">
+                  {restaurant.logo_url && (
+                    <div className="grid h-14 w-14 shrink-0 place-items-center overflow-hidden rounded-xl border border-border bg-background">
+                      <img src={restaurant.logo_url} alt={restaurant.name} className="h-full w-full object-contain" />
+                    </div>
+                  )}
+                  <div>
+                    <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                      {t("settings.restaurant")}
+                    </p>
+                    <p className="mt-1 text-lg font-extrabold">{restaurant.name}</p>
+                    <p className="mt-1 text-sm text-muted-foreground">
+                      {restaurant.address || t("settings.noAddress")}
+                    </p>
+                    <p className="text-sm text-muted-foreground">
+                      {restaurant.phone || t("settings.noPhone")}
+                    </p>
+                  </div>
                 </div>
                 <Button size="sm" variant="outline" onClick={openEditRestaurant} className="shrink-0 gap-1.5">
                   <Pencil className="h-3.5 w-3.5" />
@@ -296,6 +360,40 @@ function SettingsPage() {
           </DialogHeader>
           <div className="space-y-3">
             <div>
+              <label className="text-xs font-semibold text-muted-foreground">{t("settings.logo")}</label>
+              <div className="mt-1 flex items-center gap-3">
+                <div className="grid h-16 w-16 shrink-0 place-items-center overflow-hidden rounded-xl border border-border bg-background">
+                  {logoPreview ? (
+                    <img src={logoPreview} alt="" className="h-full w-full object-contain" />
+                  ) : (
+                    <ImagePlus className="h-5 w-5 text-muted-foreground" />
+                  )}
+                </div>
+                <div className="flex flex-col gap-2">
+                  <label className="inline-flex cursor-pointer items-center gap-1.5 rounded-xl border border-border bg-surface px-3 py-2 text-xs font-semibold hover:bg-accent">
+                    <ImagePlus className="h-3.5 w-3.5" />
+                    {logoPreview ? t("menu.changePhoto") : t("menu.addPhoto")}
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={(e) => onLogoSelect(e.target.files?.[0] ?? null)}
+                    />
+                  </label>
+                  {logoPreview && (
+                    <button
+                      type="button"
+                      onClick={removeLogo}
+                      className="inline-flex items-center gap-1.5 text-xs font-semibold text-muted-foreground hover:text-destructive"
+                    >
+                      <X className="h-3.5 w-3.5" />
+                      {t("menu.removePhoto")}
+                    </button>
+                  )}
+                </div>
+              </div>
+            </div>
+            <div>
               <label className="text-xs font-semibold text-muted-foreground">{t("settings.restaurantName")}</label>
               <Input value={editName} onChange={(e) => setEditName(e.target.value)} className="mt-1" />
             </div>
@@ -307,10 +405,18 @@ function SettingsPage() {
               <label className="text-xs font-semibold text-muted-foreground">{t("settings.phone")}</label>
               <Input value={editPhone} onChange={(e) => setEditPhone(e.target.value)} placeholder={t("settings.phonePlaceholder")} className="mt-1" />
             </div>
+            <div>
+              <label className="text-xs font-semibold text-muted-foreground">{t("settings.facebook")}</label>
+              <Input value={editFacebook} onChange={(e) => setEditFacebook(e.target.value)} placeholder={t("settings.facebookPlaceholder")} className="mt-1" />
+            </div>
+            <div>
+              <label className="text-xs font-semibold text-muted-foreground">{t("settings.instagram")}</label>
+              <Input value={editInstagram} onChange={(e) => setEditInstagram(e.target.value)} placeholder={t("settings.instagramPlaceholder")} className="mt-1" />
+            </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setEditOpen(false)}>{t("settings.cancel")}</Button>
-            <Button onClick={saveRestaurant} disabled={savingRestaurant || !editName.trim()}>{t("settings.save")}</Button>
+            <Button onClick={saveRestaurant} disabled={savingRestaurant || uploadingLogo || !editName.trim()}>{t("settings.save")}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

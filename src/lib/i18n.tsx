@@ -231,6 +231,13 @@ const fr: Dict = {
 
   "client.searchPlaceholder": "Rechercher un plat...",
   "client.noResults": "Aucun résultat pour cette recherche.",
+  "client.orderNow": "Commander",
+
+  "settings.logo": "Logo",
+  "settings.facebook": "Facebook",
+  "settings.instagram": "Instagram",
+  "settings.facebookPlaceholder": "https://facebook.com/votrepage",
+  "settings.instagramPlaceholder": "https://instagram.com/votrecompte",
 };
 
 const ar: Dict = {
@@ -460,6 +467,13 @@ const ar: Dict = {
 
   "client.searchPlaceholder": "ابحث عن طبق...",
   "client.noResults": "لا توجد نتائج لهذا البحث.",
+  "client.orderNow": "اطلب الآن",
+
+  "settings.logo": "الشعار",
+  "settings.facebook": "فيسبوك",
+  "settings.instagram": "إنستغرام",
+  "settings.facebookPlaceholder": "https://facebook.com/yourpage",
+  "settings.instagramPlaceholder": "https://instagram.com/youraccount",
 };
 
 const dicts: Record<Locale, Dict> = { fr, ar };
