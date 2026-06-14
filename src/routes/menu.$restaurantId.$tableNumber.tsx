@@ -177,6 +177,9 @@ function MenuPage() {
   const [cartOpen, setCartOpen] = useState(false);
   const [detailProduct, setDetailProduct] = useState<Product | null>(null);
   const [notes, setNotes] = useState("");
+  const [customerFirstName, setCustomerFirstName] = useState("");
+  const [customerLastName, setCustomerLastName] = useState("");
+  const [customerPhone, setCustomerPhone] = useState("");
   const [placing, setPlacing] = useState(false);
   const [placedOrder, setPlacedOrder] = useState<{ total: number } | null>(null);
 
@@ -363,6 +366,7 @@ function MenuPage() {
 
   const placeOrder = async () => {
     if (!restaurant || cartItems.length === 0) return;
+    if (!customerFirstName.trim() || !customerLastName.trim() || !customerPhone.trim()) return;
     setPlacing(true);
 
     const { data: order, error: orderError } = await supabase
@@ -373,6 +377,8 @@ function MenuPage() {
         status: "pending",
         total: cartTotal,
         notes: notes.trim() || null,
+        customer_name: `${customerFirstName.trim()} ${customerLastName.trim()}`,
+        customer_phone: customerPhone.trim(),
       })
       .select("id")
       .single();
@@ -401,6 +407,9 @@ function MenuPage() {
 
   const startNewOrder = () => {
     setPlacedOrder(null);
+    setCustomerFirstName("");
+    setCustomerLastName("");
+    setCustomerPhone("");
   };
 
   if (loading) {
@@ -749,16 +758,50 @@ function MenuPage() {
                 />
               </div>
 
+              <div className="flex items-center justify-between rounded-xl bg-surface px-3 py-2 text-sm font-bold">
+                <span className="text-muted-foreground">{t("client.success.table")}</span>
+                <span>{tableNumber}</span>
+              </div>
+
               <div className="flex items-center justify-between border-t border-border pt-3 text-base font-extrabold">
                 <span>{t("client.total")}</span>
                 <span className="text-gold">{cartTotal.toFixed(2)} DT</span>
+              </div>
+
+              <div className="space-y-2 border-t border-border pt-3">
+                <p className="text-sm font-bold">{t("client.yourInfo")}</p>
+                <div className="grid grid-cols-2 gap-2">
+                  <Input
+                    value={customerFirstName}
+                    onChange={(e) => setCustomerFirstName(e.target.value)}
+                    placeholder={t("client.firstNamePlaceholder")}
+                  />
+                  <Input
+                    value={customerLastName}
+                    onChange={(e) => setCustomerLastName(e.target.value)}
+                    placeholder={t("client.lastNamePlaceholder")}
+                  />
+                </div>
+                <Input
+                  type="tel"
+                  value={customerPhone}
+                  onChange={(e) => setCustomerPhone(e.target.value)}
+                  placeholder={t("client.phonePlaceholder")}
+                />
               </div>
             </div>
           )}
 
           {cartItems.length > 0 && (
-            <DialogFooter>
-              <Button onClick={placeOrder} disabled={placing} className="w-full">
+            <DialogFooter className="flex-col gap-2">
+              {(!customerFirstName.trim() || !customerLastName.trim() || !customerPhone.trim()) && (
+                <p className="text-xs text-muted-foreground">{t("client.fillRequiredInfo")}</p>
+              )}
+              <Button
+                onClick={placeOrder}
+                disabled={placing || !customerFirstName.trim() || !customerLastName.trim() || !customerPhone.trim()}
+                className="w-full"
+              >
                 {placing ? t("client.placing") : t("client.confirmOrder")}
               </Button>
             </DialogFooter>
