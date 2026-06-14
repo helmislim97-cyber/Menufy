@@ -488,7 +488,6 @@ function MenuPage() {
               <img src={restaurant.logo_url} alt={restaurant.name} className="max-h-full max-w-full object-contain" />
             </div>
           )}
-          )}
           <h1 className="mt-2 text-xl font-extrabold leading-tight text-[#1c1f16]">{restaurant.name}</h1>
           <p className="mt-1 text-xs uppercase tracking-wider text-[#1c1f16]/40">
             {t("client.table")} {tableNumber}
