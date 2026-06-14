@@ -36,6 +36,7 @@ interface Category {
   id: string;
   name: string;
   description: string | null;
+  image_url: string | null;
   position: number;
 }
 
@@ -67,6 +68,10 @@ function MenuManagement() {
   const [editingCat, setEditingCat] = useState<Category | null>(null);
   const [catName, setCatName] = useState("");
   const [catDescription, setCatDescription] = useState("");
+  const [catImageFile, setCatImageFile] = useState<File | null>(null);
+  const [catImagePreview, setCatImagePreview] = useState<string | null>(null);
+  const [catImageUrl, setCatImageUrl] = useState<string | null>(null);
+  const [uploadingCatImage, setUploadingCatImage] = useState(false);
   const [savingCat, setSavingCat] = useState(false);
 
   // Product dialog
@@ -88,7 +93,7 @@ function MenuManagement() {
 
   const loadData = async (rid: string) => {
     const [{ data: cats }, { data: prods }] = await Promise.all([
-      supabase.from("categories").select("id, name, description, position").eq("restaurant_id", rid).order("position"),
+      supabase.from("categories").select("id, name, description, image_url, position").eq("restaurant_id", rid).order("position"),
       supabase
         .from("products")
         .select("id, category_id, name, description, price, emoji, image_url, is_available, position")
@@ -122,6 +127,9 @@ function MenuManagement() {
     setEditingCat(null);
     setCatName("");
     setCatDescription("");
+    setCatImageFile(null);
+    setCatImagePreview(null);
+    setCatImageUrl(null);
     setCatDialogOpen(true);
   };
 
@@ -131,18 +139,56 @@ function MenuManagement() {
     setCatDialogOpen(true);
   };
 
+  const uploadCategoryImage = async (file: File): Promise<string | null> => {
+    if (!restaurantId) return null;
+    const ext = file.name.split(".").pop();
+    const path = `${restaurantId}/${crypto.randomUUID()}.${ext}`;
+    const { error } = await supabase.storage.from("category-images").upload(path, file, { upsert: true });
+    if (error) {
+      toast.error(error.message);
+      return null;
+    }
+    const { data } = supabase.storage.from("category-images").getPublicUrl(path);
+    return data.publicUrl;
+  };
+
+  const onCatImageSelect = (file: File | null) => {
+    if (!file) return;
+    setCatImageFile(file);
+    setCatImagePreview(URL.createObjectURL(file));
+  };
+
+  const removeCatImage = () => {
+    setCatImageFile(null);
+    setCatImagePreview(null);
+    setCatImageUrl(null);
+  };
+
   const saveCategory = async () => {
     if (!restaurantId || !catName.trim()) return;
     setSavingCat(true);
+
+    let finalCatImageUrl = catImageUrl;
+    if (catImageFile) {
+      setUploadingCatImage(true);
+      const uploaded = await uploadCategoryImage(catImageFile);
+      setUploadingCatImage(false);
+      if (!uploaded) {
+        setSavingCat(false);
+        return;
+      }
+      finalCatImageUrl = uploaded;
+    }
+
     if (editingCat) {
-      const { error } = await supabase.from("categories").update({ name: catName.trim(), description: catDescription.trim() || null }).eq("id", editingCat.id);
+      const { error } = await supabase.from("categories").update({ name: catName.trim(), description: catDescription.trim() || null, image_url: finalCatImageUrl }).eq("id", editingCat.id);
       setSavingCat(false);
       if (error) return toast.error(error.message);
       toast.success(t("menu.categoryUpdated"));
     } else {
       const { error } = await supabase
         .from("categories")
-        .insert({ restaurant_id: restaurantId, name: catName.trim(), description: catDescription.trim() || null, position: categories.length });
+        .insert({ restaurant_id: restaurantId, name: catName.trim(), description: catDescription.trim() || null, image_url: finalCatImageUrl, position: categories.length });
       setSavingCat(false);
       if (error) return toast.error(error.message);
       toast.success(t("menu.categoryAdded"));
@@ -430,11 +476,45 @@ function MenuManagement() {
               placeholder={t("menu.categoryDescriptionPlaceholder")}
             />
           </div>
+          <div className="space-y-2">
+            <Label>{t("menu.photo")}</Label>
+            <div className="flex items-center gap-3">
+              <div className="grid h-16 w-16 shrink-0 place-items-center overflow-hidden rounded-xl border border-border bg-background">
+                {catImagePreview ? (
+                  <img src={catImagePreview} alt="" className="h-full w-full object-cover" />
+                ) : (
+                  <ImagePlus className="h-5 w-5 text-muted-foreground" />
+                )}
+              </div>
+              <div className="flex flex-col gap-2">
+                <label className="inline-flex cursor-pointer items-center gap-1.5 rounded-xl border border-border bg-surface px-3 py-2 text-xs font-semibold hover:bg-accent">
+                  <ImagePlus className="h-3.5 w-3.5" />
+                  {catImagePreview ? t("menu.changePhoto") : t("menu.addPhoto")}
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={(e) => onCatImageSelect(e.target.files?.[0] ?? null)}
+                  />
+                </label>
+                {catImagePreview && (
+                  <button
+                    type="button"
+                    onClick={removeCatImage}
+                    className="inline-flex items-center gap-1.5 text-xs font-semibold text-muted-foreground hover:text-destructive"
+                  >
+                    <X className="h-3.5 w-3.5" />
+                    {t("menu.removePhoto")}
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setCatDialogOpen(false)}>
               {t("menu.cancel")}
             </Button>
-            <Button onClick={saveCategory} disabled={savingCat || !catName.trim()}>
+            <Button onClick={saveCategory} disabled={savingCat || uploadingCatImage || !catName.trim()}>
               {t("menu.save")}
             </Button>
           </DialogFooter>
