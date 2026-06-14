@@ -107,7 +107,7 @@ export function CategoryGrid({ name, logoUrl, facebookUrl, instagramUrl, address
       </div>
 
       {hasSocial && (
-        <div className="mt-6 flex flex-col items-center gap-3 pb-8">
+        <div className="mt-6 flex flex-col items-center gap-3 pb-2">
           <p className="text-xs font-bold uppercase tracking-[0.3em] text-[#1c1f16]/50">{t("client.followUs")}</p>
           <div className="flex gap-4">
             {facebookUrl && <a href={facebookUrl} target="_blank" rel="noreferrer" className="grid h-10 w-10 place-items-center rounded-full border border-[#1c1f16]/25" aria-label="Facebook"><Facebook className="h-4 w-4" /></a>}
@@ -115,6 +115,16 @@ export function CategoryGrid({ name, logoUrl, facebookUrl, instagramUrl, address
           </div>
         </div>
       )}
+
+      <footer className="pb-8 pt-6 text-center text-xs text-[#1c1f16]/40">
+        <p>
+          {t("client.poweredBy")}{" "}
+          <a href="https://menufy-tau.vercel.app" target="_blank" rel="noreferrer" className="font-semibold text-[#1c1f16]/60 hover:text-[#1c1f16]">
+            Menufy
+          </a>
+        </p>
+        <p className="mt-0.5">© {new Date().getFullYear()} Menufy. {t("client.allRightsReserved")}</p>
+      </footer>
       </div>
     </div>
   );

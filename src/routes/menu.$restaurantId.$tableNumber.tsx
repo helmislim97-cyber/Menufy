@@ -582,6 +582,16 @@ function MenuPage() {
         )}
       </main>
 
+      <footer className="mx-auto max-w-md px-4 py-6 text-center text-xs text-[#1c1f16]/40">
+        <p>
+          {t("client.poweredBy")}{" "}
+          <a href="https://menufy-tau.vercel.app" target="_blank" rel="noreferrer" className="font-semibold text-[#1c1f16]/60 hover:text-[#1c1f16]">
+            Menufy
+          </a>
+        </p>
+        <p className="mt-0.5">© {new Date().getFullYear()} Menufy. {t("client.allRightsReserved")}</p>
+      </footer>
+
       {cartCount > 0 && (
         <div className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-background/95 p-4 backdrop-blur-xl">
           <button
