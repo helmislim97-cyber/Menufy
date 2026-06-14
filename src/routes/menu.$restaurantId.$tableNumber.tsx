@@ -524,7 +524,7 @@ function MenuPage() {
       </header>
 
       {visibleCategories.length > 0 && (
-        <div className={`scrollbar-none sticky top-0 z-30 flex gap-2 overflow-x-auto bg-[#f3efe4] px-4 py-3 mx-auto max-w-md ${searchQuery.trim() ? "opacity-40" : ""}`}>
+        <div className={`scrollbar-none sticky top-0 z-30 flex gap-2 overflow-x-auto bg-[#f3efe4] px-4 py-3 mx-auto max-w-md sm:max-w-none ${searchQuery.trim() ? "opacity-40" : ""}`}>
           {visibleCategories.map((c) => (
             <button
               key={c.id}
@@ -544,14 +544,14 @@ function MenuPage() {
         </div>
       )}
 
-      <main className="mx-auto max-w-md px-4 py-4">
+      <main className="mx-auto max-w-md px-4 py-4 sm:max-w-none">
         {visibleCategories.length === 0 ? (
           <p className="mt-10 text-center text-sm text-muted-foreground">{t("client.empty")}</p>
         ) : searchResults ? (
           searchResults.length === 0 ? (
             <p className="mt-10 text-center text-sm text-muted-foreground">{t("client.noResults")}</p>
           ) : (
-            <div className="space-y-4">
+            <div className="space-y-4 sm:grid sm:grid-cols-2 sm:gap-4 sm:space-y-0">
               {searchResults.map((p) => (
                 <ProductCard key={p.id} p={p} qty={cart[p.id] ?? 0} t={t} addToCart={addToCart} changeQty={changeQty} />
               ))}
@@ -570,7 +570,7 @@ function MenuPage() {
                   className="scroll-mt-32"
                 >
                   <h2 className="mb-3 text-lg font-extrabold uppercase tracking-wide text-[#1c1f16]">{c.name}</h2>
-                  <div className="space-y-4">
+                  <div className="space-y-4 sm:grid sm:grid-cols-2 sm:gap-4 sm:space-y-0">
                     {prods.map((p) => (
                       <ProductCard key={p.id} p={p} qty={cart[p.id] ?? 0} t={t} addToCart={addToCart} changeQty={changeQty} />
                     ))}
