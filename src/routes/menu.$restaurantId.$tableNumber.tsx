@@ -262,22 +262,28 @@ function MenuPage() {
 
   useEffect(() => {
     if (searchQuery.trim()) return;
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (isScrollingToSection.current) return;
-        const visible = entries
-          .filter((e) => e.isIntersecting)
-          .sort((a, b) => b.intersectionRatio - a.intersectionRatio);
-        if (visible[0]) {
-          const id = visible[0].target.getAttribute("data-category-id");
-          if (id) setActiveCategory(id);
-        }
-      },
-      { rootMargin: "-120px 0px -60% 0px", threshold: [0, 0.25, 0.5, 0.75, 1] },
-    );
-    Object.values(sectionRefs.current).forEach((el) => el && observer.observe(el));
-    return () => observer.disconnect();
-  }, [visibleCategories, searchQuery]);
+    let observer: IntersectionObserver | null = null;
+    const timeout = setTimeout(() => {
+      observer = new IntersectionObserver(
+        (entries) => {
+          if (isScrollingToSection.current) return;
+          const visible = entries
+            .filter((e) => e.isIntersecting)
+            .sort((a, b) => b.intersectionRatio - a.intersectionRatio);
+          if (visible[0]) {
+            const id = visible[0].target.getAttribute("data-category-id");
+            if (id) setActiveCategory(id);
+          }
+        },
+        { rootMargin: "-120px 0px -60% 0px", threshold: [0, 0.25, 0.5, 0.75, 1] },
+      );
+      Object.values(sectionRefs.current).forEach((el) => el && observer!.observe(el));
+    }, 100);
+    return () => {
+      clearTimeout(timeout);
+      observer?.disconnect();
+    };
+  }, [visibleCategories, searchQuery, productsByCategory]);
 
   const scrollToCategory = (id: string) => {
     setActiveCategory(id);
