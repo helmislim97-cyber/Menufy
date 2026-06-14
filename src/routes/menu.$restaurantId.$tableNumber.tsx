@@ -69,6 +69,8 @@ interface Product {
   tags: string[] | null;
 }
 
+const UNCATEGORIZED = "__uncategorized__";
+
 const COUNTRY_CODES = [
   { code: "+93", flag: "🇦🇫", name: "Afghanistan" },
   { code: "+355", flag: "🇦🇱", name: "Albania" },
