@@ -464,15 +464,7 @@ function MenuPage() {
                       </div>
                     </div>
                   </div>
-                  {p.tags && p.tags.length > 0 && (
-                    <div className="flex flex-wrap gap-1 px-3 pb-3">
-                      {p.tags.map((tag) => (
-                        <span key={tag} className="rounded-full bg-background px-2 py-0.5 text-xs text-muted-foreground">
-                          {tag}
-                        </span>
-                      ))}
-                    </div>
-                  )}
+                  
                   {qty === 0 ? (
                     <button onClick={() => addToCart(p.id)} className="absolute bottom-3 right-3 grid h-9 w-9 place-items-center rounded-full bg-primary text-primary-foreground shadow-sm">
                       <Plus className="h-4 w-4" />
