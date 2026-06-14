@@ -38,6 +38,7 @@ interface Restaurant {
   phone: string | null;
   description: string | null;
   wifi: string | null;
+  banner_url: string | null;
 }
 
 interface Category {
@@ -88,7 +89,7 @@ function MenuPage() {
     async function load() {
       const { data: rest } = await supabase
         .from("restaurants")
-        .select("id, name, logo_url, facebook_url, instagram_url, address, phone, description, wifi")
+        .select("id, name, logo_url, facebook_url, instagram_url, address, phone, description, wifi, banner_url")
         .eq("id", restaurantId)
         .eq("is_active", true)
         .maybeSingle();
@@ -329,20 +330,35 @@ function MenuPage() {
 
   return (
     <div className="min-h-screen animate-fade-in bg-background pb-28">
-      <header className="sticky top-0 z-30 border-b border-border/50 bg-background/85 backdrop-blur-xl">
-        <div className="mx-auto flex max-w-md items-center justify-between px-4 py-3">
-          <button
-            onClick={() => setShowCategories(true)}
-            className="grid h-9 w-9 place-items-center rounded-full border border-border text-muted-foreground hover:bg-accent"
-            aria-label="Back"
-          >
-            <ArrowLeft className="h-4 w-4" />
-          </button>
-          <LangSwitch />
+      <header className="relative bg-[#f3efe4]">
+        <div className="relative h-40 w-full overflow-hidden">
+          {restaurant.banner_url ? (
+            <img src={restaurant.banner_url} alt="" className="absolute inset-0 h-full w-full object-cover" />
+          ) : (
+            <div className="absolute inset-0 bg-gradient-to-br from-[#1c1f16]/10 to-[#1c1f16]/5" />
+          )}
+          <div className="absolute inset-0 bg-gradient-to-t from-[#f3efe4] via-[#f3efe4]/10 to-transparent" />
+          <div className="absolute left-4 top-4">
+            <button
+              onClick={() => setShowCategories(true)}
+              className="grid h-9 w-9 place-items-center rounded-full border border-[#1c1f16]/25 bg-white/70 text-[#1c1f16] backdrop-blur-sm"
+              aria-label="Back"
+            >
+              <ArrowLeft className="h-4 w-4" />
+            </button>
+          </div>
+          <div className="absolute right-4 top-4">
+            <LangSwitch variant="light" />
+          </div>
         </div>
-        <div className="mx-auto max-w-md px-4 pb-3">
-          <h1 className="text-xl font-extrabold leading-tight">{restaurant.name}</h1>
-          <p className="text-xs uppercase tracking-wider text-muted-foreground">
+        <div className="mx-auto max-w-md px-4 pb-3 -mt-10">
+          {restaurant.logo_url && (
+            <div className="mb-2 flex h-16 w-16 items-center justify-center rounded-2xl border border-[#1c1f16]/15 bg-white p-2 shadow-sm">
+              <img src={restaurant.logo_url} alt={restaurant.name} className="max-h-full max-w-full object-contain" />
+            </div>
+          )}
+          <h1 className="text-xl font-extrabold leading-tight text-[#1c1f16]">{restaurant.name}</h1>
+          <p className="text-xs uppercase tracking-wider text-[#1c1f16]/50">
             {t("client.table")} {tableNumber}
           </p>
         </div>

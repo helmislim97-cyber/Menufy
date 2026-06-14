@@ -31,9 +31,9 @@ interface Restaurant {
   logo_url: string | null;
   facebook_url: string | null;
   instagram_url: string | null;
-  description: string | null
-          wifi: string | null;
+  description: string | null;
   wifi: string | null;
+  banner_url: string | null;
 }
 
 interface RestaurantTable {
@@ -68,6 +68,10 @@ function SettingsPage() {
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
   const [logoUrl, setLogoUrl] = useState<string | null>(null);
   const [uploadingLogo, setUploadingLogo] = useState(false);
+  const [bannerFile, setBannerFile] = useState<File | null>(null);
+  const [bannerPreview, setBannerPreview] = useState<string | null>(null);
+  const [bannerUrl, setBannerUrl] = useState<string | null>(null);
+  const [uploadingBanner, setUploadingBanner] = useState(false);
 
   const loadTables = async (restaurantId: string) => {
     const { data } = await supabase
@@ -82,7 +86,7 @@ function SettingsPage() {
     if (!user) return;
     supabase
       .from("restaurants")
-      .select("id, name, address, phone, logo_url, facebook_url, instagram_url, description, wifi")
+      .select("id, name, address, phone, logo_url, facebook_url, instagram_url, description, wifi, banner_url")
       .eq("owner_id", user.id)
       .maybeSingle()
       .then(async ({ data }) => {
@@ -137,6 +141,9 @@ function SettingsPage() {
     setLogoFile(null);
     setLogoPreview(restaurant.logo_url);
     setLogoUrl(restaurant.logo_url);
+    setBannerFile(null);
+    setBannerPreview(restaurant.banner_url);
+    setBannerUrl(restaurant.banner_url);
     setEditOpen(true);
   };
 
@@ -165,6 +172,31 @@ function SettingsPage() {
     setLogoUrl(null);
   };
 
+  const uploadRestaurantBanner = async (file: File): Promise<string | null> => {
+    if (!restaurant) return null;
+    const ext = file.name.split(".").pop();
+    const path = `${restaurant.id}/${crypto.randomUUID()}.${ext}`;
+    const { error } = await supabase.storage.from("restaurant-banners").upload(path, file, { upsert: true });
+    if (error) {
+      toast.error(error.message);
+      return null;
+    }
+    const { data } = supabase.storage.from("restaurant-banners").getPublicUrl(path);
+    return data.publicUrl;
+  };
+
+  const onBannerSelect = (file: File | null) => {
+    if (!file) return;
+    setBannerFile(file);
+    setBannerPreview(URL.createObjectURL(file));
+  };
+
+  const removeBanner = () => {
+    setBannerFile(null);
+    setBannerPreview(null);
+    setBannerUrl(null);
+  };
+
   const saveRestaurant = async () => {
     if (!restaurant || !editName.trim()) return;
     setSavingRestaurant(true);
@@ -181,6 +213,18 @@ function SettingsPage() {
       finalLogoUrl = uploaded;
     }
 
+    let finalBannerUrl = bannerUrl;
+    if (bannerFile) {
+      setUploadingBanner(true);
+      const uploaded = await uploadRestaurantBanner(bannerFile);
+      setUploadingBanner(false);
+      if (!uploaded) {
+        setSavingRestaurant(false);
+        return;
+      }
+      finalBannerUrl = uploaded;
+    }
+
     const updates = {
       name: editName.trim(),
       address: editAddress.trim() || null,
@@ -190,6 +234,7 @@ function SettingsPage() {
       logo_url: finalLogoUrl,
       description: editDescription.trim() || null,
       wifi: editWifi.trim() || null,
+      banner_url: finalBannerUrl,
     };
     const { error } = await supabase.from("restaurants").update(updates).eq("id", restaurant.id);
     setSavingRestaurant(false);
@@ -369,6 +414,40 @@ function SettingsPage() {
           </DialogHeader>
           <div className="space-y-3">
             <div>
+              <label className="text-xs font-semibold text-muted-foreground">{t("settings.banner")}</label>
+              <div className="mt-1 flex items-center gap-3">
+                <div className="grid h-16 w-28 shrink-0 place-items-center overflow-hidden rounded-xl border border-border bg-background">
+                  {bannerPreview ? (
+                    <img src={bannerPreview} alt="" className="h-full w-full object-cover" />
+                  ) : (
+                    <ImagePlus className="h-5 w-5 text-muted-foreground" />
+                  )}
+                </div>
+                <div className="flex flex-col gap-2">
+                  <label className="inline-flex cursor-pointer items-center gap-1.5 rounded-xl border border-border bg-surface px-3 py-2 text-xs font-semibold hover:bg-accent">
+                    <ImagePlus className="h-3.5 w-3.5" />
+                    {bannerPreview ? t("menu.changePhoto") : t("menu.addPhoto")}
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={(e) => onBannerSelect(e.target.files?.[0] ?? null)}
+                    />
+                  </label>
+                  {bannerPreview && (
+                    <button
+                      type="button"
+                      onClick={removeBanner}
+                      className="inline-flex items-center gap-1.5 text-xs font-semibold text-muted-foreground hover:text-destructive"
+                    >
+                      <X className="h-3.5 w-3.5" />
+                      {t("menu.removePhoto")}
+                    </button>
+                  )}
+                </div>
+              </div>
+            </div>
+            <div>
               <label className="text-xs font-semibold text-muted-foreground">{t("settings.logo")}</label>
               <div className="mt-1 flex items-center gap-3">
                 <div className="grid h-16 w-16 shrink-0 place-items-center overflow-hidden rounded-xl border border-border bg-background">
@@ -433,7 +512,7 @@ function SettingsPage() {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setEditOpen(false)}>{t("settings.cancel")}</Button>
-            <Button onClick={saveRestaurant} disabled={savingRestaurant || uploadingLogo || !editName.trim()}>{t("settings.save")}</Button>
+            <Button onClick={saveRestaurant} disabled={savingRestaurant || uploadingLogo || uploadingBanner || !editName.trim()}>{t("settings.save")}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

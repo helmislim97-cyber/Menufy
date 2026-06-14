@@ -236,6 +236,7 @@ export const en: Record<string, string> = {
   "menu.categoryDescriptionPlaceholder": "E.g. Hearty plates for every craving",
   "settings.wifi": "Wi-Fi password",
   "settings.wifiPlaceholder": "E.g. MyRestaurant2024",
+  "settings.banner": "Cover photo",
 
   "settings.logo": "Logo",
   "settings.facebook": "Facebook",
