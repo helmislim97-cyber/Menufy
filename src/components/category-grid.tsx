@@ -46,15 +46,15 @@ export function CategoryGrid({ name, logoUrl, facebookUrl, instagramUrl, address
 
       <div className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4">
         {categories.map((c) => (
-          <button key={c.id} onClick={() => onSelect(c.id)} className="relative w-full h-32 overflow-hidden rounded-2xl bg-white/70 text-left flex items-center shadow-sm border border-[#1c1f16]/8">
+          <button key={c.id} onClick={() => onSelect(c.id)} className="relative w-full h-32 overflow-hidden rounded-2xl bg-white/70 text-left flex items-stretch shadow-sm border border-[#1c1f16]/8">
             {c.imageUrl && (
               <>
                 <img src={c.imageUrl} alt="" className="absolute right-0 top-0 h-full w-2/3 object-cover" />
                 <div className="absolute inset-0 bg-gradient-to-r from-white/95 via-white/70 to-transparent" />
               </>
             )}
-            <div className="relative px-5">
-              <p className="font-display text-xl font-extrabold uppercase tracking-wide text-[#1c1f16] mt-3">{c.name}</p>
+            <div className="relative px-5 self-end pb-4">
+              <p className="font-display text-xl font-extrabold uppercase tracking-wide text-[#1c1f16]">{c.name}</p>
               {c.description && (
                 <p className="mt-1 text-sm text-[#1c1f16]/55">{c.description}</p>
               )}
