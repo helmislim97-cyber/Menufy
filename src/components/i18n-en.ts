@@ -232,6 +232,8 @@ export const en: Record<string, string> = {
   "client.address": "Address",
   "client.reservation": "Reservations",
   "client.wifi": "Wi-Fi",
+  "menu.categoryDescription": "Tagline (optional)",
+  "menu.categoryDescriptionPlaceholder": "E.g. Hearty plates for every craving",
   "settings.wifi": "Wi-Fi password",
   "settings.wifiPlaceholder": "E.g. MyRestaurant2024",
 

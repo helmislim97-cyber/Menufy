@@ -5,6 +5,7 @@ import { useI18n } from "@/lib/i18n";
 interface CategoryCard {
   id: string;
   name: string;
+  description: string | null;
   imageUrl: string | null;
 }
 
@@ -53,7 +54,10 @@ export function CategoryGrid({ name, logoUrl, facebookUrl, instagramUrl, address
               </>
             )}
             <div className="relative px-5">
-              <p className="font-display text-xl font-extrabold uppercase tracking-wide text-[#1c1f16]">{c.name}</p>
+              <p className="font-display text-xl font-extrabold uppercase tracking-wide text-[#1c1f16] mt-3">{c.name}</p>
+              {c.description && (
+                <p className="mt-1 text-sm text-[#1c1f16]/55">{c.description}</p>
+              )}
             </div>
           </button>
         ))}

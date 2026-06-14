@@ -43,6 +43,7 @@ interface Restaurant {
 interface Category {
   id: string;
   name: string;
+  description: string | null;
   position: number;
 }
 
@@ -101,7 +102,7 @@ function MenuPage() {
       const [{ data: cats }, { data: prods }] = await Promise.all([
         supabase
           .from("categories")
-          .select("id, name, position")
+          .select("id, name, description, position")
           .eq("restaurant_id", restaurantId)
           .order("position"),
         supabase
@@ -137,7 +138,7 @@ function MenuPage() {
   const visibleCategories = useMemo(() => {
     const cats = categories.filter((c) => products.some((p) => p.category_id === c.id));
     if (products.some((p) => p.category_id === null)) {
-      cats.push({ id: UNCATEGORIZED, name: t("menu.uncategorized"), position: 9999 });
+      cats.push({ id: UNCATEGORIZED, name: t("menu.uncategorized"), description: null, position: 9999 });
     }
     return cats;
   }, [categories, products, t]);
@@ -147,7 +148,7 @@ function MenuPage() {
       const match = products.find(
         (p) => (c.id === UNCATEGORIZED ? p.category_id === null : p.category_id === c.id) && p.image_url,
       );
-      return { id: c.id, name: c.name, imageUrl: match?.image_url ?? null };
+      return { id: c.id, name: c.name, description: (c as Category).description ?? null, imageUrl: match?.image_url ?? null };
     });
   }, [visibleCategories, products]);
 

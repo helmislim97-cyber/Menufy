@@ -35,6 +35,7 @@ export const Route = createFileRoute("/_authenticated/dashboard/menu")({
 interface Category {
   id: string;
   name: string;
+  description: string | null;
   position: number;
 }
 
@@ -65,6 +66,7 @@ function MenuManagement() {
   const [catDialogOpen, setCatDialogOpen] = useState(false);
   const [editingCat, setEditingCat] = useState<Category | null>(null);
   const [catName, setCatName] = useState("");
+  const [catDescription, setCatDescription] = useState("");
   const [savingCat, setSavingCat] = useState(false);
 
   // Product dialog
@@ -86,7 +88,7 @@ function MenuManagement() {
 
   const loadData = async (rid: string) => {
     const [{ data: cats }, { data: prods }] = await Promise.all([
-      supabase.from("categories").select("id, name, position").eq("restaurant_id", rid).order("position"),
+      supabase.from("categories").select("id, name, description, position").eq("restaurant_id", rid).order("position"),
       supabase
         .from("products")
         .select("id, category_id, name, description, price, emoji, image_url, is_available, position")
@@ -119,6 +121,7 @@ function MenuManagement() {
   const openNewCategory = () => {
     setEditingCat(null);
     setCatName("");
+    setCatDescription("");
     setCatDialogOpen(true);
   };
 
@@ -132,14 +135,14 @@ function MenuManagement() {
     if (!restaurantId || !catName.trim()) return;
     setSavingCat(true);
     if (editingCat) {
-      const { error } = await supabase.from("categories").update({ name: catName.trim() }).eq("id", editingCat.id);
+      const { error } = await supabase.from("categories").update({ name: catName.trim(), description: catDescription.trim() || null }).eq("id", editingCat.id);
       setSavingCat(false);
       if (error) return toast.error(error.message);
       toast.success(t("menu.categoryUpdated"));
     } else {
       const { error } = await supabase
         .from("categories")
-        .insert({ restaurant_id: restaurantId, name: catName.trim(), position: categories.length });
+        .insert({ restaurant_id: restaurantId, name: catName.trim(), description: catDescription.trim() || null, position: categories.length });
       setSavingCat(false);
       if (error) return toast.error(error.message);
       toast.success(t("menu.categoryAdded"));
@@ -416,6 +419,15 @@ function MenuManagement() {
               value={catName}
               onChange={(e) => setCatName(e.target.value)}
               placeholder={t("menu.categoryNamePlaceholder")}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="cat-desc">{t("menu.categoryDescription")}</Label>
+            <Input
+              id="cat-desc"
+              value={catDescription}
+              onChange={(e) => setCatDescription(e.target.value)}
+              placeholder={t("menu.categoryDescriptionPlaceholder")}
             />
           </div>
           <DialogFooter>
