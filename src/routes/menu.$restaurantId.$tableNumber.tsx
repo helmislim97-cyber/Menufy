@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useI18n } from "@/lib/i18n";
 import { Logo } from "@/components/logo";
@@ -69,6 +69,81 @@ interface Product {
 }
 
 const UNCATEGORIZED = "__uncategorized__";
+
+function ProductCard({
+  p,
+  qty,
+  t,
+  addToCart,
+  changeQty,
+}: {
+  p: Product;
+  qty: number;
+  t: (key: string) => string;
+  addToCart: (id: string) => void;
+  changeQty: (id: string, delta: number) => void;
+}) {
+  return (
+    <div className="relative overflow-hidden rounded-2xl bg-white shadow-sm">
+      {p.badge && (
+        <span className="absolute top-3 right-0 rounded-l-full bg-primary px-3 py-1 text-xs font-bold uppercase text-primary-foreground shadow-sm">
+          {p.badge}
+        </span>
+      )}
+      <div className="flex gap-3 p-3">
+        <div className="grid h-20 w-20 shrink-0 place-items-center overflow-hidden rounded-xl bg-background text-3xl">
+          {p.image_url ? (
+            <img src={p.image_url} alt={p.name} className="h-full w-full object-cover" />
+          ) : (
+            p.emoji || "🍽️"
+          )}
+        </div>
+        <div className="flex min-w-0 flex-1 flex-col">
+          <p className="text-base font-extrabold leading-tight text-[#1c1f16] pr-12">{p.name}</p>
+          {p.description && (
+            <p className="mt-1 text-xs leading-snug text-muted-foreground line-clamp-2">{p.description}</p>
+          )}
+          <div className="mt-auto flex items-center justify-between gap-2 pt-2 pr-12">
+            <p className="text-base font-extrabold text-[#1c1f16]">{Number(p.price).toFixed(2)} DT</p>
+            {(p.kcal || p.prep_minutes) && (
+              <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
+                {p.kcal && (
+                  <span className="flex items-center gap-0.5">
+                    <Flame className="h-3 w-3" />
+                    {p.kcal} {t("client.kcal")}
+                  </span>
+                )}
+                {p.kcal && p.prep_minutes && <span>|</span>}
+                {p.prep_minutes && (
+                  <span className="flex items-center gap-0.5">
+                    <Clock className="h-3 w-3" />
+                    {p.prep_minutes} {t("client.min")}
+                  </span>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {qty === 0 ? (
+        <button onClick={() => addToCart(p.id)} className="absolute bottom-3 right-3 grid h-9 w-9 place-items-center rounded-full bg-primary text-primary-foreground shadow-sm">
+          <Plus className="h-4 w-4" />
+        </button>
+      ) : (
+        <div className="absolute bottom-3 right-3 flex items-center gap-2 rounded-full bg-white px-2 py-1 shadow-sm">
+          <button onClick={() => changeQty(p.id, -1)} className="grid h-7 w-7 place-items-center rounded-full border border-border bg-background text-foreground">
+            <Minus className="h-3 w-3" />
+          </button>
+          <span className="w-4 text-center text-sm font-bold">{qty}</span>
+          <button onClick={() => changeQty(p.id, 1)} className="grid h-7 w-7 place-items-center rounded-full bg-primary text-primary-foreground">
+            <Plus className="h-3 w-3" />
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
 
 function MenuPage() {
   const { restaurantId, tableNumber } = Route.useParams();
@@ -165,16 +240,57 @@ function MenuPage() {
     });
   }, [visibleCategories, products]);
 
-  const activeProducts = useMemo(() => {
-    if (searchQuery.trim()) {
-      const q = searchQuery.trim().toLowerCase();
-      return products.filter(
-        (p) => p.name.toLowerCase().includes(q) || (p.description ?? "").toLowerCase().includes(q),
-      );
+  const searchResults = useMemo(() => {
+    if (!searchQuery.trim()) return null;
+    const q = searchQuery.trim().toLowerCase();
+    return products.filter(
+      (p) => p.name.toLowerCase().includes(q) || (p.description ?? "").toLowerCase().includes(q),
+    );
+  }, [products, searchQuery]);
+
+  const productsByCategory = useMemo(() => {
+    const map: Record<string, Product[]> = {};
+    for (const c of visibleCategories) {
+      map[c.id] = c.id === UNCATEGORIZED
+        ? products.filter((p) => p.category_id === null)
+        : products.filter((p) => p.category_id === c.id);
     }
-    if (activeCategory === UNCATEGORIZED) return products.filter((p) => p.category_id === null);
-    return products.filter((p) => p.category_id === activeCategory);
-  }, [products, activeCategory, searchQuery]);
+    return map;
+  }, [visibleCategories, products]);
+
+  const sectionRefs = useRef<Record<string, HTMLDivElement | null>>({});
+  const isScrollingToSection = useRef(false);
+
+  useEffect(() => {
+    if (searchQuery.trim()) return;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (isScrollingToSection.current) return;
+        const visible = entries
+          .filter((e) => e.isIntersecting)
+          .sort((a, b) => b.intersectionRatio - a.intersectionRatio);
+        if (visible[0]) {
+          const id = visible[0].target.getAttribute("data-category-id");
+          if (id) setActiveCategory(id);
+        }
+      },
+      { rootMargin: "-120px 0px -60% 0px", threshold: [0, 0.25, 0.5, 0.75, 1] },
+    );
+    Object.values(sectionRefs.current).forEach((el) => el && observer.observe(el));
+    return () => observer.disconnect();
+  }, [visibleCategories, searchQuery]);
+
+  const scrollToCategory = (id: string) => {
+    setActiveCategory(id);
+    const el = sectionRefs.current[id];
+    if (el) {
+      isScrollingToSection.current = true;
+      el.scrollIntoView({ behavior: "smooth", block: "start" });
+      setTimeout(() => {
+        isScrollingToSection.current = false;
+      }, 600);
+    }
+  };
 
   const cartItems = useMemo(() => {
     return Object.entries(cart)
@@ -397,8 +513,8 @@ function MenuPage() {
               <button
                 key={c.id}
                 onClick={() => {
-                  setActiveCategory(c.id);
                   setSearchQuery("");
+                  scrollToCategory(c.id);
                 }}
                 className={`shrink-0 rounded-full border px-4 py-1.5 text-sm font-semibold transition-colors ${
                   activeCategory === c.id
@@ -416,70 +532,34 @@ function MenuPage() {
       <main className="mx-auto max-w-md px-4 py-4">
         {visibleCategories.length === 0 ? (
           <p className="mt-10 text-center text-sm text-muted-foreground">{t("client.empty")}</p>
-        ) : activeProducts.length === 0 ? (
-          <p className="mt-10 text-center text-sm text-muted-foreground">{t("client.noResults")}</p>
+        ) : searchResults ? (
+          searchResults.length === 0 ? (
+            <p className="mt-10 text-center text-sm text-muted-foreground">{t("client.noResults")}</p>
+          ) : (
+            <div className="space-y-4">
+              {searchResults.map((p) => (
+                <ProductCard key={p.id} p={p} qty={cart[p.id] ?? 0} t={t} addToCart={addToCart} changeQty={changeQty} />
+              ))}
+            </div>
+          )
         ) : (
-          <div className="space-y-4">
-            {activeProducts.map((p) => {
-              const qty = cart[p.id] ?? 0;
+          <div className="space-y-6">
+            {visibleCategories.map((c) => {
+              const prods = productsByCategory[c.id] ?? [];
+              if (prods.length === 0) return null;
               return (
-                <div key={p.id} className="relative overflow-hidden rounded-2xl bg-white shadow-sm">
-                  {p.badge && (
-                    <span className="absolute top-3 right-0 rounded-l-full bg-primary px-3 py-1 text-xs font-bold uppercase text-primary-foreground shadow-sm">
-                      {p.badge}
-                    </span>
-                  )}
-                  <div className="flex gap-3 p-3">
-                    <div className="grid h-20 w-20 shrink-0 place-items-center overflow-hidden rounded-xl bg-background text-3xl">
-                      {p.image_url ? (
-                        <img src={p.image_url} alt={p.name} className="h-full w-full object-cover" />
-                      ) : (
-                        p.emoji || "🍽️"
-                      )}
-                    </div>
-                    <div className="flex min-w-0 flex-1 flex-col">
-                      <p className="text-base font-extrabold leading-tight text-[#1c1f16] pr-12">{p.name}</p>
-                      {p.description && (
-                        <p className="mt-1 text-xs leading-snug text-muted-foreground line-clamp-2">{p.description}</p>
-                      )}
-                      <div className="mt-auto flex items-center justify-between gap-2 pt-2 pr-12">
-                        <p className="text-base font-extrabold text-[#1c1f16]">{Number(p.price).toFixed(2)} DT</p>
-                        {(p.kcal || p.prep_minutes) && (
-                          <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
-                            {p.kcal && (
-                              <span className="flex items-center gap-0.5">
-                                <Flame className="h-3 w-3" />
-                                {p.kcal} {t("client.kcal")}
-                              </span>
-                            )}
-                            {p.kcal && p.prep_minutes && <span>|</span>}
-                            {p.prep_minutes && (
-                              <span className="flex items-center gap-0.5">
-                                <Clock className="h-3 w-3" />
-                                {p.prep_minutes} {t("client.min")}
-                              </span>
-                            )}
-                          </div>
-                        )}
-                      </div>
-                    </div>
+                <div
+                  key={c.id}
+                  data-category-id={c.id}
+                  ref={(el) => { sectionRefs.current[c.id] = el; }}
+                  className="scroll-mt-32"
+                >
+                  <h2 className="mb-3 text-lg font-extrabold uppercase tracking-wide text-[#1c1f16]">{c.name}</h2>
+                  <div className="space-y-4">
+                    {prods.map((p) => (
+                      <ProductCard key={p.id} p={p} qty={cart[p.id] ?? 0} t={t} addToCart={addToCart} changeQty={changeQty} />
+                    ))}
                   </div>
-                  
-                  {qty === 0 ? (
-                    <button onClick={() => addToCart(p.id)} className="absolute bottom-3 right-3 grid h-9 w-9 place-items-center rounded-full bg-primary text-primary-foreground shadow-sm">
-                      <Plus className="h-4 w-4" />
-                    </button>
-                  ) : (
-                    <div className="absolute bottom-3 right-3 flex items-center gap-2 rounded-full bg-white px-2 py-1 shadow-sm">
-                      <button onClick={() => changeQty(p.id, -1)} className="grid h-7 w-7 place-items-center rounded-full border border-border bg-background text-foreground">
-                        <Minus className="h-3 w-3" />
-                      </button>
-                      <span className="w-4 text-center text-sm font-bold">{qty}</span>
-                      <button onClick={() => changeQty(p.id, 1)} className="grid h-7 w-7 place-items-center rounded-full bg-primary text-primary-foreground">
-                        <Plus className="h-3 w-3" />
-                      </button>
-                    </div>
-                  )}
                 </div>
               );
             })}
