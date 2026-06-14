@@ -140,7 +140,7 @@ function ProductCard({
 
       {!soldOut && (
         qty === 0 ? (
-          <button onClick={(e) => { e.stopPropagation(); addToCart(p.id); }} className="absolute bottom-3 right-3 grid h-9 w-9 place-items-center rounded-full bg-primary text-primary-foreground shadow-sm">
+          <button onClick={(e) => { e.stopPropagation(); onOpen(p); }} className="absolute bottom-3 right-3 grid h-9 w-9 place-items-center rounded-full bg-primary text-primary-foreground shadow-sm">
             <Plus className="h-4 w-4" />
           </button>
         ) : (
