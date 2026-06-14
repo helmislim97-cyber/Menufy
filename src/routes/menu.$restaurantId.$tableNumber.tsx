@@ -430,7 +430,7 @@ function MenuPage() {
                     </span>
                   )}
                   <div className="flex gap-3 p-3">
-                    <div className="grid h-28 w-28 shrink-0 place-items-center overflow-hidden rounded-xl bg-background text-3xl">
+                    <div className="grid h-20 w-20 shrink-0 place-items-center overflow-hidden rounded-xl bg-background text-3xl">
                       {p.image_url ? (
                         <img src={p.image_url} alt={p.name} className="h-full w-full object-cover" />
                       ) : (
@@ -438,24 +438,24 @@ function MenuPage() {
                       )}
                     </div>
                     <div className="flex min-w-0 flex-1 flex-col">
-                      <p className="text-lg font-extrabold leading-tight text-[#1c1f16]">{p.name}</p>
+                      <p className="text-base font-extrabold leading-tight text-[#1c1f16] pr-12">{p.name}</p>
                       {p.description && (
-                        <p className="mt-1 text-sm leading-snug text-muted-foreground">{p.description}</p>
+                        <p className="mt-1 text-xs leading-snug text-muted-foreground line-clamp-2">{p.description}</p>
                       )}
                       <div className="mt-auto flex items-end justify-between pt-2">
-                        <p className="text-lg font-extrabold text-[#1c1f16]">{Number(p.price).toFixed(2)} DT</p>
+                        <p className="text-base font-extrabold text-[#1c1f16]">{Number(p.price).toFixed(2)} DT</p>
                         {(p.kcal || p.prep_minutes) && (
-                          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                          <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
                             {p.kcal && (
-                              <span className="flex items-center gap-1">
-                                <Flame className="h-3.5 w-3.5" />
+                              <span className="flex items-center gap-0.5">
+                                <Flame className="h-3 w-3" />
                                 {p.kcal} {t("client.kcal")}
                               </span>
                             )}
                             {p.kcal && p.prep_minutes && <span>|</span>}
                             {p.prep_minutes && (
-                              <span className="flex items-center gap-1">
-                                <Clock className="h-3.5 w-3.5" />
+                              <span className="flex items-center gap-0.5">
+                                <Clock className="h-3 w-3" />
                                 {p.prep_minutes} {t("client.min")}
                               </span>
                             )}
@@ -465,7 +465,7 @@ function MenuPage() {
                     </div>
                   </div>
                   {p.tags && p.tags.length > 0 && (
-                    <div className="flex flex-wrap gap-1 border-t border-border/40 px-3 py-2">
+                    <div className="flex flex-wrap gap-1 px-3 pb-3">
                       {p.tags.map((tag) => (
                         <span key={tag} className="rounded-full bg-background px-2 py-0.5 text-xs text-muted-foreground">
                           {tag}
