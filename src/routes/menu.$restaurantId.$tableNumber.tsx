@@ -614,7 +614,7 @@ function MenuPage() {
       )}
 
       <Dialog open={!!detailProduct} onOpenChange={(open) => !open && setDetailProduct(null)}>
-        <DialogContent className="max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-h-[90vh] overflow-y-auto bg-[#f3efe4] text-[#1c1f16]">
           {detailProduct && (
             <div className="flex flex-col items-center text-center">
               <div className="grid h-56 w-56 place-items-center overflow-hidden rounded-2xl bg-background text-6xl">
