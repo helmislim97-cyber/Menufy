@@ -50,6 +50,10 @@ interface Product {
   image_url: string | null;
   is_available: boolean;
   position: number;
+  kcal: number | null;
+  prep_minutes: number | null;
+  badge: string | null;
+  tags: string[] | null;
 }
 
 const UNCATEGORIZED = "__uncategorized__";
@@ -84,6 +88,10 @@ function MenuManagement() {
     emoji: "",
     category_id: "" as string,
     is_available: true,
+    kcal: "",
+    prep_minutes: "",
+    badge: "",
+    tags: "",
   });
   const [savingProd, setSavingProd] = useState(false);
   const [imageFile, setImageFile] = useState<File | null>(null);
@@ -96,7 +104,7 @@ function MenuManagement() {
       supabase.from("categories").select("id, name, description, image_url, position").eq("restaurant_id", rid).order("position"),
       supabase
         .from("products")
-        .select("id, category_id, name, description, price, emoji, image_url, is_available, position")
+        .select("id, category_id, name, description, price, emoji, image_url, is_available, position, kcal, prep_minutes, badge, tags")
         .eq("restaurant_id", rid)
         .order("position"),
     ]);
@@ -219,6 +227,10 @@ function MenuManagement() {
       emoji: "",
       category_id: categoryId ?? categories[0]?.id ?? UNCATEGORIZED,
       is_available: true,
+      kcal: "",
+      prep_minutes: "",
+      badge: "",
+      tags: "",
     });
     setProdDialogOpen(true);
   };
@@ -235,6 +247,10 @@ function MenuManagement() {
       emoji: p.emoji ?? "",
       category_id: p.category_id ?? UNCATEGORIZED,
       is_available: p.is_available,
+      kcal: p.kcal != null ? String(p.kcal) : "",
+      prep_minutes: p.prep_minutes != null ? String(p.prep_minutes) : "",
+      badge: p.badge ?? "",
+      tags: (p.tags ?? []).join(", "),
     });
     setProdDialogOpen(true);
   };
@@ -281,6 +297,10 @@ function MenuManagement() {
     }
 
     const category_id = prodForm.category_id === UNCATEGORIZED ? null : prodForm.category_id;
+    const tagsArray = prodForm.tags
+      .split(",")
+      .map((t) => t.trim())
+      .filter((t) => t.length > 0);
     const payload = {
       name: prodForm.name.trim(),
       description: prodForm.description.trim() || null,
@@ -289,6 +309,10 @@ function MenuManagement() {
       image_url: finalImageUrl,
       category_id,
       is_available: prodForm.is_available,
+      kcal: prodForm.kcal.trim() ? parseInt(prodForm.kcal, 10) : null,
+      prep_minutes: prodForm.prep_minutes.trim() ? parseInt(prodForm.prep_minutes, 10) : null,
+      badge: prodForm.badge.trim() || null,
+      tags: tagsArray.length > 0 ? tagsArray : null,
     };
 
     if (editingProd) {
@@ -630,6 +654,53 @@ function MenuManagement() {
                   </SelectContent>
                 </Select>
               </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-2">
+              <div className="space-y-2">
+                <Label htmlFor="prod-kcal">{t("menu.kcal")}</Label>
+                <Input
+                  id="prod-kcal"
+                  type="number"
+                  inputMode="numeric"
+                  min="0"
+                  value={prodForm.kcal}
+                  onChange={(e) => setProdForm((f) => ({ ...f, kcal: e.target.value }))}
+                  placeholder="0"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="prod-prep">{t("menu.prepMinutes")}</Label>
+                <Input
+                  id="prod-prep"
+                  type="number"
+                  inputMode="numeric"
+                  min="0"
+                  value={prodForm.prep_minutes}
+                  onChange={(e) => setProdForm((f) => ({ ...f, prep_minutes: e.target.value }))}
+                  placeholder="0"
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="prod-badge">{t("menu.badge")}</Label>
+              <Input
+                id="prod-badge"
+                value={prodForm.badge}
+                onChange={(e) => setProdForm((f) => ({ ...f, badge: e.target.value }))}
+                placeholder={t("menu.badgePlaceholder")}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="prod-tags">{t("menu.tags")}</Label>
+              <Input
+                id="prod-tags"
+                value={prodForm.tags}
+                onChange={(e) => setProdForm((f) => ({ ...f, tags: e.target.value }))}
+                placeholder={t("menu.tagsPlaceholder")}
+              />
             </div>
 
             <div className="flex items-center justify-between rounded-xl border border-border bg-surface px-3 py-2.5">

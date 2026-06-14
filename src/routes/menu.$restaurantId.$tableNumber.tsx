@@ -16,7 +16,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { RestaurantCover } from "@/components/restaurant-cover";
 import { CategoryGrid } from "@/components/category-grid";
-import { ShoppingCart, Plus, Minus, CheckCircle2, Search, ArrowLeft, MapPin } from "lucide-react";
+import { ShoppingCart, Plus, Minus, CheckCircle2, Search, ArrowLeft, MapPin, Flame, Clock } from "lucide-react";
 
 export const Route = createFileRoute("/menu/$restaurantId/$tableNumber")({
   head: () => ({
@@ -62,6 +62,10 @@ interface Product {
   image_url: string | null;
   is_available: boolean;
   position: number;
+  kcal: number | null;
+  prep_minutes: number | null;
+  badge: string | null;
+  tags: string[] | null;
 }
 
 const UNCATEGORIZED = "__uncategorized__";
@@ -112,7 +116,7 @@ function MenuPage() {
           .order("position"),
         supabase
           .from("products")
-          .select("id, category_id, name, description, price, emoji, image_url, is_available, position")
+          .select("id, category_id, name, description, price, emoji, image_url, is_available, position, kcal, prep_minutes, badge, tags")
           .eq("restaurant_id", restaurantId)
           .eq("is_available", true)
           .order("position"),
@@ -415,44 +419,78 @@ function MenuPage() {
         ) : activeProducts.length === 0 ? (
           <p className="mt-10 text-center text-sm text-muted-foreground">{t("client.noResults")}</p>
         ) : (
-          <div className="space-y-3">
+          <div className="space-y-4">
             {activeProducts.map((p) => {
               const qty = cart[p.id] ?? 0;
               return (
-                <div key={p.id} className="flex items-center gap-3 rounded-2xl border border-border bg-surface p-3">
-                  <div className="grid h-12 w-12 shrink-0 place-items-center overflow-hidden rounded-xl bg-background text-2xl">
-                    {p.image_url ? (
-                      <img src={p.image_url} alt={p.name} className="h-full w-full object-cover" />
-                    ) : (
-                      p.emoji || "🍽️"
-                    )}
+                <div key={p.id} className="overflow-hidden rounded-2xl border border-border bg-surface">
+                  <div className="flex gap-3 p-3">
+                    <div className="relative grid h-24 w-24 shrink-0 place-items-center overflow-hidden rounded-xl bg-background text-3xl">
+                      {p.image_url ? (
+                        <img src={p.image_url} alt={p.name} className="h-full w-full object-cover" />
+                      ) : (
+                        p.emoji || "🍽️"
+                      )}
+                      {p.badge && (
+                        <span className="absolute top-1 right-1 rounded-full bg-primary px-2 py-0.5 text-[10px] font-bold uppercase text-primary-foreground shadow-sm">
+                          {p.badge}
+                        </span>
+                      )}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-sm font-bold leading-snug">{p.name}</p>
+                      {p.description && (
+                        <p className="mt-0.5 text-xs leading-snug text-muted-foreground">{p.description}</p>
+                      )}
+                      <div className="mt-2 flex items-center justify-between">
+                        <p className="text-sm font-bold text-gold">{Number(p.price).toFixed(2)} DT</p>
+                        {qty === 0 ? (
+                          <Button size="sm" onClick={() => addToCart(p.id)} className="shrink-0">
+                            {t("client.add")}
+                          </Button>
+                        ) : (
+                          <div className="flex shrink-0 items-center gap-2">
+                            <button
+                              onClick={() => changeQty(p.id, -1)}
+                              className="grid h-8 w-8 place-items-center rounded-full border border-border bg-background text-foreground"
+                            >
+                              <Minus className="h-3.5 w-3.5" />
+                            </button>
+                            <span className="w-5 text-center text-sm font-bold">{qty}</span>
+                            <button
+                              onClick={() => changeQty(p.id, 1)}
+                              className="grid h-8 w-8 place-items-center rounded-full bg-primary text-primary-foreground"
+                            >
+                              <Plus className="h-3.5 w-3.5" />
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    </div>
                   </div>
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-bold">{p.name}</p>
-                    {p.description && (
-                      <p className="line-clamp-1 text-xs text-muted-foreground">{p.description}</p>
-                    )}
-                    <p className="mt-1 text-sm font-bold text-gold">{Number(p.price).toFixed(2)} DT</p>
-                  </div>
-                  {qty === 0 ? (
-                    <Button size="sm" onClick={() => addToCart(p.id)} className="shrink-0">
-                      {t("client.add")}
-                    </Button>
-                  ) : (
-                    <div className="flex shrink-0 items-center gap-2">
-                      <button
-                        onClick={() => changeQty(p.id, -1)}
-                        className="grid h-8 w-8 place-items-center rounded-full border border-border bg-background text-foreground"
-                      >
-                        <Minus className="h-3.5 w-3.5" />
-                      </button>
-                      <span className="w-5 text-center text-sm font-bold">{qty}</span>
-                      <button
-                        onClick={() => changeQty(p.id, 1)}
-                        className="grid h-8 w-8 place-items-center rounded-full bg-primary text-primary-foreground"
-                      >
-                        <Plus className="h-3.5 w-3.5" />
-                      </button>
+                  {(p.kcal || p.prep_minutes || (p.tags && p.tags.length > 0)) && (
+                    <div className="flex items-center gap-3 border-t border-border/60 px-3 py-2 text-xs text-muted-foreground">
+                      {p.kcal && (
+                        <span className="flex items-center gap-1">
+                          <Flame className="h-3.5 w-3.5" />
+                          {p.kcal} {t("client.kcal")}
+                        </span>
+                      )}
+                      {p.prep_minutes && (
+                        <span className="flex items-center gap-1">
+                          <Clock className="h-3.5 w-3.5" />
+                          {p.prep_minutes} {t("client.min")}
+                        </span>
+                      )}
+                      {p.tags && p.tags.length > 0 && (
+                        <span className="flex flex-wrap gap-1">
+                          {p.tags.map((tag) => (
+                            <span key={tag} className="rounded-full bg-background px-2 py-0.5">
+                              {tag}
+                            </span>
+                          ))}
+                        </span>
+                      )}
                     </div>
                   )}
                 </div>
