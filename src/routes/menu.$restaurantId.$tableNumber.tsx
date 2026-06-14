@@ -638,19 +638,19 @@ function MenuPage() {
                 </span>
               ) : (
                 <>
-                  <div className="mt-4 flex items-center gap-4 rounded-full bg-background px-4 py-2">
+                  <div className="mt-4 flex items-center gap-6 rounded-full bg-[#ebe7dc] px-6 py-2.5">
                     <button
                       onClick={() => changeQty(detailProduct.id, -1)}
-                      className="grid h-9 w-9 place-items-center rounded-full border border-border bg-white text-foreground"
+                      className="grid h-7 w-7 place-items-center text-[#1c1f16]"
                     >
-                      <Minus className="h-4 w-4" />
+                      <Minus className="h-5 w-5" />
                     </button>
-                    <span className="w-6 text-center text-lg font-bold">{cart[detailProduct.id] ?? 0}</span>
+                    <span className="w-6 text-center text-lg font-bold text-[#1c1f16]">{cart[detailProduct.id] ?? 0}</span>
                     <button
                       onClick={() => changeQty(detailProduct.id, 1)}
-                      className="grid h-9 w-9 place-items-center rounded-full bg-primary text-primary-foreground"
+                      className="grid h-7 w-7 place-items-center text-[#1c1f16]"
                     >
-                      <Plus className="h-4 w-4" />
+                      <Plus className="h-5 w-5" />
                     </button>
                   </div>
 
