@@ -85,7 +85,7 @@ function ProductCard({
 }) {
   const soldOut = !p.is_available;
   return (
-    <div className={`relative overflow-hidden rounded-2xl bg-white shadow-sm ${soldOut ? "opacity-60" : ""}`}>
+    <div className={`relative overflow-hidden rounded-2xl bg-white shadow-[0_8px_24px_-8px_rgba(28,31,22,0.25)] ${soldOut ? "opacity-60" : ""}`}>
       {soldOut ? (
         <span className="absolute top-3 right-0 rounded-l-full bg-[#1c1f16]/70 px-3 py-1 text-xs font-bold uppercase text-white shadow-sm">
           {t("client.soldOut")}
