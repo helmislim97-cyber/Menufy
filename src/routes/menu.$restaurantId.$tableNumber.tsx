@@ -16,7 +16,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { RestaurantCover } from "@/components/restaurant-cover";
 import { CategoryGrid } from "@/components/category-grid";
-import { ShoppingCart, Plus, Minus, CheckCircle2, Search, ArrowLeft } from "lucide-react";
+import { ShoppingCart, Plus, Minus, CheckCircle2, Search, ArrowLeft, MapPin } from "lucide-react";
 
 export const Route = createFileRoute("/menu/$restaurantId/$tableNumber")({
   head: () => ({
@@ -332,13 +332,12 @@ function MenuPage() {
     <div className="min-h-screen animate-fade-in bg-[#f3efe4] pb-28 sm:px-6 sm:py-8">
       <div className="mx-auto max-w-4xl">
       <header className="relative bg-[#f3efe4]">
-        <div className="relative h-40 w-full overflow-hidden">
+        <div className="relative h-56 w-full overflow-hidden">
           {restaurant.banner_url ? (
             <img src={restaurant.banner_url} alt="" className="absolute inset-0 h-full w-full object-cover" />
           ) : (
             <div className="absolute inset-0 bg-gradient-to-br from-[#1c1f16]/10 to-[#1c1f16]/5" />
           )}
-          <div className="absolute inset-0 bg-gradient-to-t from-[#f3efe4] via-[#f3efe4]/10 to-transparent" />
           <div className="absolute left-4 top-4">
             <button
               onClick={() => setShowCategories(true)}
@@ -352,14 +351,20 @@ function MenuPage() {
             <LangSwitch variant="light" />
           </div>
         </div>
-        <div className="mx-auto max-w-md px-4 pb-3 -mt-10">
+        <div className="relative rounded-t-3xl bg-[#f3efe4] -mt-6 px-4 pb-3 pt-12 text-center">
           {restaurant.logo_url && (
-            <div className="mb-2 flex h-16 w-16 items-center justify-center rounded-2xl border border-[#1c1f16]/15 bg-white p-2 shadow-sm">
+            <div className="absolute left-1/2 top-0 -translate-x-1/2 -translate-y-1/2 flex h-20 w-20 items-center justify-center rounded-full border-4 border-[#f3efe4] bg-white p-2 shadow-md">
               <img src={restaurant.logo_url} alt={restaurant.name} className="max-h-full max-w-full object-contain" />
             </div>
           )}
           <h1 className="text-xl font-extrabold leading-tight text-[#1c1f16]">{restaurant.name}</h1>
-          <p className="text-xs uppercase tracking-wider text-[#1c1f16]/50">
+          {restaurant.address && (
+            <p className="mt-1 flex items-center justify-center gap-1 text-xs text-[#1c1f16]/50">
+              <MapPin className="h-3 w-3" />
+              {restaurant.address}
+            </p>
+          )}
+          <p className="mt-1 text-xs uppercase tracking-wider text-[#1c1f16]/40">
             {t("client.table")} {tableNumber}
           </p>
         </div>
