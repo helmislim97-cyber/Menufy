@@ -509,7 +509,7 @@ function MenuPage() {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder={t("client.searchPlaceholder")}
-              className="ps-9"
+              className="ps-9 bg-white text-[#1c1f16] placeholder:text-[#1c1f16]/40"
             />
           </div>
         </div>
