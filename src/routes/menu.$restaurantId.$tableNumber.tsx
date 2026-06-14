@@ -180,6 +180,7 @@ function MenuPage() {
   const [customerFirstName, setCustomerFirstName] = useState("");
   const [customerLastName, setCustomerLastName] = useState("");
   const [customerPhone, setCustomerPhone] = useState("");
+  const [showInfoError, setShowInfoError] = useState(false);
   const [placing, setPlacing] = useState(false);
   const [placedOrder, setPlacedOrder] = useState<{ total: number } | null>(null);
 
@@ -366,7 +367,11 @@ function MenuPage() {
 
   const placeOrder = async () => {
     if (!restaurant || cartItems.length === 0) return;
-    if (!customerFirstName.trim() || !customerLastName.trim() || !customerPhone.trim()) return;
+    if (!customerFirstName.trim() || !customerLastName.trim() || !customerPhone.trim()) {
+      setShowInfoError(true);
+      return;
+    }
+    setShowInfoError(false);
     setPlacing(true);
 
     const { data: order, error: orderError } = await supabase
@@ -410,6 +415,7 @@ function MenuPage() {
     setCustomerFirstName("");
     setCustomerLastName("");
     setCustomerPhone("");
+    setShowInfoError(false);
   };
 
   if (loading) {
@@ -769,39 +775,35 @@ function MenuPage() {
               </div>
 
               <div className="space-y-2 border-t border-border pt-3">
-                <p className="text-sm font-bold">{t("client.yourInfo")}</p>
+                <p className="text-sm font-bold">{t("client.yourInfo")} <span className="text-destructive">*</span></p>
                 <div className="grid grid-cols-2 gap-2">
                   <Input
                     value={customerFirstName}
                     onChange={(e) => setCustomerFirstName(e.target.value)}
-                    placeholder={t("client.firstNamePlaceholder")}
+                    placeholder={`${t("client.firstNamePlaceholder")} *`}
                   />
                   <Input
                     value={customerLastName}
                     onChange={(e) => setCustomerLastName(e.target.value)}
-                    placeholder={t("client.lastNamePlaceholder")}
+                    placeholder={`${t("client.lastNamePlaceholder")} *`}
                   />
                 </div>
                 <Input
                   type="tel"
                   value={customerPhone}
                   onChange={(e) => setCustomerPhone(e.target.value)}
-                  placeholder={t("client.phonePlaceholder")}
+                  placeholder={`${t("client.phonePlaceholder")} *`}
                 />
+                {showInfoError && (
+                  <p className="text-xs font-medium text-destructive">{t("client.missingInfoError")}</p>
+                )}
               </div>
             </div>
           )}
 
           {cartItems.length > 0 && (
-            <DialogFooter className="flex-col gap-2">
-              {(!customerFirstName.trim() || !customerLastName.trim() || !customerPhone.trim()) && (
-                <p className="text-xs text-muted-foreground">{t("client.fillRequiredInfo")}</p>
-              )}
-              <Button
-                onClick={placeOrder}
-                disabled={placing || !customerFirstName.trim() || !customerLastName.trim() || !customerPhone.trim()}
-                className="w-full"
-              >
+            <DialogFooter>
+              <Button onClick={placeOrder} disabled={placing} className="w-full">
                 {placing ? t("client.placing") : t("client.confirmOrder")}
               </Button>
             </DialogFooter>
