@@ -423,74 +423,69 @@ function MenuPage() {
             {activeProducts.map((p) => {
               const qty = cart[p.id] ?? 0;
               return (
-                <div key={p.id} className="overflow-hidden rounded-2xl border border-border bg-surface">
+                <div key={p.id} className="relative overflow-hidden rounded-2xl bg-white shadow-sm">
+                  {p.badge && (
+                    <span className="absolute top-3 right-0 rounded-l-full bg-primary px-3 py-1 text-xs font-bold uppercase text-primary-foreground shadow-sm">
+                      {p.badge}
+                    </span>
+                  )}
                   <div className="flex gap-3 p-3">
-                    <div className="relative grid h-24 w-24 shrink-0 place-items-center overflow-hidden rounded-xl bg-background text-3xl">
+                    <div className="grid h-28 w-28 shrink-0 place-items-center overflow-hidden rounded-xl bg-background text-3xl">
                       {p.image_url ? (
                         <img src={p.image_url} alt={p.name} className="h-full w-full object-cover" />
                       ) : (
                         p.emoji || "🍽️"
                       )}
-                      {p.badge && (
-                        <span className="absolute top-1 right-1 rounded-full bg-primary px-2 py-0.5 text-[10px] font-bold uppercase text-primary-foreground shadow-sm">
-                          {p.badge}
-                        </span>
-                      )}
                     </div>
-                    <div className="min-w-0 flex-1">
-                      <p className="text-sm font-bold leading-snug">{p.name}</p>
+                    <div className="flex min-w-0 flex-1 flex-col">
+                      <p className="text-lg font-extrabold leading-tight text-[#1c1f16]">{p.name}</p>
                       {p.description && (
-                        <p className="mt-0.5 text-xs leading-snug text-muted-foreground">{p.description}</p>
+                        <p className="mt-1 text-sm leading-snug text-muted-foreground">{p.description}</p>
                       )}
-                      <div className="mt-2 flex items-center justify-between">
-                        <p className="text-sm font-bold text-gold">{Number(p.price).toFixed(2)} DT</p>
-                        {qty === 0 ? (
-                          <Button size="sm" onClick={() => addToCart(p.id)} className="shrink-0">
-                            {t("client.add")}
-                          </Button>
-                        ) : (
-                          <div className="flex shrink-0 items-center gap-2">
-                            <button
-                              onClick={() => changeQty(p.id, -1)}
-                              className="grid h-8 w-8 place-items-center rounded-full border border-border bg-background text-foreground"
-                            >
-                              <Minus className="h-3.5 w-3.5" />
-                            </button>
-                            <span className="w-5 text-center text-sm font-bold">{qty}</span>
-                            <button
-                              onClick={() => changeQty(p.id, 1)}
-                              className="grid h-8 w-8 place-items-center rounded-full bg-primary text-primary-foreground"
-                            >
-                              <Plus className="h-3.5 w-3.5" />
-                            </button>
+                      <div className="mt-auto flex items-end justify-between pt-2">
+                        <p className="text-lg font-extrabold text-[#1c1f16]">{Number(p.price).toFixed(2)} DT</p>
+                        {(p.kcal || p.prep_minutes) && (
+                          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                            {p.kcal && (
+                              <span className="flex items-center gap-1">
+                                <Flame className="h-3.5 w-3.5" />
+                                {p.kcal} {t("client.kcal")}
+                              </span>
+                            )}
+                            {p.kcal && p.prep_minutes && <span>|</span>}
+                            {p.prep_minutes && (
+                              <span className="flex items-center gap-1">
+                                <Clock className="h-3.5 w-3.5" />
+                                {p.prep_minutes} {t("client.min")}
+                              </span>
+                            )}
                           </div>
                         )}
                       </div>
                     </div>
                   </div>
-                  {(p.kcal || p.prep_minutes || (p.tags && p.tags.length > 0)) && (
-                    <div className="flex items-center gap-3 border-t border-border/60 px-3 py-2 text-xs text-muted-foreground">
-                      {p.kcal && (
-                        <span className="flex items-center gap-1">
-                          <Flame className="h-3.5 w-3.5" />
-                          {p.kcal} {t("client.kcal")}
+                  {p.tags && p.tags.length > 0 && (
+                    <div className="flex flex-wrap gap-1 border-t border-border/40 px-3 py-2">
+                      {p.tags.map((tag) => (
+                        <span key={tag} className="rounded-full bg-background px-2 py-0.5 text-xs text-muted-foreground">
+                          {tag}
                         </span>
-                      )}
-                      {p.prep_minutes && (
-                        <span className="flex items-center gap-1">
-                          <Clock className="h-3.5 w-3.5" />
-                          {p.prep_minutes} {t("client.min")}
-                        </span>
-                      )}
-                      {p.tags && p.tags.length > 0 && (
-                        <span className="flex flex-wrap gap-1">
-                          {p.tags.map((tag) => (
-                            <span key={tag} className="rounded-full bg-background px-2 py-0.5">
-                              {tag}
-                            </span>
-                          ))}
-                        </span>
-                      )}
+                      ))}
+                    </div>
+                  )}
+                  {qty === 0 ? (
+                    <button onClick={() => addToCart(p.id)} className="absolute bottom-3 right-3 grid h-9 w-9 place-items-center rounded-full bg-primary text-primary-foreground shadow-sm">
+                      <Plus className="h-4 w-4" />
+                    </button>
+                  ) : (
+                    <div className="absolute bottom-3 right-3 flex items-center gap-2 rounded-full bg-white px-2 py-1 shadow-sm">
+                      <button onClick={() => changeQty(p.id, -1)} className="grid h-7 w-7 place-items-center rounded-full border border-border bg-background text-foreground">
+                        <Minus className="h-3 w-3" />
+                      </button>
+                      <span className="w-4 text-center text-sm font-bold">{qty}</span>
+                      <button onClick={() => changeQty(p.id, 1)} className="grid h-7 w-7 place-items-center rounded-full bg-primary text-primary-foreground">
+                        <Plus className="h-3 w-3" />
+                      </button>
                     </div>
                   )}
                 </div>
