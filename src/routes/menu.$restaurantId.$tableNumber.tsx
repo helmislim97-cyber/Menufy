@@ -508,7 +508,7 @@ function MenuPage() {
         </div>
 
         {visibleCategories.length > 0 && (
-          <div className={`scrollbar-none flex gap-2 overflow-x-auto px-4 pb-3 ${searchQuery.trim() ? "opacity-40" : ""}`}>
+          <div className={`scrollbar-none sticky top-0 z-30 flex gap-2 overflow-x-auto bg-[#f3efe4] px-4 py-3 ${searchQuery.trim() ? "opacity-40" : ""}`}>
             {visibleCategories.map((c) => (
               <button
                 key={c.id}
