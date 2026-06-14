@@ -424,7 +424,7 @@ function SettingsPage() {
       </Dialog>
 
       <Dialog open={editOpen} onOpenChange={setEditOpen}>
-        <DialogContent>
+        <DialogContent className="max-h-[85vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>{t("settings.editRestaurantTitle")}</DialogTitle>
           </DialogHeader>
