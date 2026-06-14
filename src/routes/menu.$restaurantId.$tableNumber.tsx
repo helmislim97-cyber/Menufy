@@ -83,12 +83,19 @@ function ProductCard({
   addToCart: (id: string) => void;
   changeQty: (id: string, delta: number) => void;
 }) {
+  const soldOut = !p.is_available;
   return (
-    <div className="relative overflow-hidden rounded-2xl bg-white shadow-sm">
-      {p.badge && (
-        <span className="absolute top-3 right-0 rounded-l-full bg-primary px-3 py-1 text-xs font-bold uppercase text-primary-foreground shadow-sm">
-          {p.badge}
+    <div className={`relative overflow-hidden rounded-2xl bg-white shadow-sm ${soldOut ? "opacity-60" : ""}`}>
+      {soldOut ? (
+        <span className="absolute top-3 right-0 rounded-l-full bg-[#1c1f16]/70 px-3 py-1 text-xs font-bold uppercase text-white shadow-sm">
+          {t("client.soldOut")}
         </span>
+      ) : (
+        p.badge && (
+          <span className="absolute top-3 right-0 rounded-l-full bg-primary px-3 py-1 text-xs font-bold uppercase text-primary-foreground shadow-sm">
+            {p.badge}
+          </span>
+        )
       )}
       <div className="flex gap-3 p-3">
         <div className="grid h-20 w-20 shrink-0 place-items-center overflow-hidden rounded-xl bg-background text-3xl">
@@ -126,20 +133,22 @@ function ProductCard({
         </div>
       </div>
 
-      {qty === 0 ? (
-        <button onClick={() => addToCart(p.id)} className="absolute bottom-3 right-3 grid h-9 w-9 place-items-center rounded-full bg-primary text-primary-foreground shadow-sm">
-          <Plus className="h-4 w-4" />
-        </button>
-      ) : (
-        <div className="absolute bottom-3 right-3 flex items-center gap-2 rounded-full bg-white px-2 py-1 shadow-sm">
-          <button onClick={() => changeQty(p.id, -1)} className="grid h-7 w-7 place-items-center rounded-full border border-border bg-background text-foreground">
-            <Minus className="h-3 w-3" />
+      {!soldOut && (
+        qty === 0 ? (
+          <button onClick={() => addToCart(p.id)} className="absolute bottom-3 right-3 grid h-9 w-9 place-items-center rounded-full bg-primary text-primary-foreground shadow-sm">
+            <Plus className="h-4 w-4" />
           </button>
-          <span className="w-4 text-center text-sm font-bold">{qty}</span>
-          <button onClick={() => changeQty(p.id, 1)} className="grid h-7 w-7 place-items-center rounded-full bg-primary text-primary-foreground">
-            <Plus className="h-3 w-3" />
-          </button>
-        </div>
+        ) : (
+          <div className="absolute bottom-3 right-3 flex items-center gap-2 rounded-full bg-white px-2 py-1 shadow-sm">
+            <button onClick={() => changeQty(p.id, -1)} className="grid h-7 w-7 place-items-center rounded-full border border-border bg-background text-foreground">
+              <Minus className="h-3 w-3" />
+            </button>
+            <span className="w-4 text-center text-sm font-bold">{qty}</span>
+            <button onClick={() => changeQty(p.id, 1)} className="grid h-7 w-7 place-items-center rounded-full bg-primary text-primary-foreground">
+              <Plus className="h-3 w-3" />
+            </button>
+          </div>
+        )
       )}
     </div>
   );
@@ -192,7 +201,6 @@ function MenuPage() {
           .from("products")
           .select("id, category_id, name, description, price, emoji, image_url, is_available, position, kcal, prep_minutes, badge, tags")
           .eq("restaurant_id", restaurantId)
-          .eq("is_available", true)
           .order("position"),
       ]);
 

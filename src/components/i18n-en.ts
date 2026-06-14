@@ -242,6 +242,7 @@ export const en: Record<string, string> = {
   "menu.tagsPlaceholder": "E.g. cheese, nuts, gluten-free",
   "client.kcal": "kcal",
   "client.min": "min",
+  "client.soldOut": "Sold out",
   "settings.wifi": "Wi-Fi password",
   "settings.wifiPlaceholder": "E.g. MyRestaurant2024",
   "settings.banner": "Cover photo",
