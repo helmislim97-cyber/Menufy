@@ -363,13 +363,13 @@ function MenuPage() {
             <LangSwitch variant="light" />
           </div>
         </div>
-        <div className="relative rounded-t-3xl bg-[#f3efe4] -mt-6 px-4 pb-3 pt-12 text-center">
+        <div className="relative rounded-t-3xl bg-[#f3efe4] -mt-6 px-4 pb-3 pt-20 text-center">
           {restaurant.logo_url && (
             <div className="absolute left-1/2 top-0 -translate-x-1/2 -translate-y-1/2 flex h-32 w-32 items-center justify-center rounded-full border-4 border-[#f3efe4] bg-white p-3 shadow-md">
               <img src={restaurant.logo_url} alt={restaurant.name} className="max-h-full max-w-full object-contain" />
             </div>
           )}
-          <h1 className="text-xl font-extrabold leading-tight text-[#1c1f16]">{restaurant.name}</h1>
+          <h1 className="mt-2 text-xl font-extrabold leading-tight text-[#1c1f16]">{restaurant.name}</h1>
           <p className="mt-1 text-xs uppercase tracking-wider text-[#1c1f16]/40">
             {t("client.table")} {tableNumber}
           </p>
