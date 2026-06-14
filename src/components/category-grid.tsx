@@ -43,12 +43,18 @@ export function CategoryGrid({ name, logoUrl, facebookUrl, instagramUrl, address
         )}
       </div>
 
-      <div className="mt-6 grid grid-cols-2 gap-3">
+      <div className="mt-6 space-y-3">
         {categories.map((c) => (
-          <button key={c.id} onClick={() => onSelect(c.id)} className="relative aspect-[4/5] overflow-hidden rounded-2xl border border-[#1c1f16]/10 bg-[#1c1f16]/5 text-left">
-            {c.imageUrl && <img src={c.imageUrl} alt="" className="absolute inset-0 h-full w-full object-cover" />}
-            <div className={`absolute inset-0 ${c.imageUrl ? "bg-gradient-to-t from-black/60 via-black/10 to-transparent" : ""}`} />
-            <span className={`absolute inset-x-3 bottom-3 font-display text-lg font-extrabold uppercase tracking-wide ${c.imageUrl ? "text-white" : "text-[#1c1f16]"}`}>{c.name}</span>
+          <button key={c.id} onClick={() => onSelect(c.id)} className="relative w-full h-32 overflow-hidden rounded-2xl bg-white/70 text-left flex items-center shadow-sm border border-[#1c1f16]/8">
+            {c.imageUrl && (
+              <>
+                <img src={c.imageUrl} alt="" className="absolute right-0 top-0 h-full w-2/3 object-cover" />
+                <div className="absolute inset-0 bg-gradient-to-r from-white/95 via-white/70 to-transparent" />
+              </>
+            )}
+            <div className="relative px-5">
+              <p className="font-display text-xl font-extrabold uppercase tracking-wide text-[#1c1f16]">{c.name}</p>
+            </div>
           </button>
         ))}
       </div>
