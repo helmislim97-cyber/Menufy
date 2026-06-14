@@ -43,7 +43,7 @@ export function CategoryGrid({ name, logoUrl, facebookUrl, instagramUrl, address
         )}
       </div>
 
-      <div className="mt-6 space-y-3">
+      <div className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4">
         {categories.map((c) => (
           <button key={c.id} onClick={() => onSelect(c.id)} className="relative w-full h-32 overflow-hidden rounded-2xl bg-white/70 text-left flex items-center shadow-sm border border-[#1c1f16]/8">
             {c.imageUrl && (
