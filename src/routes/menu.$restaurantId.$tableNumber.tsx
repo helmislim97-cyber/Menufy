@@ -380,6 +380,7 @@ function MenuPage() {
   const [customerFirstName, setCustomerFirstName] = useState("");
   const [customerLastName, setCustomerLastName] = useState("");
   const [customerPhone, setCustomerPhone] = useState("");
+  const [customerCountryCode, setCustomerCountryCode] = useState("+216");
   const [showInfoError, setShowInfoError] = useState(false);
   const [placing, setPlacing] = useState(false);
   const [placedOrder, setPlacedOrder] = useState<{ total: number } | null>(null);
