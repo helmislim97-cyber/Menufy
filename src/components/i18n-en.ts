@@ -237,6 +237,9 @@ export const en: Record<string, string> = {
   "settings.wifi": "Wi-Fi password",
   "settings.wifiPlaceholder": "E.g. MyRestaurant2024",
   "settings.banner": "Cover photo",
+  "settings.bannerAdjust": "Adjust position",
+  "settings.bannerZoom": "Zoom",
+  "settings.bannerHint": "Drag the image to reposition it",
 
   "settings.logo": "Logo",
   "settings.facebook": "Facebook",

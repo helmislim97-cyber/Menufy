@@ -39,6 +39,9 @@ interface Restaurant {
   description: string | null;
   wifi: string | null;
   banner_url: string | null;
+  banner_position_x: number | null;
+  banner_position_y: number | null;
+  banner_zoom: number | null;
 }
 
 interface Category {
@@ -89,7 +92,7 @@ function MenuPage() {
     async function load() {
       const { data: rest } = await supabase
         .from("restaurants")
-        .select("id, name, logo_url, facebook_url, instagram_url, address, phone, description, wifi, banner_url")
+        .select("id, name, logo_url, facebook_url, instagram_url, address, phone, description, wifi, banner_url, banner_position_x, banner_position_y, banner_zoom")
         .eq("id", restaurantId)
         .eq("is_active", true)
         .maybeSingle();
@@ -334,7 +337,16 @@ function MenuPage() {
       <header className="relative bg-[#f3efe4]">
         <div className="relative h-56 w-full overflow-hidden">
           {restaurant.banner_url ? (
-            <img src={restaurant.banner_url} alt="" className="absolute inset-0 h-full w-full object-cover" />
+            <img
+              src={restaurant.banner_url}
+              alt=""
+              className="absolute inset-0 h-full w-full object-cover"
+              style={{
+                objectPosition: `${restaurant.banner_position_x ?? 50}% ${restaurant.banner_position_y ?? 50}%`,
+                transform: `scale(${restaurant.banner_zoom ?? 1})`,
+                transformOrigin: `${restaurant.banner_position_x ?? 50}% ${restaurant.banner_position_y ?? 50}%`,
+              }}
+            />
           ) : (
             <div className="absolute inset-0 bg-gradient-to-br from-[#1c1f16]/10 to-[#1c1f16]/5" />
           )}

@@ -17,6 +17,7 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Plus, Trash2, QrCode, LogOut, ExternalLink, Download, Pencil, ImagePlus, X } from "lucide-react";
+import { BannerCropper } from "@/components/banner-cropper";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/dashboard/settings")({
@@ -34,6 +35,9 @@ interface Restaurant {
   description: string | null;
   wifi: string | null;
   banner_url: string | null;
+  banner_position_x: number | null;
+  banner_position_y: number | null;
+  banner_zoom: number | null;
 }
 
 interface RestaurantTable {
@@ -72,6 +76,9 @@ function SettingsPage() {
   const [bannerPreview, setBannerPreview] = useState<string | null>(null);
   const [bannerUrl, setBannerUrl] = useState<string | null>(null);
   const [uploadingBanner, setUploadingBanner] = useState(false);
+  const [bannerPosX, setBannerPosX] = useState(50);
+  const [bannerPosY, setBannerPosY] = useState(50);
+  const [bannerZoom, setBannerZoom] = useState(1);
 
   const loadTables = async (restaurantId: string) => {
     const { data } = await supabase
@@ -86,7 +93,7 @@ function SettingsPage() {
     if (!user) return;
     supabase
       .from("restaurants")
-      .select("id, name, address, phone, logo_url, facebook_url, instagram_url, description, wifi, banner_url")
+      .select("id, name, address, phone, logo_url, facebook_url, instagram_url, description, wifi, banner_url, banner_position_x, banner_position_y, banner_zoom")
       .eq("owner_id", user.id)
       .maybeSingle()
       .then(async ({ data }) => {
@@ -144,6 +151,9 @@ function SettingsPage() {
     setBannerFile(null);
     setBannerPreview(restaurant.banner_url);
     setBannerUrl(restaurant.banner_url);
+    setBannerPosX(restaurant.banner_position_x ?? 50);
+    setBannerPosY(restaurant.banner_position_y ?? 50);
+    setBannerZoom(restaurant.banner_zoom ?? 1);
     setEditOpen(true);
   };
 
@@ -189,6 +199,9 @@ function SettingsPage() {
     if (!file) return;
     setBannerFile(file);
     setBannerPreview(URL.createObjectURL(file));
+    setBannerPosX(50);
+    setBannerPosY(50);
+    setBannerZoom(1);
   };
 
   const removeBanner = () => {
@@ -235,6 +248,9 @@ function SettingsPage() {
       description: editDescription.trim() || null,
       wifi: editWifi.trim() || null,
       banner_url: finalBannerUrl,
+      banner_position_x: bannerPosX,
+      banner_position_y: bannerPosY,
+      banner_zoom: bannerZoom,
     };
     const { error } = await supabase.from("restaurants").update(updates).eq("id", restaurant.id);
     setSavingRestaurant(false);
@@ -446,6 +462,34 @@ function SettingsPage() {
                   )}
                 </div>
               </div>
+              {bannerPreview && (
+                <div className="mt-3 space-y-2">
+                  <p className="text-xs text-muted-foreground">{t("settings.bannerHint")}</p>
+                  <BannerCropper
+                    imageUrl={bannerPreview}
+                    positionX={bannerPosX}
+                    positionY={bannerPosY}
+                    zoom={bannerZoom}
+                    onChange={({ x, y, zoom }) => {
+                      setBannerPosX(x);
+                      setBannerPosY(y);
+                      setBannerZoom(zoom);
+                    }}
+                  />
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-semibold text-muted-foreground">{t("settings.bannerZoom")}</span>
+                    <input
+                      type="range"
+                      min="1"
+                      max="2.5"
+                      step="0.05"
+                      value={bannerZoom}
+                      onChange={(e) => setBannerZoom(parseFloat(e.target.value))}
+                      className="flex-1"
+                    />
+                  </div>
+                </div>
+              )}
             </div>
             <div>
               <label className="text-xs font-semibold text-muted-foreground">{t("settings.logo")}</label>
