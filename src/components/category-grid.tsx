@@ -49,8 +49,8 @@ export function CategoryGrid({ name, logoUrl, facebookUrl, instagramUrl, address
           <button key={c.id} onClick={() => onSelect(c.id)} className="relative w-full h-32 overflow-hidden rounded-2xl bg-white/70 text-left flex items-stretch shadow-sm border border-[#1c1f16]/8">
             {c.imageUrl && (
               <>
-                <img src={c.imageUrl} alt="" className="absolute right-0 top-0 h-full w-2/3 object-cover" />
-                <div className="absolute inset-0 bg-gradient-to-r from-white/95 via-white/70 to-transparent" />
+                <img src={c.imageUrl} alt="" className="absolute right-0 top-0 h-full w-full object-cover" />
+                <div className="absolute inset-0 bg-gradient-to-r from-white via-white/85 via-30% to-transparent" />
               </>
             )}
             <div className="relative px-5 self-end pb-4">
