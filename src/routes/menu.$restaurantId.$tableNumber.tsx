@@ -172,7 +172,8 @@ function MenuPage() {
   const [showCover, setShowCover] = useState(true);
   const [coverLeaving, setCoverLeaving] = useState(false);
   const [showCategories, setShowCategories] = useState(true);
-  const [cart, setCart] = useState<Record<string, number>>({});
+  const [cart, setCart] = useState<Record<string, { qty: number; note: string }>>({});
+  const [detailNote, setDetailNote] = useState("");
   const [cartOpen, setCartOpen] = useState(false);
   const [detailProduct, setDetailProduct] = useState<Product | null>(null);
   const [notes, setNotes] = useState("");
@@ -301,6 +302,12 @@ function MenuPage() {
     return () => window.removeEventListener("scroll", onScroll);
   }, [visibleCategories, searchQuery, activeCategory]);
 
+  useEffect(() => {
+    if (detailProduct) {
+      setDetailNote(cart[detailProduct.id]?.note ?? "");
+    }
+  }, [detailProduct, cart]);
+
   const scrollToCategory = (id: string) => {
     setActiveCategory(id);
     const el = sectionRefs.current[id];
@@ -315,32 +322,42 @@ function MenuPage() {
 
   const cartItems = useMemo(() => {
     return Object.entries(cart)
-      .map(([productId, qty]) => {
+      .map(([productId, entry]) => {
         const product = products.find((p) => p.id === productId);
-        if (!product || qty <= 0) return null;
-        return { product, qty };
+        if (!product || entry.qty <= 0) return null;
+        return { product, qty: entry.qty, note: entry.note };
       })
-      .filter((x): x is { product: Product; qty: number } => x !== null);
+      .filter((x): x is { product: Product; qty: number; note: string } => x !== null);
   }, [cart, products]);
 
   const cartCount = cartItems.reduce((sum, i) => sum + i.qty, 0);
   const cartTotal = cartItems.reduce((sum, i) => sum + i.qty * Number(i.product.price), 0);
 
-  const addToCart = (productId: string) => {
-    setCart((c) => ({ ...c, [productId]: (c[productId] ?? 0) + 1 }));
+  const addToCart = (productId: string, note?: string) => {
+    setCart((c) => ({
+      ...c,
+      [productId]: { qty: (c[productId]?.qty ?? 0) + 1, note: note ?? c[productId]?.note ?? "" },
+    }));
   };
 
   const changeQty = (productId: string, delta: number) => {
     setCart((c) => {
       const next = { ...c };
-      const current = next[productId] ?? 0;
+      const current = next[productId]?.qty ?? 0;
       const updated = Math.max(0, current + delta);
       if (updated === 0) {
         delete next[productId];
       } else {
-        next[productId] = updated;
+        next[productId] = { qty: updated, note: next[productId]?.note ?? "" };
       }
       return next;
+    });
+  };
+
+  const setItemNote = (productId: string, note: string) => {
+    setCart((c) => {
+      if (!c[productId]) return c;
+      return { ...c, [productId]: { ...c[productId], note } };
     });
   };
 
@@ -368,7 +385,7 @@ function MenuPage() {
     const items = cartItems.map((i) => ({
       order_id: order.id,
       product_id: i.product.id,
-      product_name: i.product.name,
+      product_name: i.product.name + (i.note.trim() ? ` (${i.note.trim()})` : ""),
       product_price: i.product.price,
       quantity: i.qty,
     }));
@@ -559,7 +576,7 @@ function MenuPage() {
           ) : (
             <div className="space-y-4 sm:grid sm:grid-cols-2 sm:gap-4 sm:space-y-0">
               {searchResults.map((p) => (
-                <ProductCard key={p.id} p={p} qty={cart[p.id] ?? 0} t={t} addToCart={addToCart} changeQty={changeQty} onOpen={setDetailProduct} />
+                <ProductCard key={p.id} p={p} qty={cart[p.id]?.qty ?? 0} t={t} addToCart={addToCart} changeQty={changeQty} onOpen={setDetailProduct} />
               ))}
             </div>
           )
@@ -578,7 +595,7 @@ function MenuPage() {
                   <h2 className="mb-3 text-lg font-extrabold uppercase tracking-wide text-[#1c1f16]">{c.name}</h2>
                   <div className="space-y-4 sm:grid sm:grid-cols-2 sm:gap-4 sm:space-y-0">
                     {prods.map((p) => (
-                      <ProductCard key={p.id} p={p} qty={cart[p.id] ?? 0} t={t} addToCart={addToCart} changeQty={changeQty} onOpen={setDetailProduct} />
+                      <ProductCard key={p.id} p={p} qty={cart[p.id]?.qty ?? 0} t={t} addToCart={addToCart} changeQty={changeQty} onOpen={setDetailProduct} />
                     ))}
                   </div>
                 </div>
@@ -645,7 +662,7 @@ function MenuPage() {
                     >
                       <Minus className="h-5 w-5" />
                     </button>
-                    <span className="w-6 text-center text-lg font-bold text-[#1c1f16]">{cart[detailProduct.id] ?? 0}</span>
+                    <span className="w-6 text-center text-lg font-bold text-[#1c1f16]">{cart[detailProduct.id]?.qty ?? 0}</span>
                     <button
                       onClick={() => changeQty(detailProduct.id, 1)}
                       className="grid h-7 w-7 place-items-center text-[#1c1f16]"
@@ -654,9 +671,21 @@ function MenuPage() {
                     </button>
                   </div>
 
+                  <div className="mt-4 w-full space-y-1.5 text-left">
+                    <label className="text-xs font-medium text-[#1c1f16]/60">{t("client.itemNote")}</label>
+                    <Textarea
+                      value={detailNote}
+                      onChange={(e) => setDetailNote(e.target.value)}
+                      placeholder={t("client.itemNotePlaceholder")}
+                      rows={2}
+                      className="bg-white"
+                    />
+                  </div>
+
                   <Button
                     onClick={() => {
-                      if ((cart[detailProduct.id] ?? 0) === 0) addToCart(detailProduct.id);
+                      addToCart(detailProduct.id, detailNote);
+                      setItemNote(detailProduct.id, detailNote);
                       setDetailProduct(null);
                     }}
                     className="mt-4 w-full gap-2"
@@ -681,12 +710,13 @@ function MenuPage() {
             <p className="py-6 text-center text-sm text-muted-foreground">{t("client.cartEmpty")}</p>
           ) : (
             <div className="space-y-2">
-              {cartItems.map(({ product, qty }) => (
+              {cartItems.map(({ product, qty, note }) => (
                 <div key={product.id} className="flex items-center gap-3 rounded-xl border border-border bg-surface p-2.5">
                   <span className="text-xl">{product.emoji || "🍽️"}</span>
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-sm font-semibold">{product.name}</p>
                     <p className="text-xs text-muted-foreground">{Number(product.price).toFixed(2)} DT</p>
+                    {note.trim() && <p className="text-xs italic text-muted-foreground">{note.trim()}</p>}
                   </div>
                   <div className="flex items-center gap-2">
                     <button
