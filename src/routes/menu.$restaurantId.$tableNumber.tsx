@@ -329,7 +329,7 @@ function MenuPage() {
   }
 
   return (
-    <div className="min-h-screen animate-fade-in bg-background pb-28 sm:px-6 sm:py-8">
+    <div className="min-h-screen animate-fade-in bg-[#f3efe4] pb-28 sm:px-6 sm:py-8">
       <div className="mx-auto max-w-4xl">
       <header className="relative bg-[#f3efe4]">
         <div className="relative h-40 w-full overflow-hidden">
