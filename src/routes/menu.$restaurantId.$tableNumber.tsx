@@ -76,16 +76,21 @@ function ProductCard({
   t,
   addToCart,
   changeQty,
+  onOpen,
 }: {
   p: Product;
   qty: number;
   t: (key: string) => string;
   addToCart: (id: string) => void;
   changeQty: (id: string, delta: number) => void;
+  onOpen: (p: Product) => void;
 }) {
   const soldOut = !p.is_available;
   return (
-    <div className={`relative overflow-hidden rounded-2xl bg-white shadow-[0_8px_24px_-8px_rgba(28,31,22,0.25)] ${soldOut ? "opacity-60" : ""}`}>
+    <div
+      onClick={() => onOpen(p)}
+      className={`relative overflow-hidden rounded-2xl bg-white shadow-[0_8px_24px_-8px_rgba(28,31,22,0.25)] cursor-pointer ${soldOut ? "opacity-60" : ""}`}
+    >
       {soldOut ? (
         <span className="absolute top-3 right-0 rounded-l-full bg-[#1c1f16]/70 px-3 py-1 text-xs font-bold uppercase text-white shadow-sm">
           {t("client.soldOut")}
@@ -135,16 +140,16 @@ function ProductCard({
 
       {!soldOut && (
         qty === 0 ? (
-          <button onClick={() => addToCart(p.id)} className="absolute bottom-3 right-3 grid h-9 w-9 place-items-center rounded-full bg-primary text-primary-foreground shadow-sm">
+          <button onClick={(e) => { e.stopPropagation(); addToCart(p.id); }} className="absolute bottom-3 right-3 grid h-9 w-9 place-items-center rounded-full bg-primary text-primary-foreground shadow-sm">
             <Plus className="h-4 w-4" />
           </button>
         ) : (
           <div className="absolute bottom-3 right-3 flex items-center gap-2 rounded-full bg-white px-2 py-1 shadow-sm">
-            <button onClick={() => changeQty(p.id, -1)} className="grid h-7 w-7 place-items-center rounded-full border border-border bg-background text-foreground">
+            <button onClick={(e) => { e.stopPropagation(); changeQty(p.id, -1); }} className="grid h-7 w-7 place-items-center rounded-full border border-border bg-background text-foreground">
               <Minus className="h-3 w-3" />
             </button>
             <span className="w-4 text-center text-sm font-bold">{qty}</span>
-            <button onClick={() => changeQty(p.id, 1)} className="grid h-7 w-7 place-items-center rounded-full bg-primary text-primary-foreground">
+            <button onClick={(e) => { e.stopPropagation(); changeQty(p.id, 1); }} className="grid h-7 w-7 place-items-center rounded-full bg-primary text-primary-foreground">
               <Plus className="h-3 w-3" />
             </button>
           </div>
@@ -169,6 +174,7 @@ function MenuPage() {
   const [showCategories, setShowCategories] = useState(true);
   const [cart, setCart] = useState<Record<string, number>>({});
   const [cartOpen, setCartOpen] = useState(false);
+  const [detailProduct, setDetailProduct] = useState<Product | null>(null);
   const [notes, setNotes] = useState("");
   const [placing, setPlacing] = useState(false);
   const [placedOrder, setPlacedOrder] = useState<{ total: number } | null>(null);
@@ -553,7 +559,7 @@ function MenuPage() {
           ) : (
             <div className="space-y-4 sm:grid sm:grid-cols-2 sm:gap-4 sm:space-y-0">
               {searchResults.map((p) => (
-                <ProductCard key={p.id} p={p} qty={cart[p.id] ?? 0} t={t} addToCart={addToCart} changeQty={changeQty} />
+                <ProductCard key={p.id} p={p} qty={cart[p.id] ?? 0} t={t} addToCart={addToCart} changeQty={changeQty} onOpen={setDetailProduct} />
               ))}
             </div>
           )
@@ -572,7 +578,7 @@ function MenuPage() {
                   <h2 className="mb-3 text-lg font-extrabold uppercase tracking-wide text-[#1c1f16]">{c.name}</h2>
                   <div className="space-y-4 sm:grid sm:grid-cols-2 sm:gap-4 sm:space-y-0">
                     {prods.map((p) => (
-                      <ProductCard key={p.id} p={p} qty={cart[p.id] ?? 0} t={t} addToCart={addToCart} changeQty={changeQty} />
+                      <ProductCard key={p.id} p={p} qty={cart[p.id] ?? 0} t={t} addToCart={addToCart} changeQty={changeQty} onOpen={setDetailProduct} />
                     ))}
                   </div>
                 </div>
@@ -606,6 +612,64 @@ function MenuPage() {
           </button>
         </div>
       )}
+
+      <Dialog open={!!detailProduct} onOpenChange={(open) => !open && setDetailProduct(null)}>
+        <DialogContent className="max-h-[90vh] overflow-y-auto">
+          {detailProduct && (
+            <div className="flex flex-col items-center text-center">
+              <div className="grid h-56 w-56 place-items-center overflow-hidden rounded-2xl bg-background text-6xl">
+                {detailProduct.image_url ? (
+                  <img src={detailProduct.image_url} alt={detailProduct.name} className="h-full w-full object-cover" />
+                ) : (
+                  detailProduct.emoji || "🍽️"
+                )}
+              </div>
+              <p className="mt-4 text-lg text-muted-foreground">{detailProduct.name}</p>
+              {detailProduct.description && (
+                <p className="mt-1 text-sm text-muted-foreground">{detailProduct.description}</p>
+              )}
+              <p className="mt-2 text-3xl font-extrabold text-[#1c1f16]">
+                {Number(detailProduct.price).toFixed(2)} <span className="text-base font-semibold">DT</span>
+              </p>
+
+              {!detailProduct.is_available ? (
+                <span className="mt-4 rounded-full bg-[#1c1f16]/70 px-4 py-1.5 text-sm font-bold uppercase text-white">
+                  {t("client.soldOut")}
+                </span>
+              ) : (
+                <>
+                  <div className="mt-4 flex items-center gap-4 rounded-full bg-background px-4 py-2">
+                    <button
+                      onClick={() => changeQty(detailProduct.id, -1)}
+                      className="grid h-9 w-9 place-items-center rounded-full border border-border bg-white text-foreground"
+                    >
+                      <Minus className="h-4 w-4" />
+                    </button>
+                    <span className="w-6 text-center text-lg font-bold">{cart[detailProduct.id] ?? 0}</span>
+                    <button
+                      onClick={() => changeQty(detailProduct.id, 1)}
+                      className="grid h-9 w-9 place-items-center rounded-full bg-primary text-primary-foreground"
+                    >
+                      <Plus className="h-4 w-4" />
+                    </button>
+                  </div>
+
+                  <Button
+                    onClick={() => {
+                      if ((cart[detailProduct.id] ?? 0) === 0) addToCart(detailProduct.id);
+                      setDetailProduct(null);
+                    }}
+                    className="mt-4 w-full gap-2"
+                  >
+                    <ShoppingCart className="h-4 w-4" />
+                    {t("client.addToCart")}
+                  </Button>
+                </>
+              )}
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
 
       <Dialog open={cartOpen} onOpenChange={setCartOpen}>
         <DialogContent>
