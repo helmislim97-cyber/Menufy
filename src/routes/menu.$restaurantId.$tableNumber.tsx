@@ -468,7 +468,7 @@ function MenuPage() {
 
   return (
     <div className="min-h-screen animate-fade-in bg-[#f3efe4] pb-28">
-      <div className="mx-auto max-w-4xl sm:px-6 sm:py-8">
+      <div className="mx-auto max-w-5xl sm:px-6 sm:py-8">
       <header className="relative bg-[#f3efe4]">
         <div className="relative h-56 w-full overflow-hidden sm:-mx-6 sm:-mt-8 sm:w-[calc(100%+3rem)]">
           {restaurant.banner_url ? (
