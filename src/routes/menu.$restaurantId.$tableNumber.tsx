@@ -358,12 +358,6 @@ function MenuPage() {
             </div>
           )}
           <h1 className="text-xl font-extrabold leading-tight text-[#1c1f16]">{restaurant.name}</h1>
-          {restaurant.address && (
-            <p className="mt-1 flex items-center justify-center gap-1 text-xs text-[#1c1f16]/50">
-              <MapPin className="h-3 w-3" />
-              {restaurant.address}
-            </p>
-          )}
           <p className="mt-1 text-xs uppercase tracking-wider text-[#1c1f16]/40">
             {t("client.table")} {tableNumber}
           </p>
