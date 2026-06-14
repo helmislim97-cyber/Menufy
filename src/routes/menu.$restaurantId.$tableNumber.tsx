@@ -348,7 +348,7 @@ function ProductCard({
             <button onClick={(e) => { e.stopPropagation(); changeQty(p.id, -1); }} className="grid h-7 w-7 place-items-center rounded-full border border-border bg-background text-foreground">
               <Minus className="h-3 w-3" />
             </button>
-            <span className="w-4 text-center text-sm font-bold">{qty}</span>
+            <span className="w-4 text-center text-sm font-bold text-[#1c1f16]">{qty}</span>
             <button onClick={(e) => { e.stopPropagation(); changeQty(p.id, 1); }} className="grid h-7 w-7 place-items-center rounded-full bg-primary text-primary-foreground">
               <Plus className="h-3 w-3" />
             </button>
