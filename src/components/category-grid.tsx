@@ -114,6 +114,7 @@ export function CategoryGrid({ name, logoUrl, facebookUrl, instagramUrl, address
           </div>
         </div>
       )}
+      </div>
     </div>
   );
 }
