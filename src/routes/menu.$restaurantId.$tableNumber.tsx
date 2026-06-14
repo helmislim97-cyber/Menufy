@@ -519,7 +519,7 @@ function MenuPage() {
               className={`shrink-0 rounded-full border px-4 py-1.5 text-sm font-semibold transition-colors ${
                 activeCategory === c.id
                   ? "border-primary bg-primary text-primary-foreground"
-                  : "border-border bg-surface text-muted-foreground"
+                  : "border-[#1c1f16]/15 bg-white text-[#1c1f16]/70"
               }`}
             >
               {c.name}
