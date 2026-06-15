@@ -97,7 +97,7 @@
     border-color: var(--color-border);
   }
   html, body {
-    background-color: #f3efe4;
+    background-color: var(--color-background);
     color: var(--color-foreground);
     font-family: var(--font-sans);
     -webkit-font-smoothing: antialiased;

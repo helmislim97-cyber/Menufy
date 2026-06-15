@@ -912,7 +912,7 @@ function MenuPage() {
       </footer>
 
       {cartCount > 0 && (
-        <div className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-background/95 p-4 backdrop-blur-xl">
+        <div className="fixed inset-x-0 bottom-0 z-40 border-t border-[#1c1f16]/10 bg-[#f3efe4]/95 p-4 backdrop-blur-xl">
           <button
             onClick={() => setCartOpen(true)}
             className="mx-auto flex max-w-md w-full items-center justify-between rounded-2xl bg-primary px-5 py-3.5 text-primary-foreground shadow-glow"
