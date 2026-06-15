@@ -479,6 +479,7 @@ function MenuPage() {
 
   const sectionRefs = useRef<Record<string, HTMLDivElement | null>>({});
   const isScrollingToSection = useRef(false);
+  const pendingScrollCategory = useRef<string | null>(null);
 
   useEffect(() => {
     if (searchQuery.trim()) return;
@@ -514,19 +515,26 @@ function MenuPage() {
   }, [detailProduct, cart]);
 
   useEffect(() => {
-    if (showCategories || !activeCategory || activeCategory === UNCATEGORIZED) return;
+    if (showCategories) return;
+    const targetId = pendingScrollCategory.current;
+    if (!targetId || targetId === UNCATEGORIZED) {
+      pendingScrollCategory.current = null;
+      return;
+    }
     isScrollingToSection.current = true;
     const timeout = setTimeout(() => {
-      const el = sectionRefs.current[activeCategory];
+      const el = sectionRefs.current[targetId];
       if (el) {
         el.scrollIntoView({ behavior: "auto", block: "start" });
+        setActiveCategory(targetId);
       }
+      pendingScrollCategory.current = null;
       setTimeout(() => {
         isScrollingToSection.current = false;
       }, 400);
-    }, 50);
+    }, 100);
     return () => clearTimeout(timeout);
-  }, [showCategories, activeCategory, productsByCategory]);
+  }, [showCategories, productsByCategory]);
 
   const scrollToCategory = (id: string) => {
     setActiveCategory(id);
@@ -687,7 +695,7 @@ function MenuPage() {
         wifi={restaurant.wifi}
         categories={categoryCards}
         onSelect={(id) => {
-          setActiveCategory(id);
+          pendingScrollCategory.current = id;
           setShowCategories(false);
         }}
         onBack={() => { setCoverLeaving(false); setShowCover(true); }}
