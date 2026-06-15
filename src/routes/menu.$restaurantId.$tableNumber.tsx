@@ -289,7 +289,7 @@ function ProductCard({
   return (
     <div
       onClick={() => onOpen(p)}
-      className={`relative h-32 overflow-hidden rounded-2xl bg-white shadow-[0_8px_24px_-8px_rgba(28,31,22,0.25)] cursor-pointer sm:h-auto ${soldOut ? "opacity-60" : ""}`}
+      className={`relative h-32 rounded-2xl bg-white shadow-[0_8px_24px_-8px_rgba(28,31,22,0.25)] cursor-pointer sm:h-auto ${soldOut ? "opacity-60" : ""}`}
     >
       {soldOut ? (
         <span className="absolute top-3 right-0 rounded-l-full bg-[#1c1f16]/70 px-3 py-1 text-xs font-bold uppercase text-white shadow-sm">
@@ -303,19 +303,41 @@ function ProductCard({
         )
       )}
       <div className="flex items-center gap-3 p-3">
-        <div className="grid h-28 w-28 shrink-0 place-items-center overflow-hidden rounded-xl bg-background text-3xl">
-          {p.image_url ? (
-            <img src={p.image_url} alt={p.name} className="h-full w-full object-cover" />
-          ) : (
-            p.emoji || "🍽️"
+        <div className="relative shrink-0">
+          <div className="grid h-28 w-28 place-items-center overflow-hidden rounded-xl bg-background text-3xl">
+            {p.image_url ? (
+              <img src={p.image_url} alt={p.name} className="h-full w-full object-cover" />
+            ) : (
+              p.emoji || "🍽️"
+            )}
+          </div>
+          {!soldOut && (
+            qty === 0 ? (
+              <button
+                onClick={(e) => { e.stopPropagation(); onOpen(p); }}
+                className="absolute -bottom-3 -right-3 grid h-9 w-9 place-items-center rounded-full bg-primary text-primary-foreground shadow-md z-10"
+              >
+                <Plus className="h-4 w-4" />
+              </button>
+            ) : (
+              <div className="absolute -bottom-3 -right-3 flex items-center gap-1.5 rounded-full bg-white px-1.5 py-1 shadow-md z-10">
+                <button onClick={(e) => { e.stopPropagation(); changeQty(p.id, -1); }} className="grid h-6 w-6 place-items-center rounded-full border border-border bg-background text-foreground">
+                  <Minus className="h-3 w-3" />
+                </button>
+                <span className="w-4 text-center text-sm font-bold text-[#1c1f16]">{qty}</span>
+                <button onClick={(e) => { e.stopPropagation(); changeQty(p.id, 1); }} className="grid h-6 w-6 place-items-center rounded-full bg-primary text-primary-foreground">
+                  <Plus className="h-3 w-3" />
+                </button>
+              </div>
+            )
           )}
         </div>
         <div className="flex min-w-0 flex-1 flex-col">
-          <p className="text-base font-extrabold leading-tight text-[#1c1f16] pr-12">{p.name}</p>
+          <p className="text-base font-extrabold leading-tight text-[#1c1f16]">{p.name}</p>
           {p.description && (
             <p className="mt-1 text-xs leading-snug text-muted-foreground line-clamp-2">{p.description}</p>
           )}
-          <div className="mt-auto flex items-center justify-between gap-2 pt-2 pr-12 whitespace-nowrap">
+          <div className="mt-auto flex items-center justify-between gap-2 pt-2 whitespace-nowrap">
             <p className="text-base font-extrabold text-[#1c1f16]">{Number(p.price).toFixed(2)} DT</p>
             {(p.kcal || p.prep_minutes) && (
               <div className="flex shrink-0 items-center gap-1.5 text-[11px] text-muted-foreground">
@@ -338,23 +360,7 @@ function ProductCard({
         </div>
       </div>
 
-      {!soldOut && (
-        qty === 0 ? (
-          <button onClick={(e) => { e.stopPropagation(); onOpen(p); }} className="absolute bottom-3 right-3 grid h-9 w-9 place-items-center rounded-full bg-primary text-primary-foreground shadow-sm">
-            <Plus className="h-4 w-4" />
-          </button>
-        ) : (
-          <div className="absolute bottom-3 right-3 flex items-center gap-2 rounded-full bg-white px-2 py-1 shadow-sm">
-            <button onClick={(e) => { e.stopPropagation(); changeQty(p.id, -1); }} className="grid h-7 w-7 place-items-center rounded-full border border-border bg-background text-foreground">
-              <Minus className="h-3 w-3" />
-            </button>
-            <span className="w-4 text-center text-sm font-bold text-[#1c1f16]">{qty}</span>
-            <button onClick={(e) => { e.stopPropagation(); changeQty(p.id, 1); }} className="grid h-7 w-7 place-items-center rounded-full bg-primary text-primary-foreground">
-              <Plus className="h-3 w-3" />
-            </button>
-          </div>
-        )
-      )}
+
     </div>
   );
 }
