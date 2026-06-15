@@ -315,10 +315,10 @@ function ProductCard({
           {p.description && (
             <p className="mt-1 text-xs leading-snug text-muted-foreground line-clamp-2">{p.description}</p>
           )}
-          <div className="mt-auto flex items-center justify-between gap-2 pt-2 whitespace-nowrap">
+          <div className="mt-auto flex flex-col gap-1 pt-2">
             <p className="text-base font-extrabold text-[#1c1f16]">{Number(p.price).toFixed(2)} DT</p>
             {(p.kcal || p.prep_minutes) && (
-              <div className="flex shrink-0 items-center gap-1.5 text-[11px] text-muted-foreground">
+              <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground whitespace-nowrap">
                 {p.kcal && (
                   <span className="flex items-center gap-0.5">
                     <Flame className="h-3 w-3" />
