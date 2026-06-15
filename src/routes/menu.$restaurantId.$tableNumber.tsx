@@ -797,7 +797,7 @@ function MenuPage() {
         </div>
       )}
 
-      <main className="mx-auto max-w-md px-4 py-4 sm:max-w-none">
+      <main className="mx-auto max-w-md px-4 py-4 pb-[60vh] sm:max-w-none">
         {visibleCategories.length === 0 ? (
           <p className="mt-10 text-center text-sm text-muted-foreground">{t("client.empty")}</p>
         ) : searchResults ? (
