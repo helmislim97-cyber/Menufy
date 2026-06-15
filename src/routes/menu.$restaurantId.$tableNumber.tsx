@@ -515,16 +515,17 @@ function MenuPage() {
 
   useEffect(() => {
     if (showCategories || !activeCategory || activeCategory === UNCATEGORIZED) return;
-    const el = sectionRefs.current[activeCategory];
-    if (el) {
-      isScrollingToSection.current = true;
-      requestAnimationFrame(() => {
+    isScrollingToSection.current = true;
+    const timeout = setTimeout(() => {
+      const el = sectionRefs.current[activeCategory];
+      if (el) {
         el.scrollIntoView({ behavior: "auto", block: "start" });
-        setTimeout(() => {
-          isScrollingToSection.current = false;
-        }, 600);
-      });
-    }
+      }
+      setTimeout(() => {
+        isScrollingToSection.current = false;
+      }, 400);
+    }, 50);
+    return () => clearTimeout(timeout);
   }, [showCategories, activeCategory, productsByCategory]);
 
   const scrollToCategory = (id: string) => {
