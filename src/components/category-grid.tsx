@@ -29,7 +29,7 @@ export function CategoryGrid({ name, logoUrl, facebookUrl, instagramUrl, address
 
   return (
     <div className="min-h-screen animate-fade-in bg-[#f3efe4] px-5 py-4 text-[#1c1f16] sm:px-6 sm:py-8">
-      <div className="mx-auto max-w-5xl">
+      <div className="mx-auto max-w-7xl">
       <div className="flex items-center justify-between">
         <button onClick={onBack} className="grid h-9 w-9 place-items-center rounded-full border border-[#1c1f16]/25" aria-label="Back"><ArrowLeft className="h-4 w-4" /></button>
         <LangSwitch variant="light" />
@@ -47,7 +47,7 @@ export function CategoryGrid({ name, logoUrl, facebookUrl, instagramUrl, address
 
       <div className="mt-6 grid grid-cols-1 gap-2 sm:grid-cols-2 sm:gap-3">
         {categories.map((c) => (
-          <button key={c.id} onClick={() => onSelect(c.id)} className="relative w-full h-40 sm:h-56 overflow-hidden rounded-2xl bg-white/70 text-left flex items-stretch shadow-sm border border-[#1c1f16]/8">
+          <button key={c.id} onClick={() => onSelect(c.id)} className="relative w-full h-32 sm:h-48 overflow-hidden rounded-2xl bg-white/70 text-left flex items-stretch shadow-sm border border-[#1c1f16]/8">
             {c.imageUrl && (
               <>
                 <img src={c.imageUrl} alt="" className="absolute right-0 top-0 h-full w-full object-cover" />
