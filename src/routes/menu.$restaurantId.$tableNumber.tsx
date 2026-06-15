@@ -303,6 +303,97 @@ function ProductCard({
         )
       )}
       <div className="flex items-center gap-3 p-3">
+        <div className="grid h-28 w-28 shrink-0 place-items-center overflow-hidden rounded-xl bg-background text-3xl">
+          {p.image_url ? (
+            <img src={p.image_url} alt={p.name} className="h-full w-full object-cover" />
+          ) : (
+            p.emoji || "🍽️"
+          )}
+        </div>
+        <div className="flex min-w-0 flex-1 flex-col">
+          <p className="text-base font-extrabold leading-tight text-[#1c1f16]">{p.name}</p>
+          {p.description && (
+            <p className="mt-1 text-xs leading-snug text-muted-foreground line-clamp-2">{p.description}</p>
+          )}
+          <div className="mt-auto flex items-center justify-between gap-2 pt-2 whitespace-nowrap">
+            <p className="text-base font-extrabold text-[#1c1f16]">{Number(p.price).toFixed(2)} DT</p>
+            {(p.kcal || p.prep_minutes) && (
+              <div className="flex shrink-0 items-center gap-1.5 text-[11px] text-muted-foreground">
+                {p.kcal && (
+                  <span className="flex items-center gap-0.5">
+                    <Flame className="h-3 w-3" />
+                    {p.kcal} {t("client.kcal")}
+                  </span>
+                )}
+                {p.kcal && p.prep_minutes && <span>|</span>}
+                {p.prep_minutes && (
+                  <span className="flex items-center gap-0.5">
+                    <Clock className="h-3 w-3" />
+                    {p.prep_minutes} {t("client.min")}
+                  </span>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+      {!soldOut && (
+        qty === 0 ? (
+          <button
+            onClick={(e) => { e.stopPropagation(); onOpen(p); }}
+            className="absolute -bottom-3 -right-3 grid h-9 w-9 place-items-center rounded-full bg-primary text-primary-foreground shadow-md z-10"
+          >
+            <Plus className="h-4 w-4" />
+          </button>
+        ) : (
+          <div className="absolute -bottom-3 -right-3 flex items-center gap-1.5 rounded-full bg-white px-1.5 py-1 shadow-md z-10">
+            <button onClick={(e) => { e.stopPropagation(); changeQty(p.id, -1); }} className="grid h-6 w-6 place-items-center rounded-full border border-border bg-background text-foreground">
+              <Minus className="h-3 w-3" />
+            </button>
+            <span className="w-4 text-center text-sm font-bold text-[#1c1f16]">{qty}</span>
+            <button onClick={(e) => { e.stopPropagation(); changeQty(p.id, 1); }} className="grid h-6 w-6 place-items-center rounded-full bg-primary text-primary-foreground">
+              <Plus className="h-3 w-3" />
+            </button>
+          </div>
+        )
+      )}
+    </div>
+  );
+}
+
+function ProductCard({
+  p,
+  qty,
+  t,
+  addToCart,
+  changeQty,
+  onOpen,
+}: {
+  p: Product;
+  qty: number;
+  t: (key: string) => string;
+  addToCart: (id: string) => void;
+  changeQty: (id: string, delta: number) => void;
+  onOpen: (p: Product) => void;
+}) {
+  const soldOut = !p.is_available;
+  return (
+    <div
+      onClick={() => onOpen(p)}
+      className={`relative h-32 rounded-2xl bg-white shadow-[0_8px_24px_-8px_rgba(28,31,22,0.25)] cursor-pointer sm:h-auto ${soldOut ? "opacity-60" : ""}`}
+    >
+      {soldOut ? (
+        <span className="absolute top-3 right-0 rounded-l-full bg-[#1c1f16]/70 px-3 py-1 text-xs font-bold uppercase text-white shadow-sm">
+          {t("client.soldOut")}
+        </span>
+      ) : (
+        p.badge && (
+          <span className="absolute top-3 right-0 rounded-l-full bg-primary px-3 py-1 text-xs font-bold uppercase text-primary-foreground shadow-sm">
+            {p.badge}
+          </span>
+        )
+      )}
+      <div className="flex items-center gap-3 p-3">
         <div className="relative shrink-0">
           <div className="grid h-28 w-28 place-items-center overflow-hidden rounded-xl bg-background text-3xl">
             {p.image_url ? (
