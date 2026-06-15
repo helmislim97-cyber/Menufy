@@ -302,7 +302,7 @@ function ProductCard({
           </span>
         )
       )}
-      <div className="flex gap-3 p-3">
+      <div className="flex items-center gap-3 p-3">
         <div className="grid h-28 w-28 shrink-0 place-items-center overflow-hidden rounded-xl bg-background text-3xl">
           {p.image_url ? (
             <img src={p.image_url} alt={p.name} className="h-full w-full object-cover" />
@@ -315,10 +315,10 @@ function ProductCard({
           {p.description && (
             <p className="mt-1 text-xs leading-snug text-muted-foreground line-clamp-2">{p.description}</p>
           )}
-          <div className="mt-auto flex items-center justify-between gap-2 pt-2 pr-12">
+          <div className="mt-auto flex items-center justify-between gap-2 pt-2 pr-12 whitespace-nowrap">
             <p className="text-base font-extrabold text-[#1c1f16]">{Number(p.price).toFixed(2)} DT</p>
             {(p.kcal || p.prep_minutes) && (
-              <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
+              <div className="flex shrink-0 items-center gap-1.5 text-[11px] text-muted-foreground">
                 {p.kcal && (
                   <span className="flex items-center gap-0.5">
                     <Flame className="h-3 w-3" />
