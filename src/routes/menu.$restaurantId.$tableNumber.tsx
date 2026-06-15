@@ -928,20 +928,26 @@ function MenuPage() {
             <div className="space-y-2">
               {cartItems.map(({ product, qty, note }) => (
                 <div key={product.id} className="flex items-center gap-3 rounded-xl bg-white p-2.5 shadow-sm">
-                  <span className="text-xl">{product.emoji || "🍽️"}</span>
+                  <div className="grid h-10 w-10 shrink-0 place-items-center overflow-hidden rounded-lg bg-background text-xl">
+                    {product.image_url ? (
+                      <img src={product.image_url} alt={product.name} className="h-full w-full object-cover" />
+                    ) : (
+                      product.emoji || "🍽️"
+                    )}
+                  </div>
                   <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-semibold">{product.name}</p>
-                    <p className="text-xs text-muted-foreground">{Number(product.price).toFixed(2)} DT</p>
-                    {note.trim() && <p className="text-xs italic text-muted-foreground">{note.trim()}</p>}
+                    <p className="truncate text-sm font-semibold text-[#1c1f16]">{product.name}</p>
+                    <p className="text-xs text-[#1c1f16]/50">{Number(product.price).toFixed(2)} DT</p>
+                    {note.trim() && <p className="text-xs italic text-[#1c1f16]/50">{note.trim()}</p>}
                   </div>
                   <div className="flex items-center gap-2">
                     <button
                       onClick={() => changeQty(product.id, -1)}
-                      className="grid h-7 w-7 place-items-center rounded-full border border-border bg-background"
+                      className="grid h-7 w-7 place-items-center rounded-full border border-[#1c1f16]/15 bg-white text-[#1c1f16]"
                     >
                       <Minus className="h-3 w-3" />
                     </button>
-                    <span className="w-4 text-center text-sm font-bold">{qty}</span>
+                    <span className="w-4 text-center text-sm font-bold text-[#1c1f16]">{qty}</span>
                     <button
                       onClick={() => changeQty(product.id, 1)}
                       className="grid h-7 w-7 place-items-center rounded-full bg-primary text-primary-foreground"
