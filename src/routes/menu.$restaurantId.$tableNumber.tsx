@@ -682,19 +682,19 @@ function MenuPage() {
 
   if (placedOrder) {
     return (
-      <div className="flex min-h-screen flex-col items-center justify-center bg-background px-6 text-center">
+      <div className="flex min-h-screen flex-col items-center justify-center bg-[#f3efe4] px-6 text-center text-[#1c1f16]">
         <div className="grid h-16 w-16 place-items-center rounded-full bg-primary/15 text-primary">
           <CheckCircle2 className="h-9 w-9" />
         </div>
         <h1 className="mt-5 text-2xl font-extrabold">{t("client.success.title")}</h1>
-        <p className="mt-2 max-w-xs text-sm text-muted-foreground">{t("client.success.subtitle")}</p>
-        <div className="mt-6 w-full max-w-xs rounded-2xl border border-border bg-surface p-4">
+        <p className="mt-2 max-w-xs text-sm text-[#1c1f16]/60">{t("client.success.subtitle")}</p>
+        <div className="mt-6 w-full max-w-xs rounded-2xl bg-white p-4 shadow-sm">
           <div className="flex items-center justify-between text-sm">
-            <span className="text-muted-foreground">{t("client.success.table")}</span>
+            <span className="text-[#1c1f16]/60">{t("client.success.table")}</span>
             <span className="font-bold">{tableNumber}</span>
           </div>
           <div className="mt-2 flex items-center justify-between text-sm">
-            <span className="text-muted-foreground">{t("client.total")}</span>
+            <span className="text-[#1c1f16]/60">{t("client.total")}</span>
             <span className="font-bold text-gold">{placedOrder.total.toFixed(2)} DT</span>
           </div>
         </div>
@@ -923,11 +923,11 @@ function MenuPage() {
           </DialogHeader>
 
           {cartItems.length === 0 ? (
-            <p className="py-6 text-center text-sm text-muted-foreground">{t("client.cartEmpty")}</p>
+            <p className="py-6 text-center text-sm text-[#1c1f16]/60">{t("client.cartEmpty")}</p>
           ) : (
             <div className="space-y-2">
               {cartItems.map(({ product, qty, note }) => (
-                <div key={product.id} className="flex items-center gap-3 rounded-xl border border-border bg-surface p-2.5">
+                <div key={product.id} className="flex items-center gap-3 rounded-xl bg-white p-2.5 shadow-sm">
                   <span className="text-xl">{product.emoji || "🍽️"}</span>
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-sm font-semibold">{product.name}</p>
@@ -965,18 +965,18 @@ function MenuPage() {
                 />
               </div>
 
-              <div className="flex items-center justify-between rounded-xl bg-surface px-3 py-2 text-sm font-bold">
-                <span className="text-muted-foreground">{t("client.success.table")}</span>
-                <span>{tableNumber}</span>
+              <div className="flex items-center justify-between rounded-xl bg-white px-3 py-2 text-sm font-bold shadow-sm">
+                <span className="text-[#1c1f16]/60">{t("client.success.table")}</span>
+                <span className="text-[#1c1f16]">{tableNumber}</span>
               </div>
 
-              <div className="flex items-center justify-between border-t border-border pt-3 text-base font-extrabold">
+              <div className="flex items-center justify-between border-t border-[#1c1f16]/10 pt-3 text-base font-extrabold text-[#1c1f16]">
                 <span>{t("client.total")}</span>
                 <span className="text-gold">{cartTotal.toFixed(2)} DT</span>
               </div>
 
-              <div className="space-y-2 border-t border-border pt-3">
-                <p className="text-sm font-bold">{t("client.yourInfo")} <span className="text-destructive">*</span></p>
+              <div className="space-y-2 border-t border-[#1c1f16]/10 pt-3">
+                <p className="text-sm font-bold text-[#1c1f16]">{t("client.yourInfo")} <span className="text-destructive">*</span></p>
                 <div className="grid grid-cols-2 gap-2">
                   <Input
                     value={customerFirstName}
