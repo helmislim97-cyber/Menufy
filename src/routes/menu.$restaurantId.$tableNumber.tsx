@@ -303,7 +303,7 @@ function ProductCard({
         )
       )}
       <div className="flex items-center gap-3 p-3">
-        <div className="grid h-28 w-28 shrink-0 place-items-center overflow-hidden rounded-xl bg-background text-3xl">
+        <div className="grid h-28 w-28 shrink-0 place-items-center overflow-hidden rounded-xl bg-[#f3efe4] text-3xl">
           {p.image_url ? (
             <img src={p.image_url} alt={p.name} className="h-full w-full object-cover" />
           ) : (
