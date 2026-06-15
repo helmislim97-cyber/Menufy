@@ -47,7 +47,7 @@ export function CategoryGrid({ name, logoUrl, facebookUrl, instagramUrl, address
 
       <div className="mt-6 grid grid-cols-1 gap-2 sm:grid-cols-2 sm:gap-3">
         {categories.map((c) => (
-          <button key={c.id} onClick={() => onSelect(c.id)} className="relative -mx-5 w-[calc(100%+2.5rem)] sm:-mx-0 sm:w-full h-40 sm:h-48 overflow-hidden sm:rounded-2xl bg-white/70 text-left flex items-stretch shadow-sm border border-[#1c1f16]/8">
+          <button key={c.id} onClick={() => onSelect(c.id)} className="relative w-full h-40 sm:h-48 overflow-hidden rounded-2xl bg-white/70 text-left flex items-stretch shadow-sm border border-[#1c1f16]/8">
             {c.imageUrl && (
               <>
                 <img src={c.imageUrl} alt="" className="absolute right-0 top-0 h-full w-full object-cover" />
