@@ -522,18 +522,28 @@ function MenuPage() {
       return;
     }
     isScrollingToSection.current = true;
-    const timeout = setTimeout(() => {
+
+    let attempts = 0;
+    let timeoutId: ReturnType<typeof setTimeout>;
+    const tryScroll = () => {
       const el = sectionRefs.current[targetId];
       if (el) {
         el.scrollIntoView({ behavior: "auto", block: "start" });
         setActiveCategory(targetId);
-      }
-      pendingScrollCategory.current = null;
-      setTimeout(() => {
+        pendingScrollCategory.current = null;
+        setTimeout(() => {
+          isScrollingToSection.current = false;
+        }, 400);
+      } else if (attempts < 20) {
+        attempts++;
+        timeoutId = setTimeout(tryScroll, 50);
+      } else {
+        pendingScrollCategory.current = null;
         isScrollingToSection.current = false;
-      }, 400);
-    }, 100);
-    return () => clearTimeout(timeout);
+      }
+    };
+    timeoutId = setTimeout(tryScroll, 50);
+    return () => clearTimeout(timeoutId);
   }, [showCategories, productsByCategory]);
 
   const scrollToCategory = (id: string) => {
