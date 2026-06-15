@@ -515,6 +515,28 @@ function MenuPage() {
   }, [detailProduct, cart]);
 
   useEffect(() => {
+    const onPopState = (e: PopStateEvent) => {
+      const view = e.state?.view ?? "cover";
+      if (view === "cover") {
+        setCoverLeaving(false);
+        setShowCover(true);
+        setShowCategories(true);
+      } else if (view === "categories") {
+        setShowCover(false);
+        setShowCategories(true);
+      } else if (view === "products") {
+        setShowCover(false);
+        setShowCategories(false);
+      }
+    };
+    window.addEventListener("popstate", onPopState);
+    if (!window.history.state?.view) {
+      window.history.replaceState({ view: "cover" }, "");
+    }
+    return () => window.removeEventListener("popstate", onPopState);
+  }, []);
+
+  useEffect(() => {
     if (showCategories) return;
     const targetId = pendingScrollCategory.current;
     if (!targetId || targetId === UNCATEGORIZED) {
@@ -686,6 +708,7 @@ function MenuPage() {
         leaving={coverLeaving}
         onOrder={() => {
           setCoverLeaving(true);
+          window.history.pushState({ view: "categories" }, "");
           setTimeout(() => setShowCover(false), 250);
         }}
       />
@@ -706,6 +729,7 @@ function MenuPage() {
         categories={categoryCards}
         onSelect={(id) => {
           pendingScrollCategory.current = id;
+          window.history.pushState({ view: "products" }, "");
           setShowCategories(false);
         }}
         onBack={() => { setCoverLeaving(false); setShowCover(true); }}
@@ -759,7 +783,7 @@ function MenuPage() {
           )}
           <div className="absolute left-4 top-4">
             <button
-              onClick={() => setShowCategories(true)}
+              onClick={() => window.history.back()}
               className="grid h-9 w-9 place-items-center rounded-full border border-[#1c1f16]/25 bg-white/70 text-[#1c1f16] backdrop-blur-sm"
               aria-label="Back"
             >
