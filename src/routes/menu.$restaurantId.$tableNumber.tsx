@@ -289,7 +289,7 @@ function ProductCard({
   return (
     <div
       onClick={() => onOpen(p)}
-      className={`relative overflow-hidden rounded-2xl bg-white shadow-[0_8px_24px_-8px_rgba(28,31,22,0.25)] cursor-pointer ${soldOut ? "opacity-60" : ""}`}
+      className={`relative h-32 overflow-hidden rounded-2xl bg-white shadow-[0_8px_24px_-8px_rgba(28,31,22,0.25)] cursor-pointer sm:h-auto ${soldOut ? "opacity-60" : ""}`}
     >
       {soldOut ? (
         <span className="absolute top-3 right-0 rounded-l-full bg-[#1c1f16]/70 px-3 py-1 text-xs font-bold uppercase text-white shadow-sm">
@@ -860,14 +860,14 @@ function MenuPage() {
         </div>
       )}
 
-      <main className="mx-auto max-w-md px-4 py-4 pb-[60vh] sm:max-w-none">
+      <main className="mx-auto max-w-md px-2 py-4 pb-[60vh] sm:px-4 sm:max-w-none">
         {visibleCategories.length === 0 ? (
           <p className="mt-10 text-center text-sm text-muted-foreground">{t("client.empty")}</p>
         ) : searchResults ? (
           searchResults.length === 0 ? (
             <p className="mt-10 text-center text-sm text-muted-foreground">{t("client.noResults")}</p>
           ) : (
-            <div className="space-y-4 sm:grid sm:grid-cols-2 sm:gap-4 sm:space-y-0">
+            <div className="space-y-2 sm:grid sm:grid-cols-2 sm:gap-4 sm:space-y-0">
               {searchResults.map((p) => (
                 <ProductCard key={p.id} p={p} qty={cart[p.id]?.qty ?? 0} t={t} addToCart={addToCart} changeQty={changeQty} onOpen={setDetailProduct} />
               ))}
@@ -886,7 +886,7 @@ function MenuPage() {
                   className="scroll-mt-32"
                 >
                   <h2 className="mb-3 text-lg font-extrabold uppercase tracking-wide text-[#1c1f16]">{c.name}</h2>
-                  <div className="space-y-4 sm:grid sm:grid-cols-2 sm:gap-4 sm:space-y-0">
+                  <div className="space-y-2 sm:grid sm:grid-cols-2 sm:gap-4 sm:space-y-0">
                     {prods.map((p) => (
                       <ProductCard key={p.id} p={p} qty={cart[p.id]?.qty ?? 0} t={t} addToCart={addToCart} changeQty={changeQty} onOpen={setDetailProduct} />
                     ))}
