@@ -480,6 +480,8 @@ function MenuPage() {
   const sectionRefs = useRef<Record<string, HTMLDivElement | null>>({});
   const isScrollingToSection = useRef(false);
   const pendingScrollCategory = useRef<string | null>(null);
+  const categoriesScrollPos = useRef(0);
+  const productsScrollPos = useRef(0);
 
   useEffect(() => {
     if (searchQuery.trim()) return;
@@ -516,6 +518,13 @@ function MenuPage() {
 
   useEffect(() => {
     const onPopState = (e: PopStateEvent) => {
+      // Save current scroll position of the view we're leaving
+      if (!showCover && !showCategories) {
+        productsScrollPos.current = window.scrollY;
+      } else if (!showCover && showCategories) {
+        categoriesScrollPos.current = window.scrollY;
+      }
+
       const view = e.state?.view ?? "cover";
       if (view === "cover") {
         setCoverLeaving(false);
@@ -524,9 +533,19 @@ function MenuPage() {
       } else if (view === "categories") {
         setShowCover(false);
         setShowCategories(true);
+        isScrollingToSection.current = true;
+        requestAnimationFrame(() => {
+          window.scrollTo(0, categoriesScrollPos.current);
+          setTimeout(() => { isScrollingToSection.current = false; }, 300);
+        });
       } else if (view === "products") {
         setShowCover(false);
         setShowCategories(false);
+        isScrollingToSection.current = true;
+        requestAnimationFrame(() => {
+          window.scrollTo(0, productsScrollPos.current);
+          setTimeout(() => { isScrollingToSection.current = false; }, 300);
+        });
       }
     };
     window.addEventListener("popstate", onPopState);
@@ -534,7 +553,7 @@ function MenuPage() {
       window.history.replaceState({ view: "cover" }, "");
     }
     return () => window.removeEventListener("popstate", onPopState);
-  }, []);
+  }, [showCover, showCategories]);
 
   useEffect(() => {
     if (showCategories) return;
@@ -728,6 +747,7 @@ function MenuPage() {
         wifi={restaurant.wifi}
         categories={categoryCards}
         onSelect={(id) => {
+          categoriesScrollPos.current = window.scrollY;
           pendingScrollCategory.current = id;
           window.history.pushState({ view: "products" }, "");
           setShowCategories(false);
@@ -783,7 +803,7 @@ function MenuPage() {
           )}
           <div className="absolute left-4 top-4">
             <button
-              onClick={() => window.history.back()}
+              onClick={() => { productsScrollPos.current = window.scrollY; window.history.back(); }}
               className="grid h-9 w-9 place-items-center rounded-full border border-[#1c1f16]/25 bg-white/70 text-[#1c1f16] backdrop-blur-sm"
               aria-label="Back"
             >
