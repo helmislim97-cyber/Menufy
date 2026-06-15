@@ -513,6 +513,20 @@ function MenuPage() {
     }
   }, [detailProduct, cart]);
 
+  useEffect(() => {
+    if (showCategories || !activeCategory || activeCategory === UNCATEGORIZED) return;
+    const el = sectionRefs.current[activeCategory];
+    if (el) {
+      isScrollingToSection.current = true;
+      requestAnimationFrame(() => {
+        el.scrollIntoView({ behavior: "auto", block: "start" });
+        setTimeout(() => {
+          isScrollingToSection.current = false;
+        }, 600);
+      });
+    }
+  }, [showCategories, activeCategory, productsByCategory]);
+
   const scrollToCategory = (id: string) => {
     setActiveCategory(id);
     const el = sectionRefs.current[id];
