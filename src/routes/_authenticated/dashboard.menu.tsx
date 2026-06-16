@@ -429,11 +429,6 @@ function MenuManagement() {
     }
   };
 
-  const sensors = useSensors(
-    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
-    useSensor(TouchSensor, { activationConstraint: { delay: 150, tolerance: 5 } }),
-  );
-
   const handleCategoryDragEnd = async (event: DragEndEvent) => {
     const { active, over } = event;
     if (!over || active.id === over.id) return;
@@ -465,11 +460,6 @@ function MenuManagement() {
       await supabase.from("products").update({ position: idx }).eq("id", reordered[idx].id);
     }
   };
-
-  const sensors = useSensors(
-    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
-    useSensor(TouchSensor, { activationConstraint: { delay: 150, tolerance: 5 } }),
-  );
 
   const handleCategoryDragEnd = async (event: DragEndEvent) => {
     const { active, over } = event;
