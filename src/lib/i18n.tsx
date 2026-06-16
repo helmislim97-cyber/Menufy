@@ -147,6 +147,9 @@ const fr: Dict = {
   "client.success.subtitle": "Votre commande est en préparation. Le serveur vous l'apportera bientôt.",
   "client.success.table": "Table",
   "client.success.newOrder": "Passer une nouvelle commande",
+  "client.sessionExpired.title": "Veuillez rescanner le QR code",
+  "client.sessionExpired.subtitle": "Votre session a expiré. Merci de scanner à nouveau le QR code sur votre table pour continuer.",
+  "client.sessionExpired.continue": "J'ai rescanné, continuer",
   "client.item": "article",
   "client.items": "articles",
 
@@ -438,6 +441,9 @@ const ar: Dict = {
   "client.success.subtitle": "طلبك قيد التحضير. سيقدمه لك النادل قريباً.",
   "client.success.table": "طاولة",
   "client.success.newOrder": "طلب جديد",
+  "client.sessionExpired.title": "يرجى إعادة مسح رمز QR",
+  "client.sessionExpired.subtitle": "انتهت جلستك. يرجى مسح رمز QR الموجود على طاولتك مرة أخرى للمتابعة.",
+  "client.sessionExpired.continue": "تم إعادة المسح، متابعة",
   "client.item": "منتج",
   "client.items": "منتجات",
 
