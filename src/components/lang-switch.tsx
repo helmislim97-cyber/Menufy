@@ -13,7 +13,7 @@ export function LangSwitch({ className = "", variant = "default" }: { className?
 
   const styles =
     variant === "light"
-      ? "border-[#1c1f16]/20 bg-white/40 text-[#1c1f16]"
+      ? "border-[#1c1f16]/15 bg-[#f3efe4] text-[#1c1f16] shadow-sm"
       : "border-border bg-surface text-foreground hover:bg-accent";
 
   return (
