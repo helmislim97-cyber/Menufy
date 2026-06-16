@@ -384,9 +384,26 @@ function MenuPage() {
   const [customerLastName, setCustomerLastName] = useState("");
   const [customerPhone, setCustomerPhone] = useState("");
   const [customerCountryCode, setCustomerCountryCode] = useState("+216");
+  const [sessionExpired, setSessionExpired] = useState(false);
   const [showInfoError, setShowInfoError] = useState(false);
   const [placing, setPlacing] = useState(false);
   const [placedOrder, setPlacedOrder] = useState<{ total: number } | null>(null);
+
+  useEffect(() => {
+    const storageKey = `menufy_session_${restaurantId}_${tableNumber}`;
+    const SESSION_DURATION_MS = 60 * 60 * 1000; // 1 hour
+    const stored = localStorage.getItem(storageKey);
+    const now = Date.now();
+
+    if (!stored) {
+      localStorage.setItem(storageKey, String(now));
+    } else {
+      const startedAt = parseInt(stored, 10);
+      if (!isNaN(startedAt) && now - startedAt > SESSION_DURATION_MS) {
+        setSessionExpired(true);
+      }
+    }
+  }, [restaurantId, tableNumber]);
 
   useEffect(() => {
     let cancelled = false;
@@ -1110,6 +1127,15 @@ function MenuPage() {
               </Button>
             </DialogFooter>
           )}
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={sessionExpired} onOpenChange={() => {}}>
+        <DialogContent className="bg-[#f3efe4] text-[#1c1f16] [&>button]:hidden">
+          <div className="flex flex-col items-center px-2 py-4 text-center">
+            <h2 className="text-lg font-extrabold">{t("client.sessionExpired.title")}</h2>
+            <p className="mt-2 text-sm text-[#1c1f16]/70">{t("client.sessionExpired.subtitle")}</p>
+          </div>
         </DialogContent>
       </Dialog>
       </div>
