@@ -25,7 +25,23 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Plus, Pencil, Trash2, ImagePlus, X } from "lucide-react";
+import { Plus, Pencil, Trash2, ImagePlus, X, GripVertical } from "lucide-react";
+import {
+  DndContext,
+  closestCenter,
+  PointerSensor,
+  TouchSensor,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+} from "@dnd-kit/core";
+import {
+  SortableContext,
+  arrayMove,
+  verticalListSortingStrategy,
+  useSortable,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/dashboard/menu")({
@@ -338,6 +354,43 @@ function MenuManagement() {
     if (error) return toast.error(error.message);
     toast.success(t("menu.productDeleted"));
     loadData(restaurantId);
+  };
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
+    useSensor(TouchSensor, { activationConstraint: { delay: 150, tolerance: 5 } }),
+  );
+
+  const handleCategoryDragEnd = async (event: DragEndEvent) => {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+    const oldIndex = categories.findIndex((c) => c.id === active.id);
+    const newIndex = categories.findIndex((c) => c.id === over.id);
+    if (oldIndex === -1 || newIndex === -1) return;
+    const reordered = arrayMove(categories, oldIndex, newIndex);
+    setCategories(reordered);
+    const updates = reordered.map((c, idx) => ({ id: c.id, position: idx }));
+    for (const u of updates) {
+      await supabase.from("categories").update({ position: u.position }).eq("id", u.id);
+    }
+  };
+
+  const handleProductDragEnd = async (groupProducts: Product[], event: DragEndEvent) => {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+    const oldIndex = groupProducts.findIndex((p) => p.id === active.id);
+    const newIndex = groupProducts.findIndex((p) => p.id === over.id);
+    if (oldIndex === -1 || newIndex === -1) return;
+    const reordered = arrayMove(groupProducts, oldIndex, newIndex);
+    const reorderedIds = reordered.map((p) => p.id);
+    setProducts((prev) => {
+      const others = prev.filter((p) => !reorderedIds.includes(p.id));
+      const updated = reordered.map((p, idx) => ({ ...p, position: idx }));
+      return [...others, ...updated].sort((a, b) => a.position - b.position);
+    });
+    for (let idx = 0; idx < reordered.length; idx++) {
+      await supabase.from("products").update({ position: idx }).eq("id", reordered[idx].id);
+    }
   };
 
   const toggleAvailability = async (p: Product) => {
