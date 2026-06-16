@@ -398,6 +398,9 @@ function MenuPage() {
     if (isFreshScan) {
       localStorage.setItem(storageKey, String(Date.now()));
       setSessionExpired(false);
+      params.delete("qr");
+      const newUrl = window.location.pathname + (params.toString() ? `?${params.toString()}` : "");
+      window.history.replaceState({}, "", newUrl);
     }
 
     const checkSession = () => {
