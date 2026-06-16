@@ -1,0 +1,1090 @@
+[33mc846b63[m Make restaurant edit dialog scrollable
+[1mdiff --git a/src/routes/_authenticated/dashboard.settings.tsx b/src/routes/_authenticated/dashboard.settings.tsx[m
+[1mindex d7714c0..3b5b116 100644[m
+[1m--- a/src/routes/_authenticated/dashboard.settings.tsx[m
+[1m+++ b/src/routes/_authenticated/dashboard.settings.tsx[m
+[36m@@ -424,7 +424,7 @@[m [mfunction SettingsPage() {[m
+       </Dialog>[m
+ [m
+       <Dialog open={editOpen} onOpenChange={setEditOpen}>[m
+[31m-        <DialogContent>[m
+[32m+[m[32m        <DialogContent className="max-h-[85vh] overflow-y-auto">[m
+           <DialogHeader>[m
+             <DialogTitle>{t("settings.editRestaurantTitle")}</DialogTitle>[m
+           </DialogHeader>[m
+[33m3a9059c[m Add drag and zoom banner cropper
+[1mdiff --git a/src/routes/_authenticated/dashboard.settings.tsx b/src/routes/_authenticated/dashboard.settings.tsx[m
+[1mindex 944a3dd..d7714c0 100644[m
+[1m--- a/src/routes/_authenticated/dashboard.settings.tsx[m
+[1m+++ b/src/routes/_authenticated/dashboard.settings.tsx[m
+[36m@@ -17,6 +17,7 @@[m [mimport {[m
+   DialogFooter,[m
+ } from "@/components/ui/dialog";[m
+ import { Plus, Trash2, QrCode, LogOut, ExternalLink, Download, Pencil, ImagePlus, X } from "lucide-react";[m
+[32m+[m[32mimport { BannerCropper } from "@/components/banner-cropper";[m
+ import { toast } from "sonner";[m
+ [m
+ export const Route = createFileRoute("/_authenticated/dashboard/settings")({[m
+[36m@@ -34,6 +35,9 @@[m [minterface Restaurant {[m
+   description: string | null;[m
+   wifi: string | null;[m
+   banner_url: string | null;[m
+[32m+[m[32m  banner_position_x: number | null;[m
+[32m+[m[32m  banner_position_y: number | null;[m
+[32m+[m[32m  banner_zoom: number | null;[m
+ }[m
+ [m
+ interface RestaurantTable {[m
+[36m@@ -72,6 +76,9 @@[m [mfunction SettingsPage() {[m
+   const [bannerPreview, setBannerPreview] = useState<string | null>(null);[m
+   const [bannerUrl, setBannerUrl] = useState<string | null>(null);[m
+   const [uploadingBanner, setUploadingBanner] = useState(false);[m
+[32m+[m[32m  const [bannerPosX, setBannerPosX] = useState(50);[m
+[32m+[m[32m  const [bannerPosY, setBannerPosY] = useState(50);[m
+[32m+[m[32m  const [bannerZoom, setBannerZoom] = useState(1);[m
+ [m
+   const loadTables = async (restaurantId: string) => {[m
+     const { data } = await supabase[m
+[36m@@ -86,7 +93,7 @@[m [mfunction SettingsPage() {[m
+     if (!user) return;[m
+     supabase[m
+       .from("restaurants")[m
+[31m-      .select("id, name, address, phone, logo_url, facebook_url, instagram_url, description, wifi, banner_url")[m
+[32m+[m[32m      .select("id, name, address, phone, logo_url, facebook_url, instagram_url, description, wifi, banner_url, banner_position_x, banner_position_y, banner_zoom")[m
+       .eq("owner_id", user.id)[m
+       .maybeSingle()[m
+       .then(async ({ data }) => {[m
+[36m@@ -144,6 +151,9 @@[m [mfunction SettingsPage() {[m
+     setBannerFile(null);[m
+     setBannerPreview(restaurant.banner_url);[m
+     setBannerUrl(restaurant.banner_url);[m
+[32m+[m[32m    setBannerPosX(restaurant.banner_position_x ?? 50);[m
+[32m+[m[32m    setBannerPosY(restaurant.banner_position_y ?? 50);[m
+[32m+[m[32m    setBannerZoom(restaurant.banner_zoom ?? 1);[m
+     setEditOpen(true);[m
+   };[m
+ [m
+[36m@@ -189,6 +199,9 @@[m [mfunction SettingsPage() {[m
+     if (!file) return;[m
+     setBannerFile(file);[m
+     setBannerPreview(URL.createObjectURL(file));[m
+[32m+[m[32m    setBannerPosX(50);[m
+[32m+[m[32m    setBannerPosY(50);[m
+[32m+[m[32m    setBannerZoom(1);[m
+   };[m
+ [m
+   const removeBanner = () => {[m
+[36m@@ -235,6 +248,9 @@[m [mfunction SettingsPage() {[m
+       description: editDescription.trim() || null,[m
+       wifi: editWifi.trim() || null,[m
+       banner_url: finalBannerUrl,[m
+[32m+[m[32m      banner_position_x: bannerPosX,[m
+[32m+[m[32m      banner_position_y: bannerPosY,[m
+[32m+[m[32m      banner_zoom: bannerZoom,[m
+     };[m
+     const { error } = await supabase.from("restaurants").update(updates).eq("id", restaurant.id);[m
+     setSavingRestaurant(false);[m
+[36m@@ -446,6 +462,34 @@[m [mfunction SettingsPage() {[m
+                   )}[m
+                 </div>[m
+               </div>[m
+[32m+[m[32m              {bannerPreview && ([m
+[32m+[m[32m                <div className="mt-3 space-y-2">[m
+[32m+[m[32m                  <p className="text-xs text-muted-foreground">{t("settings.bannerHint")}</p>[m
+[32m+[m[32m                  <BannerCropper[m
+[32m+[m[32m                    imageUrl={bannerPreview}[m
+[32m+[m[32m                    positionX={bannerPosX}[m
+[32m+[m[32m                    positionY={bannerPosY}[m
+[32m+[m[32m                    zoom={bannerZoom}[m
+[32m+[m[32m                    onChange={({ x, y, zoom }) => {[m
+[32m+[m[32m                      setBannerPosX(x);[m
+[32m+[m[32m                      setBannerPosY(y);[m
+[32m+[m[32m                      setBannerZoom(zoom);[m
+[32m+[m[32m                    }}[m
+[32m+[m[32m                  />[m
+[32m+[m[32m                  <div className="flex items-center gap-2">[m
+[32m+[m[32m                    <span className="text-xs font-semibold text-muted-foreground">{t("settings.bannerZoom")}</span>[m
+[32m+[m[32m                    <input[m
+[32m+[m[32m                      type="range"[m
+[32m+[m[32m                      min="1"[m
+[32m+[m[32m                      max="2.5"[m
+[32m+[m[32m                      step="0.05"[m
+[32m+[m[32m                      value={bannerZoom}[m
+[32m+[m[32m                      onChange={(e) => setBannerZoom(parseFloat(e.target.value))}[m
+[32m+[m[32m                      className="flex-1"[m
+[32m+[m[32m                    />[m
+[32m+[m[32m                  </div>[m
+[32m+[m[32m                </div>[m
+[32m+[m[32m              )}[m
+             </div>[m
+             <div>[m
+               <label className="text-xs font-semibold text-muted-foreground">{t("settings.logo")}</label>[m
+[33mfaf7146[m Add restaurant banner upload and product page redesign
+[1mdiff --git a/src/routes/_authenticated/dashboard.settings.tsx b/src/routes/_authenticated/dashboard.settings.tsx[m
+[1mindex d1a8109..944a3dd 100644[m
+[1m--- a/src/routes/_authenticated/dashboard.settings.tsx[m
+[1m+++ b/src/routes/_authenticated/dashboard.settings.tsx[m
+[36m@@ -31,9 +31,9 @@[m [minterface Restaurant {[m
+   logo_url: string | null;[m
+   facebook_url: string | null;[m
+   instagram_url: string | null;[m
+[31m-  description: string | null[m
+[31m-          wifi: string | null;[m
+[32m+[m[32m  description: string | null;[m
+   wifi: string | null;[m
+[32m+[m[32m  banner_url: string | null;[m
+ }[m
+ [m
+ interface RestaurantTable {[m
+[36m@@ -68,6 +68,10 @@[m [mfunction SettingsPage() {[m
+   const [logoPreview, setLogoPreview] = useState<string | null>(null);[m
+   const [logoUrl, setLogoUrl] = useState<string | null>(null);[m
+   const [uploadingLogo, setUploadingLogo] = useState(false);[m
+[32m+[m[32m  const [bannerFile, setBannerFile] = useState<File | null>(null);[m
+[32m+[m[32m  const [bannerPreview, setBannerPreview] = useState<string | null>(null);[m
+[32m+[m[32m  const [bannerUrl, setBannerUrl] = useState<string | null>(null);[m
+[32m+[m[32m  const [uploadingBanner, setUploadingBanner] = useState(false);[m
+ [m
+   const loadTables = async (restaurantId: string) => {[m
+     const { data } = await supabase[m
+[36m@@ -82,7 +86,7 @@[m [mfunction SettingsPage() {[m
+     if (!user) return;[m
+     supabase[m
+       .from("restaurants")[m
+[31m-      .select("id, name, address, phone, logo_url, facebook_url, instagram_url, description, wifi")[m
+[32m+[m[32m      .select("id, name, address, phone, logo_url, facebook_url, instagram_url, description, wifi, banner_url")[m
+       .eq("owner_id", user.id)[m
+       .maybeSingle()[m
+       .then(async ({ data }) => {[m
+[36m@@ -137,6 +141,9 @@[m [mfunction SettingsPage() {[m
+     setLogoFile(null);[m
+     setLogoPreview(restaurant.logo_url);[m
+     setLogoUrl(restaurant.logo_url);[m
+[32m+[m[32m    setBannerFile(null);[m
+[32m+[m[32m    setBannerPreview(restaurant.banner_url);[m
+[32m+[m[32m    setBannerUrl(restaurant.banner_url);[m
+     setEditOpen(true);[m
+   };[m
+ [m
+[36m@@ -165,6 +172,31 @@[m [mfunction SettingsPage() {[m
+     setLogoUrl(null);[m
+   };[m
+ [m
+[32m+[m[32m  const uploadRestaurantBanner = async (file: File): Promise<string | null> => {[m
+[32m+[m[32m    if (!restaurant) return null;[m
+[32m+[m[32m    const ext = file.name.split(".").pop();[m
+[32m+[m[32m    const path = `${restaurant.id}/${crypto.randomUUID()}.${ext}`;[m
+[32m+[m[32m    const { error } = await supabase.storage.from("restaurant-banners").upload(path, file, { upsert: true });[m
+[32m+[m[32m    if (error) {[m
+[32m+[m[32m      toast.error(error.message);[m
+[32m+[m[32m      return null;[m
+[32m+[m[32m    }[m
+[32m+[m[32m    const { data } = supabase.storage.from("restaurant-banners").getPublicUrl(path);[m
+[32m+[m[32m    return data.publicUrl;[m
+[32m+[m[32m  };[m
+[32m+[m
+[32m+[m[32m  const onBannerSelect = (file: File | null) => {[m
+[32m+[m[32m    if (!file) return;[m
+[32m+[m[32m    setBannerFile(file);[m
+[32m+[m[32m    setBannerPreview(URL.createObjectURL(file));[m
+[32m+[m[32m  };[m
+[32m+[m
+[32m+[m[32m  const removeBanner = () => {[m
+[32m+[m[32m    setBannerFile(null);[m
+[32m+[m[32m    setBannerPreview(null);[m
+[32m+[m[32m    setBannerUrl(null);[m
+[32m+[m[32m  };[m
+[32m+[m
+   const saveRestaurant = async () => {[m
+     if (!restaurant || !editName.trim()) return;[m
+     setSavingRestaurant(true);[m
+[36m@@ -181,6 +213,18 @@[m [mfunction SettingsPage() {[m
+       finalLogoUrl = uploaded;[m
+     }[m
+ [m
+[32m+[m[32m    let finalBannerUrl = bannerUrl;[m
+[32m+[m[32m    if (bannerFile) {[m
+[32m+[m[32m      setUploadingBanner(true);[m
+[32m+[m[32m      const uploaded = await uploadRestaurantBanner(bannerFile);[m
+[32m+[m[32m      setUploadingBanner(false);[m
+[32m+[m[32m      if (!uploaded) {[m
+[32m+[m[32m        setSavingRestaurant(false);[m
+[32m+[m[32m        return;[m
+[32m+[m[32m      }[m
+[32m+[m[32m      finalBannerUrl = uploaded;[m
+[32m+[m[32m    }[m
+[32m+[m
+     const updates = {[m
+       name: editName.trim(),[m
+       address: editAddress.trim() || null,[m
+[36m@@ -190,6 +234,7 @@[m [mfunction SettingsPage() {[m
+       logo_url: finalLogoUrl,[m
+       description: editDescription.trim() || null,[m
+       wifi: editWifi.trim() || null,[m
+[32m+[m[32m      banner_url: finalBannerUrl,[m
+     };[m
+     const { error } = await supabase.from("restaurants").update(updates).eq("id", restaurant.id);[m
+     setSavingRestaurant(false);[m
+[36m@@ -368,6 +413,40 @@[m [mfunction SettingsPage() {[m
+             <DialogTitle>{t("settings.editRestaurantTitle")}</DialogTitle>[m
+           </DialogHeader>[m
+           <div className="space-y-3">[m
+[32m+[m[32m            <div>[m
+[32m+[m[32m              <label className="text-xs font-semibold text-muted-foreground">{t("settings.banner")}</label>[m
+[32m+[m[32m              <div className="mt-1 flex items-center gap-3">[m
+[32m+[m[32m                <div className="grid h-16 w-28 shrink-0 place-items-center overflow-hidden rounded-xl border border-border bg-background">[m
+[32m+[m[32m                  {bannerPreview ? ([m
+[32m+[m[32m                    <img src={bannerPreview} alt="" className="h-full w-full object-cover" />[m
+[32m+[m[32m                  ) : ([m
+[32m+[m[32m                    <ImagePlus className="h-5 w-5 text-muted-foreground" />[m
+[32m+[m[32m                  )}[m
+[32m+[m[32m                </div>[m
+[32m+[m[32m                <div className="flex flex-col gap-2">[m
+[32m+[m[32m                  <label className="inline-flex cursor-pointer items-center gap-1.5 rounded-xl border border-border bg-surface px-3 py-2 text-xs font-semibold hover:bg-accent">[m
+[32m+[m[32m                    <ImagePlus className="h-3.5 w-3.5" />[m
+[32m+[m[32m                    {bannerPreview ? t("menu.changePhoto") : t("menu.addPhoto")}[m
+[32m+[m[32m                    <input[m
+[32m+[m[32m                      type="file"[m
+[32m+[m[32m                      accept="image/*"[m
+[32m+[m[32m                      className="hidden"[m
+[32m+[m[32m                      onChange={(e) => onBannerSelect(e.target.files?.[0] ?? null)}[m
+[32m+[m[32m                    />[m
+[32m+[m[32m                  </label>[m
+[32m+[m[32m                  {bannerPreview && ([m
+[32m+[m[32m                    <button[m
+[32m+[m[32m                      type="button"[m
+[32m+[m[32m                      onClick={removeBanner}[m
+[32m+[m[32m                      className="inline-flex items-center gap-1.5 text-xs font-semibold text-muted-foreground hover:text-destructive"[m
+[32m+[m[32m                    >[m
+[32m+[m[32m                      <X className="h-3.5 w-3.5" />[m
+[32m+[m[32m                      {t("menu.removePhoto")}[m
+[32m+[m[32m                    </button>[m
+[32m+[m[32m                  )}[m
+[32m+[m[32m                </div>[m
+[32m+[m[32m              </div>[m
+[32m+[m[32m            </div>[m
+             <div>[m
+               <label className="text-xs font-semibold text-muted-foreground">{t("settings.logo")}</label>[m
+               <div className="mt-1 flex items-center gap-3">[m
+[36m@@ -433,7 +512,7 @@[m [mfunction SettingsPage() {[m
+           </div>[m
+           <DialogFooter>[m
+             <Button variant="outline" onClick={() => setEditOpen(false)}>{t("settings.cancel")}</Button>[m
+[31m-            <Button onClick={saveRestaurant} disabled={savingRestaurant || uploadingLogo || !editName.trim()}>{t("settings.save")}</Button>[m
+[32m+[m[32m            <Button onClick={saveRestaurant} disabled={savingRestaurant || uploadingLogo || uploadingBanner || !editName.trim()}>{t("settings.save")}</Button>[m
+           </DialogFooter>[m
+         </DialogContent>[m
+       </Dialog>[m
+[33mb491332[m Add wifi to Supabase types
+[1mdiff --git a/src/routes/_authenticated/dashboard.settings.tsx b/src/routes/_authenticated/dashboard.settings.tsx[m
+[1mindex 41555b6..d1a8109 100644[m
+[1m--- a/src/routes/_authenticated/dashboard.settings.tsx[m
+[1m+++ b/src/routes/_authenticated/dashboard.settings.tsx[m
+[36m@@ -31,7 +31,8 @@[m [minterface Restaurant {[m
+   logo_url: string | null;[m
+   facebook_url: string | null;[m
+   instagram_url: string | null;[m
+[31m-  description: string | null;[m
+[32m+[m[32m  description: string | null[m
+[32m+[m[32m          wifi: string | null;[m
+   wifi: string | null;[m
+ }[m
+ [m
+[36m@@ -193,7 +194,7 @@[m [mfunction SettingsPage() {[m
+     const { error } = await supabase.from("restaurants").update(updates).eq("id", restaurant.id);[m
+     setSavingRestaurant(false);[m
+     if (error) return toast.error(error.message);[m
+[31m-    setRestaurant({ ...restaurant, ...updates });[m
+[32m+[m[32m    setRestaurant({ ...restaurant, ...updates, wifi: editWifi.trim() || null });[m
+     toast.success(t("settings.restaurantUpdated"));[m
+     setEditOpen(false);[m
+   };[m
+[33m6a602e7[m Add wifi, address, reservation, info blocks to category grid
+[1mdiff --git a/src/routes/_authenticated/dashboard.settings.tsx b/src/routes/_authenticated/dashboard.settings.tsx[m
+[1mindex 5ec267f..41555b6 100644[m
+[1m--- a/src/routes/_authenticated/dashboard.settings.tsx[m
+[1m+++ b/src/routes/_authenticated/dashboard.settings.tsx[m
+[36m@@ -32,6 +32,7 @@[m [minterface Restaurant {[m
+   facebook_url: string | null;[m
+   instagram_url: string | null;[m
+   description: string | null;[m
+[32m+[m[32m  wifi: string | null;[m
+ }[m
+ [m
+ interface RestaurantTable {[m
+[36m@@ -61,6 +62,7 @@[m [mfunction SettingsPage() {[m
+   const [editFacebook, setEditFacebook] = useState("");[m
+   const [editInstagram, setEditInstagram] = useState("");[m
+   const [editDescription, setEditDescription] = useState("");[m
+[32m+[m[32m  const [editWifi, setEditWifi] = useState("");[m
+   const [logoFile, setLogoFile] = useState<File | null>(null);[m
+   const [logoPreview, setLogoPreview] = useState<string | null>(null);[m
+   const [logoUrl, setLogoUrl] = useState<string | null>(null);[m
+[36m@@ -79,7 +81,7 @@[m [mfunction SettingsPage() {[m
+     if (!user) return;[m
+     supabase[m
+       .from("restaurants")[m
+[31m-      .select("id, name, address, phone, logo_url, facebook_url, instagram_url, description")[m
+[32m+[m[32m      .select("id, name, address, phone, logo_url, facebook_url, instagram_url, description, wifi")[m
+       .eq("owner_id", user.id)[m
+       .maybeSingle()[m
+       .then(async ({ data }) => {[m
+[36m@@ -130,6 +132,7 @@[m [mfunction SettingsPage() {[m
+     setEditFacebook(restaurant.facebook_url ?? "");[m
+     setEditInstagram(restaurant.instagram_url ?? "");[m
+     setEditDescription(restaurant.description ?? "");[m
+[32m+[m[32m    setEditWifi(restaurant.wifi ?? "");[m
+     setLogoFile(null);[m
+     setLogoPreview(restaurant.logo_url);[m
+     setLogoUrl(restaurant.logo_url);[m
+[36m@@ -185,6 +188,7 @@[m [mfunction SettingsPage() {[m
+       instagram_url: editInstagram.trim() || null,[m
+       logo_url: finalLogoUrl,[m
+       description: editDescription.trim() || null,[m
+[32m+[m[32m      wifi: editWifi.trim() || null,[m
+     };[m
+     const { error } = await supabase.from("restaurants").update(updates).eq("id", restaurant.id);[m
+     setSavingRestaurant(false);[m
+[36m@@ -421,6 +425,10 @@[m [mfunction SettingsPage() {[m
+               <label className="text-xs font-semibold text-muted-foreground">{t("settings.description")}</label>[m
+               <textarea value={editDescription} onChange={(e) => setEditDescription(e.target.value)} placeholder={t("settings.descriptionPlaceholder")} rows={3} className="mt-1 w-full rounded-xl border border-border bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50" />[m
+             </div>[m
+[32m+[m[32m            <div>[m
+[32m+[m[32m              <label className="text-xs font-semibold text-muted-foreground">{t("settings.wifi")}</label>[m
+[32m+[m[32m              <Input value={editWifi} onChange={(e) => setEditWifi(e.target.value)} placeholder={t("settings.wifiPlaceholder")} className="mt-1" />[m
+[32m+[m[32m            </div>[m
+           </div>[m
+           <DialogFooter>[m
+             <Button variant="outline" onClick={() => setEditOpen(false)}>{t("settings.cancel")}</Button>[m
+[33md4b904f[m Add restaurant info block to category grid
+[1mdiff --git a/src/routes/_authenticated/dashboard.settings.tsx b/src/routes/_authenticated/dashboard.settings.tsx[m
+[1mindex 98de260..5ec267f 100644[m
+[1m--- a/src/routes/_authenticated/dashboard.settings.tsx[m
+[1m+++ b/src/routes/_authenticated/dashboard.settings.tsx[m
+[36m@@ -31,6 +31,7 @@[m [minterface Restaurant {[m
+   logo_url: string | null;[m
+   facebook_url: string | null;[m
+   instagram_url: string | null;[m
+[32m+[m[32m  description: string | null;[m
+ }[m
+ [m
+ interface RestaurantTable {[m
+[36m@@ -59,6 +60,7 @@[m [mfunction SettingsPage() {[m
+   const [savingRestaurant, setSavingRestaurant] = useState(false);[m
+   const [editFacebook, setEditFacebook] = useState("");[m
+   const [editInstagram, setEditInstagram] = useState("");[m
+[32m+[m[32m  const [editDescription, setEditDescription] = useState("");[m
+   const [logoFile, setLogoFile] = useState<File | null>(null);[m
+   const [logoPreview, setLogoPreview] = useState<string | null>(null);[m
+   const [logoUrl, setLogoUrl] = useState<string | null>(null);[m
+[36m@@ -77,7 +79,7 @@[m [mfunction SettingsPage() {[m
+     if (!user) return;[m
+     supabase[m
+       .from("restaurants")[m
+[31m-      .select("id, name, address, phone, logo_url, facebook_url, instagram_url")[m
+[32m+[m[32m      .select("id, name, address, phone, logo_url, facebook_url, instagram_url, description")[m
+       .eq("owner_id", user.id)[m
+       .maybeSingle()[m
+       .then(async ({ data }) => {[m
+[36m@@ -127,6 +129,7 @@[m [mfunction SettingsPage() {[m
+     setEditPhone(restaurant.phone ?? "");[m
+     setEditFacebook(restaurant.facebook_url ?? "");[m
+     setEditInstagram(restaurant.instagram_url ?? "");[m
+[32m+[m[32m    setEditDescription(restaurant.description ?? "");[m
+     setLogoFile(null);[m
+     setLogoPreview(restaurant.logo_url);[m
+     setLogoUrl(restaurant.logo_url);[m
+[36m@@ -181,6 +184,7 @@[m [mfunction SettingsPage() {[m
+       facebook_url: editFacebook.trim() || null,[m
+       instagram_url: editInstagram.trim() || null,[m
+       logo_url: finalLogoUrl,[m
+[32m+[m[32m      description: editDescription.trim() || null,[m
+     };[m
+     const { error } = await supabase.from("restaurants").update(updates).eq("id", restaurant.id);[m
+     setSavingRestaurant(false);[m
+[36m@@ -413,6 +417,10 @@[m [mfunction SettingsPage() {[m
+               <label className="text-xs font-semibold text-muted-foreground">{t("settings.instagram")}</label>[m
+               <Input value={editInstagram} onChange={(e) => setEditInstagram(e.target.value)} placeholder={t("settings.instagramPlaceholder")} className="mt-1" />[m
+             </div>[m
+[32m+[m[32m            <div>[m
+[32m+[m[32m              <label className="text-xs font-semibold text-muted-foreground">{t("settings.description")}</label>[m
+[32m+[m[32m              <textarea value={editDescription} onChange={(e) => setEditDescription(e.target.value)} placeholder={t("settings.descriptionPlaceholder")} rows={3} className="mt-1 w-full rounded-xl border border-border bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50" />[m
+[32m+[m[32m            </div>[m
+           </div>[m
+           <DialogFooter>[m
+             <Button variant="outline" onClick={() => setEditOpen(false)}>{t("settings.cancel")}</Button>[m
+[33m828d537[m Add restaurant cover screen with logo, social links, and language dropdown
+[1mdiff --git a/src/routes/_authenticated/dashboard.settings.tsx b/src/routes/_authenticated/dashboard.settings.tsx[m
+[1mindex cb1ffe2..98de260 100644[m
+[1m--- a/src/routes/_authenticated/dashboard.settings.tsx[m
+[1m+++ b/src/routes/_authenticated/dashboard.settings.tsx[m
+[36m@@ -16,7 +16,7 @@[m [mimport {[m
+   DialogTitle,[m
+   DialogFooter,[m
+ } from "@/components/ui/dialog";[m
+[31m-import { Plus, Trash2, QrCode, LogOut, ExternalLink, Download, Pencil } from "lucide-react";[m
+[32m+[m[32mimport { Plus, Trash2, QrCode, LogOut, ExternalLink, Download, Pencil, ImagePlus, X } from "lucide-react";[m
+ import { toast } from "sonner";[m
+ [m
+ export const Route = createFileRoute("/_authenticated/dashboard/settings")({[m
+[36m@@ -28,6 +28,9 @@[m [minterface Restaurant {[m
+   name: string;[m
+   address: string | null;[m
+   phone: string | null;[m
+[32m+[m[32m  logo_url: string | null;[m
+[32m+[m[32m  facebook_url: string | null;[m
+[32m+[m[32m  instagram_url: string | null;[m
+ }[m
+ [m
+ interface RestaurantTable {[m
+[36m@@ -54,6 +57,12 @@[m [mfunction SettingsPage() {[m
+   const [editAddress, setEditAddress] = useState("");[m
+   const [editPhone, setEditPhone] = useState("");[m
+   const [savingRestaurant, setSavingRestaurant] = useState(false);[m
+[32m+[m[32m  const [editFacebook, setEditFacebook] = useState("");[m
+[32m+[m[32m  const [editInstagram, setEditInstagram] = useState("");[m
+[32m+[m[32m  const [logoFile, setLogoFile] = useState<File | null>(null);[m
+[32m+[m[32m  const [logoPreview, setLogoPreview] = useState<string | null>(null);[m
+[32m+[m[32m  const [logoUrl, setLogoUrl] = useState<string | null>(null);[m
+[32m+[m[32m  const [uploadingLogo, setUploadingLogo] = useState(false);[m
+ [m
+   const loadTables = async (restaurantId: string) => {[m
+     const { data } = await supabase[m
+[36m@@ -68,7 +77,7 @@[m [mfunction SettingsPage() {[m
+     if (!user) return;[m
+     supabase[m
+       .from("restaurants")[m
+[31m-      .select("id, name, address, phone")[m
+[32m+[m[32m      .select("id, name, address, phone, logo_url, facebook_url, instagram_url")[m
+       .eq("owner_id", user.id)[m
+       .maybeSingle()[m
+       .then(async ({ data }) => {[m
+[36m@@ -116,19 +125,67 @@[m [mfunction SettingsPage() {[m
+     setEditName(restaurant.name);[m
+     setEditAddress(restaurant.address ?? "");[m
+     setEditPhone(restaurant.phone ?? "");[m
+[32m+[m[32m    setEditFacebook(restaurant.facebook_url ?? "");[m
+[32m+[m[32m    setEditInstagram(restaurant.instagram_url ?? "");[m
+[32m+[m[32m    setLogoFile(null);[m
+[32m+[m[32m    setLogoPreview(restaurant.logo_url);[m
+[32m+[m[32m    setLogoUrl(restaurant.logo_url);[m
+     setEditOpen(true);[m
+   };[m
+ [m
+[32m+[m[32m  const uploadRestaurantLogo = async (file: File): Promise<string | null> => {[m
+[32m+[m[32m    if (!restaurant) return null;[m
+[32m+[m[32m    const ext = file.name.split(".").pop();[m
+[32m+[m[32m    const path = `${restaurant.id}/${crypto.randomUUID()}.${ext}`;[m
+[32m+[m[32m    const { error } = await supabase.storage.from("restaurant-logos").upload(path, file, { upsert: true });[m
+[32m+[m[32m    if (error) {[m
+[32m+[m[32m      toast.error(error.message);[m
+[32m+[m[32m      return null;[m
+[32m+[m[32m    }[m
+[32m+[m[32m    const { data } = supabase.storage.from("restaurant-logos").getPublicUrl(path);[m
+[32m+[m[32m    return data.publicUrl;[m
+[32m+[m[32m  };[m
+[32m+[m
+[32m+[m[32m  const onLogoSelect = (file: File | null) => {[m
+[32m+[m[32m    if (!file) return;[m
+[32m+[m[32m    setLogoFile(file);[m
+[32m+[m[32m    setLogoPreview(URL.createObjectURL(file));[m
+[32m+[m[32m  };[m
+[32m+[m
+[32m+[m[32m  const removeLogo = () => {[m
+[32m+[m[32m    setLogoFile(null);[m
+[32m+[m[32m    setLogoPreview(null);[m
+[32m+[m[32m    setLogoUrl(null);[m
+[32m+[m[32m  };[m
+[32m+[m
+   const saveRestaurant = async () => {[m
+     if (!restaurant || !editName.trim()) return;[m
+     setSavingRestaurant(true);[m
+[31m-    const { error } = await supabase[m
+[31m-      .from("restaurants")[m
+[31m-      .update({ name: editName.trim(), address: editAddress.trim() || null, phone: editPhone.trim() || null })[m
+[31m-      .eq("id", restaurant.id);[m
+[32m+[m
+[32m+[m[32m    let finalLogoUrl = logoUrl;[m
+[32m+[m[32m    if (logoFile) {[m
+[32m+[m[32m      setUploadingLogo(true);[m
+[32m+[m[32m      const uploaded = await uploadRestaurantLogo(logoFile);[m
+[32m+[m[32m      setUploadingLogo(false);[m
+[32m+[m[32m      if (!uploaded) {[m
+[32m+[m[32m        setSavingRestaurant(false);[m
+[32m+[m[32m        return;[m
+[32m+[m[32m      }[m
+[32m+[m[32m      finalLogoUrl = uploaded;[m
+[32m+[m[32m    }[m
+[32m+[m
+[32m+[m[32m    const updates = {[m
+[32m+[m[32m      name: editName.trim(),[m
+[32m+[m[32m      address: editAddress.trim() || null,[m
+[32m+[m[32m      phone: editPhone.trim() || null,[m
+[32m+[m[32m      facebook_url: editFacebook.trim() || null,[m
+[32m+[m[32m      instagram_url: editInstagram.trim() || null,[m
+[32m+[m[32m      logo_url: finalLogoUrl,[m
+[32m+[m[32m    };[m
+[32m+[m[32m    const { error } = await supabase.from("restaurants").update(updates).eq("id", restaurant.id);[m
+     setSavingRestaurant(false);[m
+     if (error) return toast.error(error.message);[m
+[31m-    setRestaurant({ ...restaurant, name: editName.trim(), address: editAddress.trim() || null, phone: editPhone.trim() || null });[m
+[32m+[m[32m    setRestaurant({ ...restaurant, ...updates });[m
+     toast.success(t("settings.restaurantUpdated"));[m
+     setEditOpen(false);[m
+   };[m
+[36m@@ -159,17 +216,24 @@[m [mfunction SettingsPage() {[m
+           <>[m
+             <section className="mt-6 rounded-2xl border border-border bg-surface p-4">[m
+               <div className="flex items-start justify-between gap-3">[m
+[31m-                <div>[m
+[31m-                  <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">[m
+[31m-                    {t("settings.restaurant")}[m
+[31m-                  </p>[m
+[31m-                  <p className="mt-1 text-lg font-extrabold">{restaurant.name}</p>[m
+[31m-                  <p className="mt-1 text-sm text-muted-foreground">[m
+[31m-                    {restaurant.address || t("settings.noAddress")}[m
+[31m-                  </p>[m
+[31m-                  <p className="text-sm text-muted-foreground">[m
+[31m-                    {restaurant.phone || t("settings.noPhone")}[m
+[31m-                  </p>[m
+[32m+[m[32m                <div className="flex items-start gap-3">[m
+[32m+[m[32m                  {restaurant.logo_url && ([m
+[32m+[m[32m                    <div className="grid h-14 w-14 shrink-0 place-items-center overflow-hidden rounded-xl border border-border bg-background">[m
+[32m+[m[32m                      <img src={restaurant.logo_url} alt={restaurant.name} className="h-full w-full object-contain" />[m
+[32m+[m[32m                    </div>[m
+[32m+[m[32m                  )}[m
+[32m+[m[32m                  <div>[m
+[32m+[m[32m                    <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">[m
+[32m+[m[32m                      {t("settings.restaurant")}[m
+[32m+[m[32m                    </p>[m
+[32m+[m[32m                    <p className="mt-1 text-lg font-extrabold">{restaurant.name}</p>[m
+[32m+[m[32m                    <p className="mt-1 text-sm text-muted-foreground">[m
+[32m+[m[32m                      {restaurant.address || t("settings.noAddress")}[m
+[32m+[m[32m                    </p>[m
+[32m+[m[32m                    <p className="text-sm text-muted-foreground">[m
+[32m+[m[32m                      {restaurant.phone || t("settings.noPhone")}[m
+[32m+[m[32m                    </p>[m
+[32m+[m[32m                  </div>[m
+                 </div>[m
+                 <Button size="sm" variant="outline" onClick={openEditRestaurant} className="shrink-0 gap-1.5">[m
+                   <Pencil className="h-3.5 w-3.5" />[m
+[36m@@ -295,6 +359,40 @@[m [mfunction SettingsPage() {[m
+             <DialogTitle>{t("settings.editRestaurantTitle")}</DialogTitle>[m
+           </DialogHeader>[m
+           <div className="space-y-3">[m
+[32m+[m[32m            <div>[m
+[32m+[m[32m              <label className="text-xs font-semibold text-muted-foreground">{t("settings.logo")}</label>[m
+[32m+[m[32m              <div className="mt-1 flex items-center gap-3">[m
+[32m+[m[32m                <div className="grid h-16 w-16 shrink-0 place-items-center overflow-hidden rounded-xl border border-border bg-background">[m
+[32m+[m[32m                  {logoPreview ? ([m
+[32m+[m[32m                    <img src={logoPreview} alt="" className="h-full w-full object-contain" />[m
+[32m+[m[32m                  ) : ([m
+[32m+[m[32m                    <ImagePlus className="h-5 w-5 text-muted-foreground" />[m
+[32m+[m[32m                  )}[m
+[32m+[m[32m                </div>[m
+[32m+[m[32m                <div className="flex flex-col gap-2">[m
+[32m+[m[32m                  <label className="inline-flex cursor-pointer items-center gap-1.5 rounded-xl border border-border bg-surface px-3 py-2 text-xs font-semibold hover:bg-accent">[m
+[32m+[m[32m                    <ImagePlus className="h-3.5 w-3.5" />[m
+[32m+[m[32m                    {logoPreview ? t("menu.changePhoto") : t("menu.addPhoto")}[m
+[32m+[m[32m                    <input[m
+[32m+[m[32m                      type="file"[m
+[32m+[m[32m                      accept="image/*"[m
+[32m+[m[32m                      className="hidden"[m
+[32m+[m[32m                      onChange={(e) => onLogoSelect(e.target.files?.[0] ?? null)}[m
+[32m+[m[32m                    />[m
+[32m+[m[32m                  </label>[m
+[32m+[m[32m                  {logoPreview && ([m
+[32m+[m[32m                    <button[m
+[32m+[m[32m                      type="button"[m
+[32m+[m[32m                      onClick={removeLogo}[m
+[32m+[m[32m                      className="inline-flex items-center gap-1.5 text-xs font-semibold text-muted-foreground hover:text-destructive"[m
+[32m+[m[32m                    >[m
+[32m+[m[32m                      <X className="h-3.5 w-3.5" />[m
+[32m+[m[32m                      {t("menu.removePhoto")}[m
+[32m+[m[32m                    </button>[m
+[32m+[m[32m                  )}[m
+[32m+[m[32m                </div>[m
+[32m+[m[32m              </div>[m
+[32m+[m[32m            </div>[m
+             <div>[m
+               <label className="text-xs font-semibold text-muted-foreground">{t("settings.restaurantName")}</label>[m
+               <Input value={editName} onChange={(e) => setEditName(e.target.value)} className="mt-1" />[m
+[36m@@ -307,10 +405,18 @@[m [mfunction SettingsPage() {[m
+               <label className="text-xs font-semibold text-muted-foreground">{t("settings.phone")}</label>[m
+               <Input value={editPhone} onChange={(e) => setEditPhone(e.target.value)} placeholder={t("settings.phonePlaceholder")} className="mt-1" />[m
+             </div>[m
+[32m+[m[32m            <div>[m
+[32m+[m[32m              <label className="text-xs font-semibold text-muted-foreground">{t("settings.facebook")}</label>[m
+[32m+[m[32m              <Input value={editFacebook} onChange={(e) => setEditFacebook(e.target.value)} placeholder={t("settings.facebookPlaceholder")} className="mt-1" />[m
+[32m+[m[32m            </div>[m
+[32m+[m[32m            <div>[m
+[32m+[m[32m              <label className="text-xs font-semibold text-muted-foreground">{t("settings.instagram")}</label>[m
+[32m+[m[32m              <Input value={editInstagram} onChange={(e) => setEditInstagram(e.target.value)} placeholder={t("settings.instagramPlaceholder")} className="mt-1" />[m
+[32m+[m[32m            </div>[m
+           </div>[m
+           <DialogFooter>[m
+             <Button variant="outline" onClick={() => setEditOpen(false)}>{t("settings.cancel")}</Button>[m
+[31m-            <Button onClick={saveRestaurant} disabled={savingRestaurant || !editName.trim()}>{t("settings.save")}</Button>[m
+[32m+[m[32m            <Button onClick={saveRestaurant} disabled={savingRestaurant || uploadingLogo || !editName.trim()}>{t("settings.save")}</Button>[m
+           </DialogFooter>[m
+         </DialogContent>[m
+       </Dialog>[m
+[33mb36a0ca[m Restaurant info editing, today stats, fix pricing CTA i18n
+[1mdiff --git a/src/routes/_authenticated/dashboard.settings.tsx b/src/routes/_authenticated/dashboard.settings.tsx[m
+[1mindex f9526fa..cb1ffe2 100644[m
+[1m--- a/src/routes/_authenticated/dashboard.settings.tsx[m
+[1m+++ b/src/routes/_authenticated/dashboard.settings.tsx[m
+[36m@@ -16,7 +16,7 @@[m [mimport {[m
+   DialogTitle,[m
+   DialogFooter,[m
+ } from "@/components/ui/dialog";[m
+[31m-import { Plus, Trash2, QrCode, LogOut, ExternalLink, Download } from "lucide-react";[m
+[32m+[m[32mimport { Plus, Trash2, QrCode, LogOut, ExternalLink, Download, Pencil } from "lucide-react";[m
+ import { toast } from "sonner";[m
+ [m
+ export const Route = createFileRoute("/_authenticated/dashboard/settings")({[m
+[36m@@ -26,6 +26,8 @@[m [mexport const Route = createFileRoute("/_authenticated/dashboard/settings")({[m
+ interface Restaurant {[m
+   id: string;[m
+   name: string;[m
+[32m+[m[32m  address: string | null;[m
+[32m+[m[32m  phone: string | null;[m
+ }[m
+ [m
+ interface RestaurantTable {[m
+[36m@@ -47,6 +49,12 @@[m [mfunction SettingsPage() {[m
+   const [adding, setAdding] = useState(false);[m
+   const [qrTable, setQrTable] = useState<RestaurantTable | null>(null);[m
+ [m
+[32m+[m[32m  const [editOpen, setEditOpen] = useState(false);[m
+[32m+[m[32m  const [editName, setEditName] = useState("");[m
+[32m+[m[32m  const [editAddress, setEditAddress] = useState("");[m
+[32m+[m[32m  const [editPhone, setEditPhone] = useState("");[m
+[32m+[m[32m  const [savingRestaurant, setSavingRestaurant] = useState(false);[m
+[32m+[m
+   const loadTables = async (restaurantId: string) => {[m
+     const { data } = await supabase[m
+       .from("tables")[m
+[36m@@ -60,7 +68,7 @@[m [mfunction SettingsPage() {[m
+     if (!user) return;[m
+     supabase[m
+       .from("restaurants")[m
+[31m-      .select("id, name")[m
+[32m+[m[32m      .select("id, name, address, phone")[m
+       .eq("owner_id", user.id)[m
+       .maybeSingle()[m
+       .then(async ({ data }) => {[m
+[36m@@ -103,6 +111,28 @@[m [mfunction SettingsPage() {[m
+     loadTables(restaurant.id);[m
+   };[m
+ [m
+[32m+[m[32m  const openEditRestaurant = () => {[m
+[32m+[m[32m    if (!restaurant) return;[m
+[32m+[m[32m    setEditName(restaurant.name);[m
+[32m+[m[32m    setEditAddress(restaurant.address ?? "");[m
+[32m+[m[32m    setEditPhone(restaurant.phone ?? "");[m
+[32m+[m[32m    setEditOpen(true);[m
+[32m+[m[32m  };[m
+[32m+[m
+[32m+[m[32m  const saveRestaurant = async () => {[m
+[32m+[m[32m    if (!restaurant || !editName.trim()) return;[m
+[32m+[m[32m    setSavingRestaurant(true);[m
+[32m+[m[32m    const { error } = await supabase[m
+[32m+[m[32m      .from("restaurants")[m
+[32m+[m[32m      .update({ name: editName.trim(), address: editAddress.trim() || null, phone: editPhone.trim() || null })[m
+[32m+[m[32m      .eq("id", restaurant.id);[m
+[32m+[m[32m    setSavingRestaurant(false);[m
+[32m+[m[32m    if (error) return toast.error(error.message);[m
+[32m+[m[32m    setRestaurant({ ...restaurant, name: editName.trim(), address: editAddress.trim() || null, phone: editPhone.trim() || null });[m
+[32m+[m[32m    toast.success(t("settings.restaurantUpdated"));[m
+[32m+[m[32m    setEditOpen(false);[m
+[32m+[m[32m  };[m
+[32m+[m
+   const menuUrl = (tableNumber: number) =>[m
+     `${window.location.origin}/menu/${restaurant?.id}/${tableNumber}`;[m
+ [m
+[36m@@ -128,10 +158,24 @@[m [mfunction SettingsPage() {[m
+         ) : ([m
+           <>[m
+             <section className="mt-6 rounded-2xl border border-border bg-surface p-4">[m
+[31m-              <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">[m
+[31m-                {t("settings.restaurant")}[m
+[31m-              </p>[m
+[31m-              <p className="mt-1 text-lg font-extrabold">{restaurant.name}</p>[m
+[32m+[m[32m              <div className="flex items-start justify-between gap-3">[m
+[32m+[m[32m                <div>[m
+[32m+[m[32m                  <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">[m
+[32m+[m[32m                    {t("settings.restaurant")}[m
+[32m+[m[32m                  </p>[m
+[32m+[m[32m                  <p className="mt-1 text-lg font-extrabold">{restaurant.name}</p>[m
+[32m+[m[32m                  <p className="mt-1 text-sm text-muted-foreground">[m
+[32m+[m[32m                    {restaurant.address || t("settings.noAddress")}[m
+[32m+[m[32m                  </p>[m
+[32m+[m[32m                  <p className="text-sm text-muted-foreground">[m
+[32m+[m[32m                    {restaurant.phone || t("settings.noPhone")}[m
+[32m+[m[32m                  </p>[m
+[32m+[m[32m                </div>[m
+[32m+[m[32m                <Button size="sm" variant="outline" onClick={openEditRestaurant} className="shrink-0 gap-1.5">[m
+[32m+[m[32m                  <Pencil className="h-3.5 w-3.5" />[m
+[32m+[m[32m                  {t("settings.editRestaurant")}[m
+[32m+[m[32m                </Button>[m
+[32m+[m[32m              </div>[m
+             </section>[m
+ [m
+             <section className="mt-6">[m
+[36m@@ -244,6 +288,32 @@[m [mfunction SettingsPage() {[m
+           </DialogFooter>[m
+         </DialogContent>[m
+       </Dialog>[m
+[32m+[m
+[32m+[m[32m      <Dialog open={editOpen} onOpenChange={setEditOpen}>[m
+[32m+[m[32m        <DialogContent>[m
+[32m+[m[32m          <DialogHeader>[m
+[32m+[m[32m            <DialogTitle>{t("settings.editRestaurantTitle")}</DialogTitle>[m
+[32m+[m[32m          </DialogHeader>[m
+[32m+[m[32m          <div className="space-y-3">[m
+[32m+[m[32m            <div>[m
+[32m+[m[32m              <label className="text-xs font-semibold text-muted-foreground">{t("settings.restaurantName")}</label>[m
+[32m+[m[32m              <Input value={editName} onChange={(e) => setEditName(e.target.value)} className="mt-1" />[m
+[32m+[m[32m            </div>[m
+[32m+[m[32m            <div>[m
+[32m+[m[32m              <label className="text-xs font-semibold text-muted-foreground">{t("settings.address")}</label>[m
+[32m+[m[32m              <Input value={editAddress} onChange={(e) => setEditAddress(e.target.value)} placeholder={t("settings.addressPlaceholder")} className="mt-1" />[m
+[32m+[m[32m            </div>[m
+[32m+[m[32m            <div>[m
+[32m+[m[32m              <label className="text-xs font-semibold text-muted-foreground">{t("settings.phone")}</label>[m
+[32m+[m[32m              <Input value={editPhone} onChange={(e) => setEditPhone(e.target.value)} placeholder={t("settings.phonePlaceholder")} className="mt-1" />[m
+[32m+[m[32m            </div>[m
+[32m+[m[32m          </div>[m
+[32m+[m[32m          <DialogFooter>[m
+[32m+[m[32m            <Button variant="outline" onClick={() => setEditOpen(false)}>{t("settings.cancel")}</Button>[m
+[32m+[m[32m            <Button onClick={saveRestaurant} disabled={savingRestaurant || !editName.trim()}>{t("settings.save")}</Button>[m
+[32m+[m[32m          </DialogFooter>[m
+[32m+[m[32m        </DialogContent>[m
+[32m+[m[32m      </Dialog>[m
+     </div>[m
+   );[m
+ }[m
+\ No newline at end of file[m
+[33mc2541cd[m Settings page with tables and QR codes, allow tunnel hosts
+[1mdiff --git a/src/routes/_authenticated/dashboard.settings.tsx b/src/routes/_authenticated/dashboard.settings.tsx[m
+[1mindex 4f9b1a9..f9526fa 100644[m
+[1m--- a/src/routes/_authenticated/dashboard.settings.tsx[m
+[1m+++ b/src/routes/_authenticated/dashboard.settings.tsx[m
+[36m@@ -1,28 +1,114 @@[m
+ import { createFileRoute, useNavigate } from "@tanstack/react-router";[m
+[32m+[m[32mimport { useEffect, useState } from "react";[m
+[32m+[m[32mimport { supabase } from "@/integrations/supabase/client";[m
+[32m+[m[32mimport { useAuth } from "@/hooks/use-auth";[m
+[32m+[m[32mimport { useI18n } from "@/lib/i18n";[m
+ import { Logo } from "@/components/logo";[m
+ import { LangSwitch } from "@/components/lang-switch";[m
+ import { BottomNav } from "@/components/bottom-nav";[m
+[31m-import { useAuth } from "@/hooks/use-auth";[m
+[31m-import { useI18n } from "@/lib/i18n";[m
+ import { Button } from "@/components/ui/button";[m
+[31m-import { LogOut } from "lucide-react";[m
+[32m+[m[32mimport { Input } from "@/components/ui/input";[m
+[32m+[m[32mimport { Switch } from "@/components/ui/switch";[m
+[32m+[m[32mimport {[m
+[32m+[m[32m  Dialog,[m
+[32m+[m[32m  DialogContent,[m
+[32m+[m[32m  DialogHeader,[m
+[32m+[m[32m  DialogTitle,[m
+[32m+[m[32m  DialogFooter,[m
+[32m+[m[32m} from "@/components/ui/dialog";[m
+[32m+[m[32mimport { Plus, Trash2, QrCode, LogOut, ExternalLink, Download } from "lucide-react";[m
+ import { toast } from "sonner";[m
+ [m
+ export const Route = createFileRoute("/_authenticated/dashboard/settings")({[m
+   component: SettingsPage,[m
+ });[m
+ [m
+[32m+[m[32minterface Restaurant {[m
+[32m+[m[32m  id: string;[m
+[32m+[m[32m  name: string;[m
+[32m+[m[32m}[m
+[32m+[m
+[32m+[m[32minterface RestaurantTable {[m
+[32m+[m[32m  id: string;[m
+[32m+[m[32m  number: number;[m
+[32m+[m[32m  is_active: boolean;[m
+[32m+[m[32m}[m
+[32m+[m
+ function SettingsPage() {[m
+[32m+[m[32m  const { user, signOut } = useAuth();[m
+   const { t } = useI18n();[m
+[31m-  const { signOut } = useAuth();[m
+   const navigate = useNavigate();[m
+ [m
+[32m+[m[32m  const [restaurant, setRestaurant] = useState<Restaurant | null>(null);[m
+[32m+[m[32m  const [tables, setTables] = useState<RestaurantTable[]>([]);[m
+[32m+[m[32m  const [loading, setLoading] = useState(true);[m
+[32m+[m
+[32m+[m[32m  const [newTableNumber, setNewTableNumber] = useState("");[m
+[32m+[m[32m  const [adding, setAdding] = useState(false);[m
+[32m+[m[32m  const [qrTable, setQrTable] = useState<RestaurantTable | null>(null);[m
+[32m+[m
+[32m+[m[32m  const loadTables = async (restaurantId: string) => {[m
+[32m+[m[32m    const { data } = await supabase[m
+[32m+[m[32m      .from("tables")[m
+[32m+[m[32m      .select("id, number, is_active")[m
+[32m+[m[32m      .eq("restaurant_id", restaurantId)[m
+[32m+[m[32m      .order("number");[m
+[32m+[m[32m    setTables(data ?? []);[m
+[32m+[m[32m  };[m
+[32m+[m
+[32m+[m[32m  useEffect(() => {[m
+[32m+[m[32m    if (!user) return;[m
+[32m+[m[32m    supabase[m
+[32m+[m[32m      .from("restaurants")[m
+[32m+[m[32m      .select("id, name")[m
+[32m+[m[32m      .eq("owner_id", user.id)[m
+[32m+[m[32m      .maybeSingle()[m
+[32m+[m[32m      .then(async ({ data }) => {[m
+[32m+[m[32m        setRestaurant(data ?? null);[m
+[32m+[m[32m        if (data) await loadTables(data.id);[m
+[32m+[m[32m        setLoading(false);[m
+[32m+[m[32m      });[m
+[32m+[m[32m  }, [user]);[m
+[32m+[m
+   const onLogout = async () => {[m
+     await signOut();[m
+     toast.success("À bientôt !");[m
+     navigate({ to: "/" });[m
+   };[m
+ [m
+[32m+[m[32m  const addTable = async () => {[m
+[32m+[m[32m    if (!restaurant) return;[m
+[32m+[m[32m    const num = parseInt(newTableNumber, 10);[m
+[32m+[m[32m    if (!num || num <= 0) return;[m
+[32m+[m[32m    setAdding(true);[m
+[32m+[m[32m    const { error } = await supabase.from("tables").insert({ restaurant_id: restaurant.id, number: num });[m
+[32m+[m[32m    setAdding(false);[m
+[32m+[m[32m    if (error) return toast.error(error.message);[m
+[32m+[m[32m    toast.success(t("settings.tableAdded"));[m
+[32m+[m[32m    setNewTableNumber("");[m
+[32m+[m[32m    loadTables(restaurant.id);[m
+[32m+[m[32m  };[m
+[32m+[m
+[32m+[m[32m  const toggleTable = async (table: RestaurantTable) => {[m
+[32m+[m[32m    setTables((prev) => prev.map((tb) => (tb.id === table.id ? { ...tb, is_active: !tb.is_active } : tb)));[m
+[32m+[m[32m    await supabase.from("tables").update({ is_active: !table.is_active }).eq("id", table.id);[m
+[32m+[m[32m  };[m
+[32m+[m
+[32m+[m[32m  const deleteTable = async (table: RestaurantTable) => {[m
+[32m+[m[32m    if (!restaurant) return;[m
+[32m+[m[32m    if (!window.confirm(t("settings.confirmDeleteTable"))) return;[m
+[32m+[m[32m    const { error } = await supabase.from("tables").delete().eq("id", table.id);[m
+[32m+[m[32m    if (error) return toast.error(error.message);[m
+[32m+[m[32m    toast.success(t("settings.tableDeleted"));[m
+[32m+[m[32m    loadTables(restaurant.id);[m
+[32m+[m[32m  };[m
+[32m+[m
+[32m+[m[32m  const menuUrl = (tableNumber: number) =>[m
+[32m+[m[32m    `${window.location.origin}/menu/${restaurant?.id}/${tableNumber}`;[m
+[32m+[m
+[32m+[m[32m  const qrImageUrl = (tableNumber: number) =>[m
+[32m+[m[32m    `https://api.qrserver.com/v1/create-qr-code/?size=320x320&data=${encodeURIComponent(menuUrl(tableNumber))}`;[m
+[32m+[m
+   return ([m
+     <div className="min-h-screen bg-background pb-24">[m
+       <header className="sticky top-0 z-30 border-b border-border/50 bg-background/85 backdrop-blur-xl">[m
+[36m@@ -31,18 +117,133 @@[m [mfunction SettingsPage() {[m
+           <LangSwitch />[m
+         </div>[m
+       </header>[m
+[32m+[m
+       <main className="mx-auto max-w-3xl px-4 py-6">[m
+[31m-        <h1 className="text-2xl font-extrabold">{t("nav.dashboard.settings")}</h1>[m
+[31m-        <div className="mt-6 rounded-2xl border border-dashed border-border bg-surface/60 p-8 text-center text-sm text-muted-foreground">[m
+[31m-          <p className="font-semibold text-foreground">🚧 Phase 2</p>[m
+[31m-          <p className="mt-1">Informations du restaurant, tables, QR codes — bientôt ici.</p>[m
+[31m-        </div>[m
+[31m-        <Button onClick={onLogout} variant="outline" className="mt-6 w-full gap-2">[m
+[32m+[m[32m        <h1 className="text-2xl font-extrabold">{t("settings.title")}</h1>[m
+[32m+[m
+[32m+[m[32m        {loading ? ([m
+[32m+[m[32m          <p className="mt-10 text-center text-sm text-muted-foreground">{t("menu.loading")}</p>[m
+[32m+[m[32m        ) : !restaurant ? ([m
+[32m+[m[32m          <p className="mt-10 text-center text-sm text-muted-foreground">{t("menu.noRestaurant")}</p>[m
+[32m+[m[32m        ) : ([m
+[32m+[m[32m          <>[m
+[32m+[m[32m            <section className="mt-6 rounded-2xl border border-border bg-surface p-4">[m
+[32m+[m[32m              <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">[m
+[32m+[m[32m                {t("settings.restaurant")}[m
+[32m+[m[32m              </p>[m
+[32m+[m[32m              <p className="mt-1 text-lg font-extrabold">{restaurant.name}</p>[m
+[32m+[m[32m            </section>[m
+[32m+[m
+[32m+[m[32m            <section className="mt-6">[m
+[32m+[m[32m              <div className="flex items-start justify-between gap-3">[m
+[32m+[m[32m                <div>[m
+[32m+[m[32m                  <h2 className="text-lg font-extrabold">{t("settings.tables")}</h2>[m
+[32m+[m[32m                  <p className="mt-1 text-sm text-muted-foreground">{t("settings.tablesSubtitle")}</p>[m
+[32m+[m[32m                </div>[m
+[32m+[m[32m              </div>[m
+[32m+[m
+[32m+[m[32m              <div className="mt-3 flex gap-2">[m
+[32m+[m[32m                <Input[m
+[32m+[m[32m                  type="number"[m
+[32m+[m[32m                  inputMode="numeric"[m
+[32m+[m[32m                  min="1"[m
+[32m+[m[32m                  value={newTableNumber}[m
+[32m+[m[32m                  onChange={(e) => setNewTableNumber(e.target.value)}[m
+[32m+[m[32m                  placeholder={t("settings.tableNumberPlaceholder")}[m
+[32m+[m[32m                  className="max-w-[140px]"[m
+[32m+[m[32m                />[m
+[32m+[m[32m                <Button onClick={addTable} disabled={adding || !newTableNumber} className="gap-1.5">[m
+[32m+[m[32m                  <Plus className="h-4 w-4" />[m
+[32m+[m[32m                  {t("settings.addTable")}[m
+[32m+[m[32m                </Button>[m
+[32m+[m[32m              </div>[m
+[32m+[m
+[32m+[m[32m              {tables.length === 0 ? ([m
+[32m+[m[32m                <p className="mt-4 rounded-xl border border-dashed border-border bg-surface/40 p-4 text-center text-sm text-muted-foreground">[m
+[32m+[m[32m                  {t("settings.noTables")}[m
+[32m+[m[32m                </p>[m
+[32m+[m[32m              ) : ([m
+[32m+[m[32m                <div className="mt-4 space-y-2">[m
+[32m+[m[32m                  {tables.map((table) => ([m
+[32m+[m[32m                    <div key={table.id} className="flex items-center gap-3 rounded-2xl border border-border bg-surface p-3">[m
+[32m+[m[32m                      <div className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-background text-sm font-extrabold">[m
+[32m+[m[32m                        {table.number}[m
+[32m+[m[32m                      </div>[m
+[32m+[m[32m                      <div className="min-w-0 flex-1">[m
+[32m+[m[32m                        <p className="text-sm font-bold">[m
+[32m+[m[32m                          {t("settings.table")} {table.number}[m
+[32m+[m[32m                        </p>[m
+[32m+[m[32m                        <p className="text-xs text-muted-foreground">[m
+[32m+[m[32m                          {table.is_active ? t("settings.active") : t("settings.inactive")}[m
+[32m+[m[32m                        </p>[m
+[32m+[m[32m                      </div>[m
+[32m+[m[32m                      <Button size="sm" variant="outline" onClick={() => setQrTable(table)} className="gap-1.5">[m
+[32m+[m[32m                        <QrCode className="h-3.5 w-3.5" />[m
+[32m+[m[32m                        {t("settings.viewQr")}[m
+[32m+[m[32m                      </Button>[m
+[32m+[m[32m                      <Switch checked={table.is_active} onCheckedChange={() => toggleTable(table)} />[m
+[32m+[m[32m                      <button[m
+[32m+[m[32m                        onClick={() => deleteTable(table)}[m
+[32m+[m[32m                        className="grid h-8 w-8 shrink-0 place-items-center rounded-full text-muted-foreground hover:text-destructive"[m
+[32m+[m[32m                      >[m
+[32m+[m[32m                        <Trash2 className="h-4 w-4" />[m
+[32m+[m[32m                      </button>[m
+[32m+[m[32m                    </div>[m
+[32m+[m[32m                  ))}[m
+[32m+[m[32m                </div>[m
+[32m+[m[32m              )}[m
+[32m+[m[32m            </section>[m
+[32m+[m[32m          </>[m
+[32m+[m[32m        )}[m
+[32m+[m
+[32m+[m[32m        <Button onClick={onLogout} variant="outline" className="mt-8 w-full gap-2">[m
+           <LogOut className="h-4 w-4" />[m
+[31m-          Se déconnecter[m
+[32m+[m[32m          {t("settings.logout")}[m
+         </Button>[m
+       </main>[m
+[32m+[m
+       <BottomNav />[m
+[32m+[m
+[32m+[m[32m      <Dialog open={!!qrTable} onOpenChange={(open) => !open && setQrTable(null)}>[m
+[32m+[m[32m        <DialogContent>[m
+[32m+[m[32m          <DialogHeader>[m
+[32m+[m[32m            <DialogTitle>[m
+[32m+[m[32m              {t("settings.qrTitle")} — {t("settings.table")} {qrTable?.number}[m
+[32m+[m[32m            </DialogTitle>[m
+[32m+[m[32m          </DialogHeader>[m
+[32m+[m[32m          {qrTable && ([m
+[32m+[m[32m            <div className="flex flex-col items-center gap-3">[m
+[32m+[m[32m              <img[m
+[32m+[m[32m                src={qrImageUrl(qrTable.number)}[m
+[32m+[m[32m                alt={`QR table ${qrTable.number}`}[m
+[32m+[m[32m                className="h-64 w-64 rounded-xl border border-border bg-white p-2"[m
+[32m+[m[32m              />[m
+[32m+[m[32m              <p className="text-center text-xs text-muted-foreground">{t("settings.qrHint")}</p>[m
+[32m+[m[32m              <p className="break-all rounded-lg bg-surface px-3 py-2 text-center text-xs text-muted-foreground">[m
+[32m+[m[32m                {menuUrl(qrTable.number)}[m
+[32m+[m[32m              </p>[m
+[32m+[m[32m            </div>[m
+[32m+[m[32m          )}[m
+[32m+[m[32m          <DialogFooter className="flex-row gap-2 sm:justify-center">[m
+[32m+[m[32m            {qrTable && ([m
+[32m+[m[32m              <>[m
+[32m+[m[32m                <a href={menuUrl(qrTable.number)} target="_blank" rel="noreferrer">[m
+[32m+[m[32m                  <Button variant="outline" className="gap-1.5">[m
+[32m+[m[32m                    <ExternalLink className="h-4 w-4" />[m
+[32m+[m[32m                    {t("settings.openLink")}[m
+[32m+[m[32m                  </Button>[m
+[32m+[m[32m                </a>[m
+[32m+[m[32m                <a href={qrImageUrl(qrTable.number)} target="_blank" rel="noreferrer" download={`table-${qrTable.number}-qr.png`}>[m
+[32m+[m[32m                  <Button className="gap-1.5">[m
+[32m+[m[32m                    <Download className="h-4 w-4" />[m
+[32m+[m[32m                    {t("settings.downloadQr")}[m
+[32m+[m[32m                  </Button>[m
+[32m+[m[32m                </a>[m
+[32m+[m[32m              </>[m
+[32m+[m[32m            )}[m
+[32m+[m[32m          </DialogFooter>[m
+[32m+[m[32m        </DialogContent>[m
+[32m+[m[32m      </Dialog>[m
+     </div>[m
+   );[m
+[31m-}[m
+[32m+[m[32m}[m
+\ No newline at end of file[m
+[33ma1f17bf[m Menufy Phase 2: menu management, customer ordering, live orders
+[1mdiff --git a/src/routes/_authenticated/dashboard.settings.tsx b/src/routes/_authenticated/dashboard.settings.tsx[m
+[1mnew file mode 100644[m
+[1mindex 0000000..4f9b1a9[m
+[1m--- /dev/null[m
+[1m+++ b/src/routes/_authenticated/dashboard.settings.tsx[m
+[36m@@ -0,0 +1,48 @@[m
+[32m+[m[32mimport { createFileRoute, useNavigate } from "@tanstack/react-router";[m
+[32m+[m[32mimport { Logo } from "@/components/logo";[m
+[32m+[m[32mimport { LangSwitch } from "@/components/lang-switch";[m
+[32m+[m[32mimport { BottomNav } from "@/components/bottom-nav";[m
+[32m+[m[32mimport { useAuth } from "@/hooks/use-auth";[m
+[32m+[m[32mimport { useI18n } from "@/lib/i18n";[m
+[32m+[m[32mimport { Button } from "@/components/ui/button";[m
+[32m+[m[32mimport { LogOut } from "lucide-react";[m
+[32m+[m[32mimport { toast } from "sonner";[m
+[32m+[m
+[32m+[m[32mexport const Route = createFileRoute("/_authenticated/dashboard/settings")({[m
+[32m+[m[32m  component: SettingsPage,[m
+[32m+[m[32m});[m
+[32m+[m
+[32m+[m[32mfunction SettingsPage() {[m
+[32m+[m[32m  const { t } = useI18n();[m
+[32m+[m[32m  const { signOut } = useAuth();[m
+[32m+[m[32m  const navigate = useNavigate();[m
+[32m+[m
+[32m+[m[32m  const onLogout = async () => {[m
+[32m+[m[32m    await signOut();[m
+[32m+[m[32m    toast.success("À bientôt !");[m
+[32m+[m[32m    navigate({ to: "/" });[m
+[32m+[m[32m  };[m
+[32m+[m
+[32m+[m[32m  return ([m
+[32m+[m[32m    <div className="min-h-screen bg-background pb-24">[m
+[32m+[m[32m      <header className="sticky top-0 z-30 border-b border-border/50 bg-background/85 backdrop-blur-xl">[m
+[32m+[m[32m        <div className="mx-auto flex h-14 max-w-3xl items-center justify-between px-4">[m
+[32m+[m[32m          <Logo size="sm" />[m
+[32m+[m[32m          <LangSwitch />[m
+[32m+[m[32m        </div>[m
+[32m+[m[32m      </header>[m
+[32m+[m[32m      <main className="mx-auto max-w-3xl px-4 py-6">[m
+[32m+[m[32m        <h1 className="text-2xl font-extrabold">{t("nav.dashboard.settings")}</h1>[m
+[32m+[m[32m        <div className="mt-6 rounded-2xl border border-dashed border-border bg-surface/60 p-8 text-center text-sm text-muted-foreground">[m
+[32m+[m[32m          <p className="font-semibold text-foreground">🚧 Phase 2</p>[m
+[32m+[m[32m          <p className="mt-1">Informations du restaurant, tables, QR codes — bientôt ici.</p>[m
+[32m+[m[32m        </div>[m
+[32m+[m[32m        <Button onClick={onLogout} variant="outline" className="mt-6 w-full gap-2">[m
+[32m+[m[32m          <LogOut className="h-4 w-4" />[m
+[32m+[m[32m          Se déconnecter[m
+[32m+[m[32m        </Button>[m
+[32m+[m[32m      </main>[m
+[32m+[m[32m      <BottomNav />[m
+[32m+[m[32m    </div>[m
+[32m+[m[32m  );[m
+[32m+[m[32m}[m

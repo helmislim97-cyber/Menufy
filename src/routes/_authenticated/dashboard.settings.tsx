@@ -264,7 +264,7 @@ function SettingsPage() {
     `${window.location.origin}/menu/${restaurant?.id}/${tableNumber}`;
 
   const qrImageUrl = (tableNumber: number) =>
-    `https://api.qrserver.com/v1/create-qr-code/?size=320x320&data=${encodeURIComponent(menuUrl(tableNumber))}`;
+    `https://api.qrserver.com/v1/create-qr-code/?size=320x320&data=${encodeURIComponent(menuUrl(tableNumber) + "?qr=1")}`;
 
   return (
     <div className="min-h-screen bg-background pb-24">
