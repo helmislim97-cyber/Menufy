@@ -403,7 +403,8 @@ function MenuPage() {
         setSessionExpired(true);
       }
     }
-  }, [restaurantId, tableNumber]);
+
+    }, [restaurantId, tableNumber]);
 
   useEffect(() => {
     let cancelled = false;
@@ -1135,6 +1136,15 @@ function MenuPage() {
           <div className="flex flex-col items-center px-2 py-4 text-center">
             <h2 className="text-lg font-extrabold">{t("client.sessionExpired.title")}</h2>
             <p className="mt-2 text-sm text-[#1c1f16]/70">{t("client.sessionExpired.subtitle")}</p>
+            <Button
+              onClick={() => {
+                localStorage.setItem(`menufy_session_${restaurantId}_${tableNumber}`, String(Date.now()));
+                setSessionExpired(false);
+              }}
+              className="mt-5 w-full"
+            >
+              {t("client.sessionExpired.continue")}
+            </Button>
           </div>
         </DialogContent>
       </Dialog>
