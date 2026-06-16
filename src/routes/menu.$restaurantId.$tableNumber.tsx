@@ -391,7 +391,7 @@ function MenuPage() {
 
   useEffect(() => {
     const storageKey = `menufy_session_${restaurantId}_${tableNumber}`;
-    const SESSION_DURATION_MS = 60 * 60 * 1000; // 1 hour
+    const SESSION_DURATION_MS = 3 * 60 * 1000; // TEMP: 3 min for testing
     const stored = localStorage.getItem(storageKey);
     const now = Date.now();
 
