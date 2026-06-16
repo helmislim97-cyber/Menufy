@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { useI18n } from "@/lib/i18n";
@@ -73,6 +73,42 @@ interface Product {
 }
 
 const UNCATEGORIZED = "__uncategorized__";
+
+function SortableProductRow({ id, children }: { id: string; children: ReactNode }) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id });
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  };
+  return (
+    <div ref={setNodeRef} style={style} className="flex items-center gap-2">
+      <button {...attributes} {...listeners} className="grid h-8 w-6 shrink-0 cursor-grab touch-none place-items-center text-muted-foreground active:cursor-grabbing">
+        <GripVertical className="h-4 w-4" />
+      </button>
+      <div className="flex-1">{children}</div>
+    </div>
+  );
+}
+
+function SortableCategorySection({ id, children }: { id: string; children: ReactNode }) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id });
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  };
+  return (
+    <section ref={setNodeRef} style={style}>
+      <div className="mb-2 flex items-center gap-2">
+        <button {...attributes} {...listeners} className="grid h-8 w-6 shrink-0 cursor-grab touch-none place-items-center text-muted-foreground active:cursor-grabbing">
+          <GripVertical className="h-4 w-4" />
+        </button>
+        <div className="flex-1">{children}</div>
+      </div>
+    </section>
+  );
+}
 
 function MenuManagement() {
   const { user } = useAuth();
@@ -393,6 +429,80 @@ function MenuManagement() {
     }
   };
 
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
+    useSensor(TouchSensor, { activationConstraint: { delay: 150, tolerance: 5 } }),
+  );
+
+  const handleCategoryDragEnd = async (event: DragEndEvent) => {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+    const oldIndex = categories.findIndex((c) => c.id === active.id);
+    const newIndex = categories.findIndex((c) => c.id === over.id);
+    if (oldIndex === -1 || newIndex === -1) return;
+    const reordered = arrayMove(categories, oldIndex, newIndex);
+    setCategories(reordered);
+    const updates = reordered.map((c, idx) => ({ id: c.id, position: idx }));
+    for (const u of updates) {
+      await supabase.from("categories").update({ position: u.position }).eq("id", u.id);
+    }
+  };
+
+  const handleProductDragEnd = async (groupProducts: Product[], event: DragEndEvent) => {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+    const oldIndex = groupProducts.findIndex((p) => p.id === active.id);
+    const newIndex = groupProducts.findIndex((p) => p.id === over.id);
+    if (oldIndex === -1 || newIndex === -1) return;
+    const reordered = arrayMove(groupProducts, oldIndex, newIndex);
+    const reorderedIds = reordered.map((p) => p.id);
+    setProducts((prev) => {
+      const others = prev.filter((p) => !reorderedIds.includes(p.id));
+      const updated = reordered.map((p, idx) => ({ ...p, position: idx }));
+      return [...others, ...updated].sort((a, b) => a.position - b.position);
+    });
+    for (let idx = 0; idx < reordered.length; idx++) {
+      await supabase.from("products").update({ position: idx }).eq("id", reordered[idx].id);
+    }
+  };
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
+    useSensor(TouchSensor, { activationConstraint: { delay: 150, tolerance: 5 } }),
+  );
+
+  const handleCategoryDragEnd = async (event: DragEndEvent) => {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+    const oldIndex = categories.findIndex((c) => c.id === active.id);
+    const newIndex = categories.findIndex((c) => c.id === over.id);
+    if (oldIndex === -1 || newIndex === -1) return;
+    const reordered = arrayMove(categories, oldIndex, newIndex);
+    setCategories(reordered);
+    const updates = reordered.map((c, idx) => ({ id: c.id, position: idx }));
+    for (const u of updates) {
+      await supabase.from("categories").update({ position: u.position }).eq("id", u.id);
+    }
+  };
+
+  const handleProductDragEnd = async (groupProducts: Product[], event: DragEndEvent) => {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+    const oldIndex = groupProducts.findIndex((p) => p.id === active.id);
+    const newIndex = groupProducts.findIndex((p) => p.id === over.id);
+    if (oldIndex === -1 || newIndex === -1) return;
+    const reordered = arrayMove(groupProducts, oldIndex, newIndex);
+    const reorderedIds = reordered.map((p) => p.id);
+    setProducts((prev) => {
+      const others = prev.filter((p) => !reorderedIds.includes(p.id));
+      const updated = reordered.map((p, idx) => ({ ...p, position: idx }));
+      return [...others, ...updated].sort((a, b) => a.position - b.position);
+    });
+    for (let idx = 0; idx < reordered.length; idx++) {
+      await supabase.from("products").update({ position: idx }).eq("id", reordered[idx].id);
+    }
+  };
+
   const toggleAvailability = async (p: Product) => {
     setProducts((prev) => prev.map((x) => (x.id === p.id ? { ...x, is_available: !x.is_available } : x)));
     const { error } = await supabase.from("products").update({ is_available: !p.is_available }).eq("id", p.id);
@@ -446,12 +556,14 @@ function MenuManagement() {
             </Button>
           </div>
         ) : (
+          <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleCategoryDragEnd}>
+          <SortableContext items={categories.map((c) => c.id)} strategy={verticalListSortingStrategy}>
           <div className="mt-6 space-y-6">
             {groups.map((group) => {
               if (group.id === UNCATEGORIZED && group.products.length === 0) return null;
               const category = categories.find((c) => c.id === group.id);
-              return (
-                <section key={group.id}>
+              const sectionContent = (
+                <>
                   <div className="mb-2 flex items-center justify-between">
                     <h2 className="text-base font-bold">{group.name}</h2>
                     <div className="flex items-center gap-1">
@@ -483,10 +595,12 @@ function MenuManagement() {
                       {t("menu.noProducts")}
                     </p>
                   ) : (
+                    <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={(e) => handleProductDragEnd(group.products, e)}>
+                    <SortableContext items={group.products.map((p) => p.id)} strategy={verticalListSortingStrategy}>
                     <div className="space-y-2">
                       {group.products.map((p) => (
+                        <SortableProductRow key={p.id} id={p.id}>
                         <div
-                          key={p.id}
                           className="flex items-center gap-3 rounded-2xl border border-border bg-surface p-3"
                         >
                           <div className="grid h-10 w-10 shrink-0 place-items-center overflow-hidden rounded-xl bg-background text-xl">
@@ -517,13 +631,24 @@ function MenuManagement() {
                             <Trash2 className="h-4 w-4" />
                           </button>
                         </div>
+                        </SortableProductRow>
                       ))}
                     </div>
+                    </SortableContext>
+            
+                  </DndContext>
                   )}
-                </section>
+                </>
+              );
+              return (
+                <SortableCategorySection key={group.id} id={group.id}>
+                  {sectionContent}
+                </SortableCategorySection>
               );
             })}
           </div>
+          </SortableContext>
+          </DndContext>
         )}
       </main>
 
