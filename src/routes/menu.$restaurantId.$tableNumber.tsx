@@ -392,18 +392,32 @@ function MenuPage() {
   useEffect(() => {
     const storageKey = `menufy_session_${restaurantId}_${tableNumber}`;
     const SESSION_DURATION_MS = 3 * 60 * 1000; // TEMP: 3 min for testing
-    const stored = localStorage.getItem(storageKey);
-    const now = Date.now();
+    const params = new URLSearchParams(window.location.search);
+    const isFreshScan = params.get("qr") === "1";
 
-    if (!stored) {
-      localStorage.setItem(storageKey, String(now));
-    } else {
-      const startedAt = parseInt(stored, 10);
-      if (!isNaN(startedAt) && now - startedAt > SESSION_DURATION_MS) {
-        setSessionExpired(true);
-        localStorage.removeItem(storageKey);
+    const checkSession = () => {
+      const stored = localStorage.getItem(storageKey);
+      const now = Date.now();
+
+      if (isFreshScan) {
+        localStorage.setItem(storageKey, String(now));
+        setSessionExpired(false);
+        return;
       }
-    }
+
+      if (!stored) {
+        localStorage.setItem(storageKey, String(now));
+      } else {
+        const startedAt = parseInt(stored, 10);
+        if (!isNaN(startedAt) && now - startedAt > SESSION_DURATION_MS) {
+          setSessionExpired(true);
+        }
+      }
+    };
+
+    checkSession();
+    const interval = setInterval(checkSession, 10000);
+    return () => clearInterval(interval);
   }, [restaurantId, tableNumber]);
 
   useEffect(() => {
