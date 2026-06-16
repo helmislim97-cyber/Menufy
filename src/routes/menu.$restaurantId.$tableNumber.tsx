@@ -395,15 +395,14 @@ function MenuPage() {
     const params = new URLSearchParams(window.location.search);
     const isFreshScan = params.get("qr") === "1";
 
+    if (isFreshScan) {
+      localStorage.setItem(storageKey, String(Date.now()));
+      setSessionExpired(false);
+    }
+
     const checkSession = () => {
       const stored = localStorage.getItem(storageKey);
       const now = Date.now();
-
-      if (isFreshScan) {
-        localStorage.setItem(storageKey, String(now));
-        setSessionExpired(false);
-        return;
-      }
 
       if (!stored) {
         localStorage.setItem(storageKey, String(now));
