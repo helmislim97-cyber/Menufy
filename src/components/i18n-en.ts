@@ -139,6 +139,9 @@ export const en: Record<string, string> = {
   "client.success.subtitle": "Your order is being prepared. The waiter will bring it to you shortly.",
   "client.success.table": "Table",
   "client.success.newOrder": "Place a new order",
+  "client.sessionExpired.title": "Please rescan the QR code",
+  "client.sessionExpired.subtitle": "Your session has expired. Please scan the QR code on your table again to continue.",
+  "client.sessionExpired.continue": "I rescanned, continue",
   "client.item": "item",
   "client.items": "items",
 
