@@ -651,7 +651,7 @@ function MenuManagement() {
 
       {/* Product dialog */}
       <Dialog open={prodDialogOpen} onOpenChange={setProdDialogOpen}>
-        <DialogContent>
+        <DialogContent className="max-h-[85vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>{editingProd ? t("menu.editProduct") : t("menu.addProduct")}</DialogTitle>
           </DialogHeader>
