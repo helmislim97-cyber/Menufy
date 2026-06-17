@@ -406,7 +406,7 @@ function MenuPage() {
 
   useEffect(() => {
     const storageKey = `menufy_session_${restaurantId}_${tableNumber}`;
-    const SESSION_DURATION_MS = 1 * 60 * 1000; // TEMP: 1 min for testing
+    const SESSION_DURATION_MS = 2 * 60 * 60 * 1000; // 2 hours
     const params = new URLSearchParams(window.location.search);
     const isFreshScan = params.get("qr") === "1";
 
