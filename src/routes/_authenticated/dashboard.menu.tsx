@@ -72,6 +72,14 @@ interface Product {
   tags: string[] | null;
 }
 
+interface Supplement {
+  id: string;
+  product_id: string;
+  name: string;
+  price: number;
+  position: number;
+}
+
 const UNCATEGORIZED = "__uncategorized__";
 
 function SortableProductRow({ id, children }: { id: string; children: ReactNode }) {
@@ -150,6 +158,9 @@ function MenuManagement() {
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [uploadingImage, setUploadingImage] = useState(false);
+  const [supplements, setSupplements] = useState<Supplement[]>([]);
+  const [newSupplementName, setNewSupplementName] = useState("");
+  const [newSupplementPrice, setNewSupplementPrice] = useState("");
 
   const loadData = async (rid: string) => {
     const [{ data: cats }, { data: prods }] = await Promise.all([
@@ -272,6 +283,9 @@ function MenuManagement() {
     setImageFile(null);
     setImagePreview(null);
     setImageUrl(null);
+    setSupplements([]);
+    setNewSupplementName("");
+    setNewSupplementPrice("");
     setProdForm({
       name: "",
       description: "",
@@ -287,11 +301,13 @@ function MenuManagement() {
     setProdDialogOpen(true);
   };
 
-  const openEditProduct = (p: Product) => {
+  const openEditProduct = async (p: Product) => {
     setEditingProd(p);
     setImageFile(null);
     setImagePreview(p.image_url);
     setImageUrl(p.image_url);
+    setNewSupplementName("");
+    setNewSupplementPrice("");
     setProdForm({
       name: p.name,
       description: p.description ?? "",
@@ -305,6 +321,33 @@ function MenuManagement() {
       tags: (p.tags ?? []).join(", "),
     });
     setProdDialogOpen(true);
+    const { data } = await supabase
+      .from("product_supplements")
+      .select("id, product_id, name, price, position")
+      .eq("product_id", p.id)
+      .order("position");
+    setSupplements(data ?? []);
+  };
+
+  const addSupplement = async () => {
+    if (!editingProd || !newSupplementName.trim()) return;
+    const price = parseFloat(newSupplementPrice) || 0;
+    const position = supplements.length;
+    const { data, error } = await supabase
+      .from("product_supplements")
+      .insert({ product_id: editingProd.id, name: newSupplementName.trim(), price, position })
+      .select("id, product_id, name, price, position")
+      .single();
+    if (error) return toast.error(error.message);
+    setSupplements((prev) => [...prev, data]);
+    setNewSupplementName("");
+    setNewSupplementPrice("");
+  };
+
+  const deleteSupplement = async (id: string) => {
+    const { error } = await supabase.from("product_supplements").delete().eq("id", id);
+    if (error) return toast.error(error.message);
+    setSupplements((prev) => prev.filter((s) => s.id !== id));
   };
 
   const uploadProductImage = async (file: File): Promise<string | null> => {
@@ -805,6 +848,56 @@ function MenuManagement() {
                 onChange={(e) => setProdForm((f) => ({ ...f, tags: e.target.value }))}
                 placeholder={t("menu.tagsPlaceholder")}
               />
+            </div>
+
+            <div className="space-y-2">
+              <Label>{t("menu.supplements")}</Label>
+              {!editingProd ? (
+                <p className="rounded-xl border border-dashed border-border bg-surface/40 p-3 text-xs text-muted-foreground">
+                  {t("menu.supplementsHint")}
+                </p>
+              ) : (
+                <div className="space-y-2">
+                  {supplements.length > 0 && (
+                    <div className="space-y-1.5">
+                      {supplements.map((s) => (
+                        <div key={s.id} className="flex items-center gap-2 rounded-xl border border-border bg-surface px-3 py-2">
+                          <span className="flex-1 text-sm font-medium">{s.name}</span>
+                          <span className="text-sm font-bold text-gold">+{Number(s.price).toFixed(2)} DT</span>
+                          <button
+                            type="button"
+                            onClick={() => deleteSupplement(s.id)}
+                            className="grid h-7 w-7 shrink-0 place-items-center rounded-full text-muted-foreground hover:text-destructive"
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  <div className="flex gap-2">
+                    <Input
+                      value={newSupplementName}
+                      onChange={(e) => setNewSupplementName(e.target.value)}
+                      placeholder={t("menu.supplementNamePlaceholder")}
+                      className="flex-1"
+                    />
+                    <Input
+                      type="number"
+                      inputMode="decimal"
+                      step="0.01"
+                      min="0"
+                      value={newSupplementPrice}
+                      onChange={(e) => setNewSupplementPrice(e.target.value)}
+                      placeholder="0.00"
+                      className="w-20"
+                    />
+                    <Button type="button" size="sm" onClick={addSupplement} disabled={!newSupplementName.trim()} className="shrink-0 gap-1">
+                      <Plus className="h-3.5 w-3.5" />
+                    </Button>
+                  </div>
+                </div>
+              )}
             </div>
 
             <div className="flex items-center justify-between rounded-xl border border-border bg-surface px-3 py-2.5">
