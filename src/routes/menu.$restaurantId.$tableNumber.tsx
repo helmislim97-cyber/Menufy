@@ -912,33 +912,38 @@ function MenuPage() {
         </p>
 
         {!isCancelled && !isPaid && (
-          <div className="mt-6 flex w-full max-w-xs items-center justify-between">
-            {steps.map((s, i) => {
-              const Icon = s.icon;
-              const active = i <= stepIndex;
-              return (
-                <div key={s.key} className="flex flex-1 flex-col items-center">
-                  <div className="flex w-full items-center">
-                    {i > 0 && (
-                      <div className={`h-0.5 flex-1 ${i <= stepIndex ? "bg-primary" : "bg-[#1c1f16]/15"}`} />
-                    )}
-                    <div
-                      className={`grid h-9 w-9 shrink-0 place-items-center rounded-full ${
-                        active ? "bg-primary text-primary-foreground" : "bg-white text-[#1c1f16]/30"
-                      }`}
-                    >
-                      <Icon className="h-4 w-4" />
-                    </div>
-                    {i < steps.length - 1 && (
-                      <div className={`h-0.5 flex-1 ${i < stepIndex ? "bg-primary" : "bg-[#1c1f16]/15"}`} />
-                    )}
+          <div className="mt-8 w-full max-w-xs">
+            <div className="flex items-center">
+              {steps.map((s, i) => (
+                <div key={s.key} className="flex flex-1 items-center last:flex-none">
+                  <div
+                    className={`grid h-10 w-10 shrink-0 place-items-center rounded-full transition-colors ${
+                      i <= stepIndex ? "bg-primary text-primary-foreground" : "bg-white text-[#1c1f16]/30"
+                    }`}
+                  >
+                    <s.icon className="h-4 w-4" />
                   </div>
-                  <span className={`mt-1.5 text-[10px] font-semibold ${active ? "text-[#1c1f16]" : "text-[#1c1f16]/40"}`}>
+                  {i < steps.length - 1 && (
+                    <div className="relative mx-1 h-0.5 flex-1 overflow-hidden rounded-full bg-[#1c1f16]/15">
+                      <div
+                        className={`absolute inset-y-0 left-0 rounded-full bg-primary transition-all duration-500 ${
+                          i < stepIndex ? "w-full" : i === stepIndex ? "w-full animate-track-pulse" : "w-0"
+                        }`}
+                      />
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+            <div className="mt-2 flex">
+              {steps.map((s, i) => (
+                <div key={s.key} className="flex-1 text-center last:flex-none last:w-10">
+                  <span className={`text-[10px] font-semibold leading-tight ${i <= stepIndex ? "text-[#1c1f16]" : "text-[#1c1f16]/40"}`}>
                     {s.label}
                   </span>
                 </div>
-              );
-            })}
+              ))}
+            </div>
           </div>
         )}
 
