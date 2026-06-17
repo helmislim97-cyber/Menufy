@@ -69,6 +69,14 @@ interface Product {
   tags: string[] | null;
 }
 
+interface Supplement {
+  id: string;
+  product_id: string;
+  name: string;
+  price: number;
+  position: number;
+}
+
 const UNCATEGORIZED = "__uncategorized__";
 
 const COUNTRY_CODES = [
@@ -377,6 +385,8 @@ function MenuPage() {
   const [showCategories, setShowCategories] = useState(true);
   const [cart, setCart] = useState<Record<string, { qty: number; note: string }>>({});
   const [detailNote, setDetailNote] = useState("");
+  const [detailSupplements, setDetailSupplements] = useState<Supplement[]>([]);
+  const [selectedSupplementIds, setSelectedSupplementIds] = useState<string[]>([]);
   const [cartOpen, setCartOpen] = useState(false);
   const [detailProduct, setDetailProduct] = useState<Product | null>(null);
   const [notes, setNotes] = useState("");
@@ -550,8 +560,18 @@ function MenuPage() {
   useEffect(() => {
     if (detailProduct) {
       setDetailNote(cart[detailProduct.id]?.note ?? "");
+      setSelectedSupplementIds([]);
+      supabase
+        .from("product_supplements")
+        .select("id, product_id, name, price, position")
+        .eq("product_id", detailProduct.id)
+        .order("position")
+        .then(({ data }) => setDetailSupplements(data ?? []));
+    } else {
+      setDetailSupplements([]);
+      setSelectedSupplementIds([]);
     }
-  }, [detailProduct, cart]);
+  }, [detailProduct]);
 
   useEffect(() => {
     const onPopState = (e: PopStateEvent) => {
@@ -976,8 +996,39 @@ function MenuPage() {
                 <p className="mt-1 text-sm text-muted-foreground">{detailProduct.description}</p>
               )}
               <p className="mt-2 text-3xl font-extrabold text-[#1c1f16]">
-                {Number(detailProduct.price).toFixed(2)} <span className="text-base font-semibold">DT</span>
+                {(Number(detailProduct.price) + detailSupplements.filter((s) => selectedSupplementIds.includes(s.id)).reduce((sum, s) => sum + Number(s.price), 0)).toFixed(2)} <span className="text-base font-semibold">DT</span>
               </p>
+
+              {detailSupplements.length > 0 && (
+                <div className="mt-4 w-full space-y-1.5 text-left">
+                  <label className="text-xs font-medium text-[#1c1f16]/60">{t("client.supplements")}</label>
+                  {detailSupplements.map((s) => {
+                    const checked = selectedSupplementIds.includes(s.id);
+                    return (
+                      <button
+                        key={s.id}
+                        type="button"
+                        onClick={() =>
+                          setSelectedSupplementIds((prev) =>
+                            checked ? prev.filter((id) => id !== s.id) : [...prev, s.id]
+                          )
+                        }
+                        className={`flex w-full items-center justify-between rounded-xl border px-3 py-2 text-sm ${
+                          checked ? "border-primary bg-primary/10" : "border-[#1c1f16]/15 bg-white"
+                        }`}
+                      >
+                        <span className="flex items-center gap-2 font-medium text-[#1c1f16]">
+                          <span className={`grid h-4 w-4 place-items-center rounded border ${checked ? "border-primary bg-primary text-primary-foreground" : "border-[#1c1f16]/30"}`}>
+                            {checked && <CheckCircle2 className="h-3 w-3" />}
+                          </span>
+                          {s.name}
+                        </span>
+                        <span className="font-bold text-[#1c1f16]/70">+{Number(s.price).toFixed(2)} DT</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
 
               {!detailProduct.is_available ? (
                 <span className="mt-4 rounded-full bg-[#1c1f16]/70 px-4 py-1.5 text-sm font-bold uppercase text-white">
