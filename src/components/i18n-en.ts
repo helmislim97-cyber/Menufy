@@ -244,6 +244,8 @@ export const en: Record<string, string> = {
   "client.noResults": "No results for this search.",
   "client.orderNow": "Order now",
   "client.followUs": "Follow us",
+  "client.review.prompt": "How was your experience?",
+  "client.review.thanks": "Thanks for your feedback!",
   "settings.description": "Description",
   "settings.descriptionPlaceholder": "E.g. Traditional Tunisian cuisine, open 7 days a week…",
   "client.info": "Information",
@@ -305,4 +307,6 @@ export const en: Record<string, string> = {
   "settings.instagram": "Instagram",
   "settings.facebookPlaceholder": "https://facebook.com/yourpage",
   "settings.instagramPlaceholder": "https://instagram.com/youraccount",
+  "settings.googleReview": "Google Reviews link",
+  "settings.googleReviewPlaceholder": "https://g.page/r/your-link/review",
 };

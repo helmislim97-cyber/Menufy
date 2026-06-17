@@ -245,6 +245,8 @@ const fr: Dict = {
   "client.noResults": "Aucun résultat pour cette recherche.",
   "client.orderNow": "Commander",
   "client.followUs": "Suivez-nous",
+  "client.review.prompt": "Comment était votre expérience ?",
+  "client.review.thanks": "Merci pour votre avis !",
   "settings.description": "Description",
   "settings.descriptionPlaceholder": "Ex : Cuisine tunisienne traditionnelle, ouvert 7j/7…",
   "client.info": "Informations",
@@ -308,6 +310,8 @@ const fr: Dict = {
   "settings.instagram": "Instagram",
   "settings.facebookPlaceholder": "https://facebook.com/votrepage",
   "settings.instagramPlaceholder": "https://instagram.com/votrecompte",
+  "settings.googleReview": "Lien Google Reviews",
+  "settings.googleReviewPlaceholder": "https://g.page/r/votre-lien/review",
 };
 
 const ar: Dict = {
@@ -550,6 +554,8 @@ const ar: Dict = {
   "client.noResults": "لا توجد نتائج لهذا البحث.",
   "client.orderNow": "اطلب الآن",
   "client.followUs": "تابعونا",
+  "client.review.prompt": "كيف كانت تجربتك؟",
+  "client.review.thanks": "شكراً على رأيك!",
   "settings.description": "الوصف",
   "settings.descriptionPlaceholder": "مثال: مطبخ تونسي أصيل، مفتوح كل أيام الأسبوع…",
   "client.info": "معلومات",
@@ -612,7 +618,14 @@ const ar: Dict = {
   "settings.facebook": "فيسبوك",
   "settings.instagram": "إنستغرام",
   "settings.facebookPlaceholder": "https://facebook.com/yourpage",
+  "settings.logo": "الشعار",
+  "settings.facebook": "فيسبوك",
+  "settings.instagram": "إنستغرام",
+  "settings.facebookPlaceholder": "https://facebook.com/yourpage",
   "settings.instagramPlaceholder": "https://instagram.com/youraccount",
+  "settings.googleReview": "رابط تقييمات جوجل",
+  "settings.googleReviewPlaceholder": "https://g.page/r/your-link/review",
+};
 };
 
 const dicts: Record<Locale, Dict> = { fr, ar, en };

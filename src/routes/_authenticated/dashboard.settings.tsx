@@ -32,6 +32,7 @@ interface Restaurant {
   logo_url: string | null;
   facebook_url: string | null;
   instagram_url: string | null;
+  google_review_url: string | null;
   description: string | null;
   wifi: string | null;
   banner_url: string | null;
@@ -66,6 +67,7 @@ function SettingsPage() {
   const [savingRestaurant, setSavingRestaurant] = useState(false);
   const [editFacebook, setEditFacebook] = useState("");
   const [editInstagram, setEditInstagram] = useState("");
+  const [editGoogleReview, setEditGoogleReview] = useState("");
   const [editDescription, setEditDescription] = useState("");
   const [editWifi, setEditWifi] = useState("");
   const [logoFile, setLogoFile] = useState<File | null>(null);
@@ -93,7 +95,7 @@ function SettingsPage() {
     if (!user) return;
     supabase
       .from("restaurants")
-      .select("id, name, address, phone, logo_url, facebook_url, instagram_url, description, wifi, banner_url, banner_position_x, banner_position_y, banner_zoom")
+      .select("id, name, address, phone, logo_url, facebook_url, instagram_url, google_review_url, description, wifi, banner_url, banner_position_x, banner_position_y, banner_zoom")
       .eq("owner_id", user.id)
       .maybeSingle()
       .then(async ({ data }) => {
@@ -143,6 +145,7 @@ function SettingsPage() {
     setEditPhone(restaurant.phone ?? "");
     setEditFacebook(restaurant.facebook_url ?? "");
     setEditInstagram(restaurant.instagram_url ?? "");
+    setEditGoogleReview(restaurant.google_review_url ?? "");
     setEditDescription(restaurant.description ?? "");
     setEditWifi(restaurant.wifi ?? "");
     setLogoFile(null);
@@ -244,6 +247,7 @@ function SettingsPage() {
       phone: editPhone.trim() || null,
       facebook_url: editFacebook.trim() || null,
       instagram_url: editInstagram.trim() || null,
+      google_review_url: editGoogleReview.trim() || null,
       logo_url: finalLogoUrl,
       description: editDescription.trim() || null,
       wifi: editWifi.trim() || null,
@@ -544,6 +548,10 @@ function SettingsPage() {
             <div>
               <label className="text-xs font-semibold text-muted-foreground">{t("settings.instagram")}</label>
               <Input value={editInstagram} onChange={(e) => setEditInstagram(e.target.value)} placeholder={t("settings.instagramPlaceholder")} className="mt-1" />
+            </div>
+            <div>
+              <label className="text-xs font-semibold text-muted-foreground">{t("settings.googleReview")}</label>
+              <Input value={editGoogleReview} onChange={(e) => setEditGoogleReview(e.target.value)} placeholder={t("settings.googleReviewPlaceholder")} className="mt-1" />
             </div>
             <div>
               <label className="text-xs font-semibold text-muted-foreground">{t("settings.description")}</label>

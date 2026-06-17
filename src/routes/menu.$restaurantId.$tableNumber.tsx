@@ -17,7 +17,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { RestaurantCover } from "@/components/restaurant-cover";
 import { CategoryGrid } from "@/components/category-grid";
-import { ShoppingCart, Plus, Minus, CheckCircle2, Search, ArrowLeft, MapPin, Flame, Clock, ChefHat, BellRing, ClipboardList, Wallet, XCircle } from "lucide-react";
+import { ShoppingCart, Plus, Minus, CheckCircle2, Search, ArrowLeft, MapPin, Flame, Clock, ChefHat, BellRing, ClipboardList, Wallet, XCircle, Star, Facebook, Instagram } from "lucide-react";
 
 export const Route = createFileRoute("/menu/$restaurantId/$tableNumber")({
   head: () => ({
@@ -35,6 +35,7 @@ interface Restaurant {
   logo_url: string | null;
   facebook_url: string | null;
   instagram_url: string | null;
+  google_review_url: string | null;
   address: string | null;
   phone: string | null;
   description: string | null;
@@ -404,6 +405,8 @@ function MenuPage() {
   const [placing, setPlacing] = useState(false);
   const [placedOrder, setPlacedOrder] = useState<{ id: string; total: number } | null>(null);
   const [orderStatus, setOrderStatus] = useState<string>("pending");
+  const [reviewRating, setReviewRating] = useState<number | null>(null);
+  const [reviewSubmitted, setReviewSubmitted] = useState(false);
 
   useEffect(() => {
     const storageKey = `menufy_session_${restaurantId}_${tableNumber}`;
@@ -444,7 +447,7 @@ function MenuPage() {
     async function load() {
       const { data: rest } = await supabase
         .from("restaurants")
-        .select("id, name, logo_url, facebook_url, instagram_url, address, phone, description, wifi, banner_url, banner_position_x, banner_position_y, banner_zoom")
+        .select("id, name, logo_url, facebook_url, instagram_url, google_review_url, address, phone, description, wifi, banner_url, banner_position_x, banner_position_y, banner_zoom")
         .eq("id", restaurantId)
         .eq("is_active", true)
         .maybeSingle();
@@ -813,6 +816,20 @@ function MenuPage() {
     };
   }, [placedOrder]);
 
+  const submitReview = async (rating: number) => {
+    setReviewRating(rating);
+    setReviewSubmitted(true);
+    await supabase.from("reviews").insert({
+      restaurant_id: restaurant?.id,
+      order_id: placedOrder?.id ?? null,
+      table_number: parseInt(tableNumber, 10) || null,
+      rating,
+    });
+    if (rating >= 4 && restaurant?.google_review_url) {
+      window.open(restaurant.google_review_url, "_blank");
+    }
+  };
+
   const startNewOrder = () => {
     setPlacedOrder(null);
     setCustomerFirstName("");
@@ -953,6 +970,56 @@ function MenuPage() {
             <span className="font-bold text-gold">{placedOrder.total.toFixed(2)} DT</span>
           </div>
         </div>
+
+        {(restaurant?.facebook_url || restaurant?.instagram_url) && (
+          <div className="mt-6 flex flex-col items-center gap-2">
+            <span className="text-xs font-semibold text-[#1c1f16]/50">{t("client.followUs")}</span>
+            <div className="flex items-center gap-3">
+              {restaurant.facebook_url && (
+                
+                  href={restaurant.facebook_url}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="grid h-10 w-10 place-items-center rounded-full bg-white text-[#1c1f16] shadow-sm"
+                >
+                  <Facebook className="h-4 w-4" />
+                </a>
+              )}
+              {restaurant.instagram_url && (
+                
+                  href={restaurant.instagram_url}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="grid h-10 w-10 place-items-center rounded-full bg-white text-[#1c1f16] shadow-sm"
+                >
+                  <Instagram className="h-4 w-4" />
+                </a>
+              )}
+            </div>
+          </div>
+        )}
+
+        <div className="mt-6 w-full max-w-xs rounded-2xl bg-white p-4 shadow-sm">
+          {reviewSubmitted ? (
+            <p className="text-sm font-semibold text-[#1c1f16]">{t("client.review.thanks")}</p>
+          ) : (
+            <>
+              <p className="text-sm font-semibold text-[#1c1f16]">{t("client.review.prompt")}</p>
+              <div className="mt-3 flex items-center justify-center gap-1.5">
+                {[1, 2, 3, 4, 5].map((n) => (
+                  <button
+                    key={n}
+                    onClick={() => submitReview(n)}
+                    className="grid h-9 w-9 place-items-center text-[#d4a843]"
+                  >
+                    <Star className={`h-7 w-7 ${reviewRating && n <= reviewRating ? "fill-[#d4a843]" : ""}`} />
+                  </button>
+                ))}
+              </div>
+            </>
+          )}
+        </div>
+
         <Button onClick={startNewOrder} className="mt-8 w-full max-w-xs">
           {t("client.success.newOrder")}
         </Button>
