@@ -391,6 +391,7 @@ function MenuPage() {
   const [detailNote, setDetailNote] = useState("");
   const [detailSupplements, setDetailSupplements] = useState<Supplement[]>([]);
   const [selectedSupplementIds, setSelectedSupplementIds] = useState<string[]>([]);
+  const [detailQty, setDetailQty] = useState(1);
   const [cartOpen, setCartOpen] = useState(false);
   const [detailProduct, setDetailProduct] = useState<Product | null>(null);
   const [notes, setNotes] = useState("");
@@ -580,10 +581,12 @@ function MenuPage() {
       const cartKey = makeCartKey(detailProduct.id, []);
       setDetailNote(cart[cartKey]?.note ?? "");
       setSelectedSupplementIds([]);
+      setDetailQty(1);
       setDetailSupplements(productSupplements[detailProduct.id] ?? []);
     } else {
       setDetailSupplements([]);
       setSelectedSupplementIds([]);
+      setDetailQty(1);
     }
   }, [detailProduct, productSupplements]);
 
@@ -686,13 +689,13 @@ function MenuPage() {
   const cartCount = cartItems.reduce((sum, i) => sum + i.qty, 0);
   const cartTotal = cartItems.reduce((sum, i) => sum + i.qty * i.unitPrice, 0);
 
-  const addToCart = (productId: string, note?: string, supplementIds: string[] = []) => {
+  const addToCart = (productId: string, note?: string, supplementIds: string[] = [], qtyToAdd: number = 1) => {
     const cartKey = makeCartKey(productId, supplementIds);
     setCart((c) => ({
       ...c,
       [cartKey]: {
         productId,
-        qty: (c[cartKey]?.qty ?? 0) + 1,
+        qty: (c[cartKey]?.qty ?? 0) + qtyToAdd,
         note: note ?? c[cartKey]?.note ?? "",
         supplementIds,
       },
@@ -1074,6 +1077,22 @@ function MenuPage() {
                 </span>
               ) : (
                 <>
+                  <div className="mt-4 flex items-center gap-6 rounded-full bg-[#ebe7dc] px-6 py-2.5">
+                    <button
+                      onClick={() => setDetailQty((q) => Math.max(1, q - 1))}
+                      className="grid h-7 w-7 place-items-center text-[#1c1f16]"
+                    >
+                      <Minus className="h-5 w-5" />
+                    </button>
+                    <span className="w-6 text-center text-lg font-bold text-[#1c1f16]">{detailQty}</span>
+                    <button
+                      onClick={() => setDetailQty((q) => q + 1)}
+                      className="grid h-7 w-7 place-items-center text-[#1c1f16]"
+                    >
+                      <Plus className="h-5 w-5" />
+                    </button>
+                  </div>
+
                   <div className="mt-4 w-full space-y-1.5 text-left">
                     <label className="text-xs font-medium text-[#1c1f16]/60">{t("client.itemNote")}</label>
                     <Textarea
@@ -1087,7 +1106,7 @@ function MenuPage() {
 
                   <Button
                     onClick={() => {
-                      addToCart(detailProduct.id, detailNote, selectedSupplementIds);
+                      addToCart(detailProduct.id, detailNote, selectedSupplementIds, detailQty);
                       setDetailProduct(null);
                     }}
                     className="mt-4 w-full gap-2"
