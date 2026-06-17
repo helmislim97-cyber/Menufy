@@ -383,7 +383,11 @@ function MenuPage() {
   const [showCover, setShowCover] = useState(true);
   const [coverLeaving, setCoverLeaving] = useState(false);
   const [showCategories, setShowCategories] = useState(true);
-  const [cart, setCart] = useState<Record<string, { qty: number; note: string }>>({});
+  const [cart, setCart] = useState<Record<string, { productId: string; qty: number; note: string; supplementIds: string[] }>>({});
+  const [productSupplements, setProductSupplements] = useState<Record<string, Supplement[]>>({});
+
+  const makeCartKey = (productId: string, supplementIds: string[]) =>
+    `${productId}::${[...supplementIds].sort().join(",")}`;
   const [detailNote, setDetailNote] = useState("");
   const [detailSupplements, setDetailSupplements] = useState<Supplement[]>([]);
   const [selectedSupplementIds, setSelectedSupplementIds] = useState<string[]>([]);
@@ -476,6 +480,20 @@ function MenuPage() {
         setActiveCategory(UNCATEGORIZED);
       }
 
+      if (prodList.length > 0) {
+        const { data: supps } = await supabase
+          .from("product_supplements")
+          .select("id, product_id, name, price, position")
+          .in("product_id", prodList.map((p) => p.id))
+          .order("position");
+        const grouped: Record<string, Supplement[]> = {};
+        for (const s of supps ?? []) {
+          if (!grouped[s.product_id]) grouped[s.product_id] = [];
+          grouped[s.product_id].push(s);
+        }
+        setProductSupplements(grouped);
+      }
+
       setLoading(false);
     }
 
@@ -559,19 +577,15 @@ function MenuPage() {
 
   useEffect(() => {
     if (detailProduct) {
-      setDetailNote(cart[detailProduct.id]?.note ?? "");
+      const cartKey = makeCartKey(detailProduct.id, []);
+      setDetailNote(cart[cartKey]?.note ?? "");
       setSelectedSupplementIds([]);
-      supabase
-        .from("product_supplements")
-        .select("id, product_id, name, price, position")
-        .eq("product_id", detailProduct.id)
-        .order("position")
-        .then(({ data }) => setDetailSupplements(data ?? []));
+      setDetailSupplements(productSupplements[detailProduct.id] ?? []);
     } else {
       setDetailSupplements([]);
       setSelectedSupplementIds([]);
     }
-  }, [detailProduct]);
+  }, [detailProduct, productSupplements]);
 
   useEffect(() => {
     const onPopState = (e: PopStateEvent) => {
@@ -658,42 +672,62 @@ function MenuPage() {
 
   const cartItems = useMemo(() => {
     return Object.entries(cart)
-      .map(([productId, entry]) => {
-        const product = products.find((p) => p.id === productId);
+      .map(([cartKey, entry]) => {
+        const product = products.find((p) => p.id === entry.productId);
         if (!product || entry.qty <= 0) return null;
-        return { product, qty: entry.qty, note: entry.note };
+        const allSupp = productSupplements[entry.productId] ?? [];
+        const chosenSupplements = allSupp.filter((s) => entry.supplementIds.includes(s.id));
+        const unitPrice = Number(product.price) + chosenSupplements.reduce((sum, s) => sum + Number(s.price), 0);
+        return { cartKey, product, qty: entry.qty, note: entry.note, supplements: chosenSupplements, unitPrice };
       })
-      .filter((x): x is { product: Product; qty: number; note: string } => x !== null);
-  }, [cart, products]);
+      .filter((x): x is { cartKey: string; product: Product; qty: number; note: string; supplements: Supplement[]; unitPrice: number } => x !== null);
+  }, [cart, products, productSupplements]);
 
   const cartCount = cartItems.reduce((sum, i) => sum + i.qty, 0);
-  const cartTotal = cartItems.reduce((sum, i) => sum + i.qty * Number(i.product.price), 0);
+  const cartTotal = cartItems.reduce((sum, i) => sum + i.qty * i.unitPrice, 0);
 
-  const addToCart = (productId: string, note?: string) => {
+  const addToCart = (productId: string, note?: string, supplementIds: string[] = []) => {
+    const cartKey = makeCartKey(productId, supplementIds);
     setCart((c) => ({
       ...c,
-      [productId]: { qty: (c[productId]?.qty ?? 0) + 1, note: note ?? c[productId]?.note ?? "" },
+      [cartKey]: {
+        productId,
+        qty: (c[cartKey]?.qty ?? 0) + 1,
+        note: note ?? c[cartKey]?.note ?? "",
+        supplementIds,
+      },
     }));
   };
 
-  const changeQty = (productId: string, delta: number) => {
+  const changeQtyByKey = (cartKey: string, delta: number) => {
     setCart((c) => {
       const next = { ...c };
-      const current = next[productId]?.qty ?? 0;
-      const updated = Math.max(0, current + delta);
+      const entry = next[cartKey];
+      if (!entry) return c;
+      const updated = Math.max(0, entry.qty + delta);
       if (updated === 0) {
-        delete next[productId];
+        delete next[cartKey];
       } else {
-        next[productId] = { qty: updated, note: next[productId]?.note ?? "" };
+        next[cartKey] = { ...entry, qty: updated };
       }
       return next;
     });
   };
 
-  const setItemNote = (productId: string, note: string) => {
+  const changeQty = (productId: string, delta: number) => {
+    const cartKey = makeCartKey(productId, []);
+    if (delta > 0 && !cart[cartKey]) {
+      addToCart(productId);
+      return;
+    }
+    changeQtyByKey(cartKey, delta);
+  };
+
+  const setItemNote = (productId: string, note: string, supplementIds: string[] = []) => {
+    const cartKey = makeCartKey(productId, supplementIds);
     setCart((c) => {
-      if (!c[productId]) return c;
-      return { ...c, [productId]: { ...c[productId], note } };
+      if (!c[cartKey]) return c;
+      return { ...c, [cartKey]: { ...c[cartKey], note } };
     });
   };
 
@@ -725,13 +759,17 @@ function MenuPage() {
       return;
     }
 
-    const items = cartItems.map((i) => ({
-      order_id: order.id,
-      product_id: i.product.id,
-      product_name: i.product.name + (i.note.trim() ? ` (${i.note.trim()})` : ""),
-      product_price: i.product.price,
-      quantity: i.qty,
-    }));
+    const items = cartItems.map((i) => {
+      const suppText = i.supplements.length > 0 ? ` + ${i.supplements.map((s) => s.name).join(", ")}` : "";
+      const noteText = i.note.trim() ? ` (${i.note.trim()})` : "";
+      return {
+        order_id: order.id,
+        product_id: i.product.id,
+        product_name: i.product.name + suppText + noteText,
+        product_price: i.unitPrice,
+        quantity: i.qty,
+      };
+    });
 
     await supabase.from("order_items").insert(items);
 
@@ -926,7 +964,7 @@ function MenuPage() {
           ) : (
             <div className="space-y-2 sm:grid sm:grid-cols-2 sm:gap-4 sm:space-y-0">
               {searchResults.map((p) => (
-                <ProductCard key={p.id} p={p} qty={cart[p.id]?.qty ?? 0} t={t} addToCart={addToCart} changeQty={changeQty} onOpen={setDetailProduct} />
+                <ProductCard key={p.id} p={p} qty={cart[makeCartKey(p.id, [])]?.qty ?? 0} t={t} addToCart={addToCart} changeQty={changeQty} onOpen={setDetailProduct} />
               ))}
             </div>
           )
@@ -945,7 +983,7 @@ function MenuPage() {
                   <h2 className="mb-3 text-lg font-extrabold uppercase tracking-wide text-[#1c1f16]">{c.name}</h2>
                   <div className="space-y-2 sm:grid sm:grid-cols-2 sm:gap-4 sm:space-y-0">
                     {prods.map((p) => (
-                      <ProductCard key={p.id} p={p} qty={cart[p.id]?.qty ?? 0} t={t} addToCart={addToCart} changeQty={changeQty} onOpen={setDetailProduct} />
+                      <ProductCard key={p.id} p={p} qty={cart[makeCartKey(p.id, [])]?.qty ?? 0} t={t} addToCart={addToCart} changeQty={changeQty} onOpen={setDetailProduct} />
                     ))}
                   </div>
                 </div>
@@ -1036,22 +1074,6 @@ function MenuPage() {
                 </span>
               ) : (
                 <>
-                  <div className="mt-4 flex items-center gap-6 rounded-full bg-[#ebe7dc] px-6 py-2.5">
-                    <button
-                      onClick={() => changeQty(detailProduct.id, -1)}
-                      className="grid h-7 w-7 place-items-center text-[#1c1f16]"
-                    >
-                      <Minus className="h-5 w-5" />
-                    </button>
-                    <span className="w-6 text-center text-lg font-bold text-[#1c1f16]">{cart[detailProduct.id]?.qty ?? 0}</span>
-                    <button
-                      onClick={() => changeQty(detailProduct.id, 1)}
-                      className="grid h-7 w-7 place-items-center text-[#1c1f16]"
-                    >
-                      <Plus className="h-5 w-5" />
-                    </button>
-                  </div>
-
                   <div className="mt-4 w-full space-y-1.5 text-left">
                     <label className="text-xs font-medium text-[#1c1f16]/60">{t("client.itemNote")}</label>
                     <Textarea
@@ -1065,8 +1087,7 @@ function MenuPage() {
 
                   <Button
                     onClick={() => {
-                      addToCart(detailProduct.id, detailNote);
-                      setItemNote(detailProduct.id, detailNote);
+                      addToCart(detailProduct.id, detailNote, selectedSupplementIds);
                       setDetailProduct(null);
                     }}
                     className="mt-4 w-full gap-2"
@@ -1091,8 +1112,8 @@ function MenuPage() {
             <p className="py-6 text-center text-sm text-[#1c1f16]/60">{t("client.cartEmpty")}</p>
           ) : (
             <div className="space-y-2">
-              {cartItems.map(({ product, qty, note }) => (
-                <div key={product.id} className="flex items-center gap-3 rounded-xl bg-white p-2.5 shadow-sm">
+              {cartItems.map(({ cartKey, product, qty, note, supplements, unitPrice }) => (
+                <div key={cartKey} className="flex items-center gap-3 rounded-xl bg-white p-2.5 shadow-sm">
                   <div className="grid h-10 w-10 shrink-0 place-items-center overflow-hidden rounded-lg bg-background text-xl">
                     {product.image_url ? (
                       <img src={product.image_url} alt={product.name} className="h-full w-full object-cover" />
@@ -1102,26 +1123,29 @@ function MenuPage() {
                   </div>
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-sm font-semibold text-[#1c1f16]">{product.name}</p>
-                    <p className="text-xs text-[#1c1f16]/50">{Number(product.price).toFixed(2)} DT</p>
+                    <p className="text-xs text-[#1c1f16]/50">{unitPrice.toFixed(2)} DT</p>
+                    {supplements.length > 0 && (
+                      <p className="text-xs text-[#1c1f16]/50">+ {supplements.map((s) => s.name).join(", ")}</p>
+                    )}
                     {note.trim() && <p className="text-xs italic text-[#1c1f16]/50">{note.trim()}</p>}
                   </div>
                   <div className="flex items-center gap-2">
                     <button
-                      onClick={() => changeQty(product.id, -1)}
+                      onClick={() => changeQtyByKey(cartKey, -1)}
                       className="grid h-7 w-7 place-items-center rounded-full border border-[#1c1f16]/15 bg-white text-[#1c1f16]"
                     >
                       <Minus className="h-3 w-3" />
                     </button>
                     <span className="w-4 text-center text-sm font-bold text-[#1c1f16]">{qty}</span>
                     <button
-                      onClick={() => changeQty(product.id, 1)}
+                      onClick={() => changeQtyByKey(cartKey, 1)}
                       className="grid h-7 w-7 place-items-center rounded-full bg-primary text-primary-foreground"
                     >
                       <Plus className="h-3 w-3" />
                     </button>
                   </div>
                   <span className="w-16 shrink-0 text-end text-sm font-bold text-gold">
-                    {(Number(product.price) * qty).toFixed(2)} DT
+                    {(unitPrice * qty).toFixed(2)} DT
                   </span>
                 </div>
               ))}
