@@ -975,7 +975,9 @@ function MenuPage() {
           <div className="mt-6 flex flex-col items-center gap-2">
             <span className="text-xs font-semibold text-[#1c1f16]/50">{t("client.followUs")}</span>
             <div className="flex items-center gap-3">
-              href={restaurant.facebook_url}
+              {restaurant.facebook_url && (
+                <a
+                  href={restaurant.facebook_url}
                   target="_blank"
                   rel="noreferrer"
                   className="grid h-10 w-10 place-items-center rounded-full bg-white text-[#1c1f16] shadow-sm"
@@ -984,7 +986,7 @@ function MenuPage() {
                 </a>
               )}
               {restaurant.instagram_url && (
-                
+                <a
                   href={restaurant.instagram_url}
                   target="_blank"
                   rel="noreferrer"

@@ -626,7 +626,6 @@ const ar: Dict = {
   "settings.googleReview": "رابط تقييمات جوجل",
   "settings.googleReviewPlaceholder": "https://g.page/r/your-link/review",
 };
-};
 
 const dicts: Record<Locale, Dict> = { fr, ar, en };
 
