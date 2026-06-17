@@ -916,7 +916,7 @@ function MenuPage() {
             {steps.map((s, i) => (
               <div key={s.key} className="relative flex flex-col items-center">
                 {i > 0 && (
-                  <div className="absolute right-1/2 top-5 h-0.5 w-full -translate-y-1/2 overflow-hidden rounded-full bg-[#1c1f16]/15">
+                  <div className="absolute right-1/2 top-6 h-1.5 w-full -translate-y-1/2 overflow-hidden rounded-full bg-[#1c1f16]/15">
                     <div
                       className={`absolute inset-y-0 left-0 rounded-full bg-primary transition-all duration-500 ${
                         i - 1 < stepIndex ? "w-full" : i - 1 === stepIndex ? "w-full animate-track-pulse" : "w-0"
@@ -925,14 +925,14 @@ function MenuPage() {
                   </div>
                 )}
                 <div
-                  className={`relative z-10 grid h-10 w-10 shrink-0 place-items-center rounded-full transition-colors ${
+                  className={`relative z-10 grid h-12 w-12 shrink-0 place-items-center rounded-full transition-colors ${
                     i <= stepIndex ? "bg-primary text-primary-foreground" : "bg-white text-[#1c1f16]/30"
                   }`}
                 >
-                  <s.icon className="h-4 w-4" />
+                  <s.icon className="h-5 w-5" />
                 </div>
                 <span
-                  className={`mt-1.5 text-center text-[10px] font-semibold leading-tight ${
+                  className={`mt-2 text-center text-xs font-bold leading-tight ${
                     i <= stepIndex ? "text-[#1c1f16]" : "text-[#1c1f16]/40"
                   }`}
                 >
