@@ -912,7 +912,7 @@ function MenuPage() {
         </p>
 
         {!isCancelled && !isPaid && (
-          <div className="mt-8 grid w-full max-w-xs grid-cols-3">
+          <div className="mt-8 grid w-full max-w-sm grid-cols-3 gap-2">
             {steps.map((s, i) => (
               <div key={s.key} className="relative flex flex-col items-center">
                 {i > 0 && (
