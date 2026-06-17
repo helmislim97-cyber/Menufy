@@ -405,7 +405,7 @@ function SettingsPage() {
           <DialogFooter className="flex-row gap-2 sm:justify-center">
             {qrTable && (
               <>
-                <a href={menuUrl(qrTable.number)} target="_blank" rel="noreferrer">
+                <a href={menuUrl(qrTable.number) + "?qr=1"} target="_blank" rel="noreferrer">
                   <Button variant="outline" className="gap-1.5">
                     <ExternalLink className="h-4 w-4" />
                     {t("settings.openLink")}
