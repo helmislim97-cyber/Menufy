@@ -544,10 +544,18 @@ function MenuPage() {
   }, [visibleCategories, products]);
 
   const sectionRefs = useRef<Record<string, HTMLDivElement | null>>({});
+  const tabRefs = useRef<Record<string, HTMLButtonElement | null>>({});
   const isScrollingToSection = useRef(false);
   const pendingScrollCategory = useRef<string | null>(null);
   const categoriesScrollPos = useRef(0);
   const productsScrollPos = useRef(0);
+
+  useEffect(() => {
+    const el = tabRefs.current[activeCategory];
+    if (el) {
+      el.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "center" });
+    }
+  }, [activeCategory]);
 
   useEffect(() => {
     if (searchQuery.trim()) return;
@@ -942,6 +950,7 @@ function MenuPage() {
           {visibleCategories.map((c) => (
             <button
               key={c.id}
+              ref={(el) => { tabRefs.current[c.id] = el; }}
               onClick={() => {
                 setSearchQuery("");
                 scrollToCategory(c.id);
