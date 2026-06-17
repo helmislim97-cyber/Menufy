@@ -17,7 +17,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { RestaurantCover } from "@/components/restaurant-cover";
 import { CategoryGrid } from "@/components/category-grid";
-import { ShoppingCart, Plus, Minus, CheckCircle2, Search, ArrowLeft, MapPin, Flame, Clock } from "lucide-react";
+import { ShoppingCart, Plus, Minus, CheckCircle2, Search, ArrowLeft, MapPin, Flame, Clock, ChefHat, BellRing, ClipboardList, Wallet, XCircle } from "lucide-react";
 
 export const Route = createFileRoute("/menu/$restaurantId/$tableNumber")({
   head: () => ({
@@ -402,7 +402,8 @@ function MenuPage() {
   const [sessionExpired, setSessionExpired] = useState(false);
   const [showInfoError, setShowInfoError] = useState(false);
   const [placing, setPlacing] = useState(false);
-  const [placedOrder, setPlacedOrder] = useState<{ total: number } | null>(null);
+  const [placedOrder, setPlacedOrder] = useState<{ id: string; total: number } | null>(null);
+  const [orderStatus, setOrderStatus] = useState<string>("pending");
 
   useEffect(() => {
     const storageKey = `menufy_session_${restaurantId}_${tableNumber}`;
@@ -785,11 +786,32 @@ function MenuPage() {
     await supabase.from("order_items").insert(items);
 
     setPlacing(false);
-    setPlacedOrder({ total: cartTotal });
+    setOrderStatus("pending");
+    setPlacedOrder({ id: order.id, total: cartTotal });
     setCartOpen(false);
     setCart({});
     setNotes("");
   };
+
+  useEffect(() => {
+    if (!placedOrder) return;
+
+    const channel = supabase
+      .channel(`order-status-${placedOrder.id}`)
+      .on(
+        "postgres_changes",
+        { event: "UPDATE", schema: "public", table: "orders", filter: `id=eq.${placedOrder.id}` },
+        (payload) => {
+          const newStatus = (payload.new as { status?: string }).status;
+          if (newStatus) setOrderStatus(newStatus);
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [placedOrder]);
 
   const startNewOrder = () => {
     setPlacedOrder(null);
@@ -864,13 +886,62 @@ function MenuPage() {
   }
 
   if (placedOrder) {
+    const steps = [
+      { key: "pending", label: t("client.tracker.received"), icon: ClipboardList },
+      { key: "preparing", label: t("client.tracker.preparing"), icon: ChefHat },
+      { key: "ready", label: t("client.tracker.ready"), icon: BellRing },
+    ];
+    const stepIndex = steps.findIndex((s) => s.key === orderStatus);
+    const isCancelled = orderStatus === "cancelled";
+    const isPaid = orderStatus === "paid";
+
     return (
       <div className="flex min-h-screen flex-col items-center justify-center bg-[#f3efe4] px-6 text-center text-[#1c1f16]">
-        <div className="grid h-16 w-16 place-items-center rounded-full bg-primary/15 text-primary">
-          <CheckCircle2 className="h-9 w-9" />
+        <div
+          className={`grid h-16 w-16 place-items-center rounded-full ${
+            isCancelled ? "bg-destructive/15 text-destructive" : isPaid ? "bg-gold/15 text-gold" : "bg-primary/15 text-primary"
+          }`}
+        >
+          {isCancelled ? <XCircle className="h-9 w-9" /> : isPaid ? <Wallet className="h-9 w-9" /> : <CheckCircle2 className="h-9 w-9" />}
         </div>
-        <h1 className="mt-5 text-2xl font-extrabold">{t("client.success.title")}</h1>
-        <p className="mt-2 max-w-xs text-sm text-[#1c1f16]/60">{t("client.success.subtitle")}</p>
+        <h1 className="mt-5 text-2xl font-extrabold">
+          {isCancelled ? t("client.tracker.cancelledTitle") : isPaid ? t("client.tracker.paidTitle") : t("client.success.title")}
+        </h1>
+        <p className="mt-2 max-w-xs text-sm text-[#1c1f16]/60">
+          {isCancelled ? t("client.tracker.cancelledSubtitle") : isPaid ? t("client.tracker.paidSubtitle") : t("client.success.subtitle")}
+        </p>
+
+        {!isCancelled && !isPaid && (
+          <div className="mt-6 flex w-full max-w-xs items-center justify-between">
+            {steps.map((s, i) => {
+              const Icon = s.icon;
+              const active = i <= stepIndex;
+              return (
+                <div key={s.key} className="flex flex-1 flex-col items-center">
+                  <div className="flex w-full items-center">
+                    {i > 0 && (
+                      <div className={`h-0.5 flex-1 ${i <= stepIndex ? "bg-primary" : "bg-[#1c1f16]/15"}`} />
+                    )}
+                    <div
+                      className={`grid h-9 w-9 shrink-0 place-items-center rounded-full ${
+                        active ? "bg-primary text-primary-foreground" : "bg-white text-[#1c1f16]/30"
+                      }`}
+                    >
+                      <Icon className="h-4 w-4" />
+                    </div>
+                    {i < steps.length - 1 && (
+                      <div className={`h-0.5 flex-1 ${i < stepIndex ? "bg-primary" : "bg-[#1c1f16]/15"}`} />
+                    )}
+                  </div>
+                  <span className={`mt-1.5 text-[10px] font-semibold ${active ? "text-[#1c1f16]" : "text-[#1c1f16]/40"}`}>
+                    {s.label}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+        )}
+
         <div className="mt-6 w-full max-w-xs rounded-2xl bg-white p-4 shadow-sm">
           <div className="flex items-center justify-between text-sm">
             <span className="text-[#1c1f16]/60">{t("client.success.table")}</span>
