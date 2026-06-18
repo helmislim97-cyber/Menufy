@@ -407,6 +407,9 @@ function MenuPage() {
   const [orderStatus, setOrderStatus] = useState<string>("pending");
   const [reviewRating, setReviewRating] = useState<number | null>(null);
   const [reviewSubmitted, setReviewSubmitted] = useState(false);
+  const [orderDetailsOpen, setOrderDetailsOpen] = useState(false);
+  const [orderDetailsItems, setOrderDetailsItems] = useState<{ product_name: string; product_price: number; quantity: number; notes: string | null }[]>([]);
+  const [orderDetailsLoading, setOrderDetailsLoading] = useState(false);
 
   useEffect(() => {
     const storageKey = `menufy_session_${restaurantId}_${tableNumber}`;
@@ -816,6 +819,18 @@ function MenuPage() {
     };
   }, [placedOrder]);
 
+  const openOrderDetails = async () => {
+    if (!placedOrder) return;
+    setOrderDetailsOpen(true);
+    setOrderDetailsLoading(true);
+    const { data } = await supabase
+      .from("order_items")
+      .select("product_name, product_price, quantity, notes")
+      .eq("order_id", placedOrder.id);
+    setOrderDetailsItems(data ?? []);
+    setOrderDetailsLoading(false);
+  };
+
   const submitReview = async (rating: number) => {
     setReviewRating(rating);
     setReviewSubmitted(true);
@@ -1023,6 +1038,38 @@ function MenuPage() {
         <Button onClick={startNewOrder} className="mt-8 w-full max-w-xs">
           {t("client.success.newOrder")}
         </Button>
+        <button onClick={openOrderDetails} className="mt-3 text-sm font-semibold text-[#1c1f16]/60 underline">
+          {t("client.viewOrderDetails")}
+        </button>
+
+        <Dialog open={orderDetailsOpen} onOpenChange={setOrderDetailsOpen}>
+          <DialogContent className="max-h-[80vh] overflow-y-auto bg-[#f3efe4] text-[#1c1f16]">
+            <DialogHeader>
+              <DialogTitle className="text-[#1c1f16]">{t("client.orderDetailsTitle")}</DialogTitle>
+            </DialogHeader>
+            {orderDetailsLoading ? (
+              <p className="py-4 text-center text-sm text-[#1c1f16]/60">{t("menu.loading")}</p>
+            ) : (
+              <div className="space-y-2">
+                {orderDetailsItems.map((item, idx) => (
+                  <div key={idx} className="flex items-center justify-between rounded-xl bg-white p-2.5 shadow-sm">
+                    <div className="min-w-0 flex-1">
+                      <p className="text-sm font-semibold text-[#1c1f16]">{item.quantity}× {item.product_name}</p>
+                      {item.notes && <p className="text-xs italic text-[#1c1f16]/50">{item.notes}</p>}
+                    </div>
+                    <span className="shrink-0 text-sm font-bold text-gold">
+                      {(Number(item.product_price) * item.quantity).toFixed(2)} DT
+                    </span>
+                  </div>
+                ))}
+                <div className="flex items-center justify-between border-t border-[#1c1f16]/10 pt-3 text-base font-extrabold text-[#1c1f16]">
+                  <span>{t("client.total")}</span>
+                  <span className="text-gold">{placedOrder.total.toFixed(2)} DT</span>
+                </div>
+              </div>
+            )}
+          </DialogContent>
+        </Dialog>
       </div>
     );
   }

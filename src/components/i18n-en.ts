@@ -139,6 +139,8 @@ export const en: Record<string, string> = {
   "client.success.subtitle": "Your order is being prepared. The waiter will bring it to you shortly.",
   "client.success.table": "Table",
   "client.success.newOrder": "Place a new order",
+  "client.viewOrderDetails": "View order details",
+  "client.orderDetailsTitle": "Order details",
   "client.tracker.received": "Received",
   "client.tracker.preparing": "Preparing",
   "client.tracker.ready": "Ready",
