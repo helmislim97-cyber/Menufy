@@ -1269,11 +1269,8 @@ function MenuPage() {
       <div className="fixed inset-x-0 bottom-0 z-40 border-t border-[#1c1f16]/10 bg-[#f3efe4]/95 p-3 backdrop-blur-xl">
         <div className="mx-auto flex max-w-md items-center gap-3">
           <button
-            onClick={() => sessionOrders.length > 0 && setOrdersHistoryOpen(true)}
-            disabled={sessionOrders.length === 0}
-            className={`grid h-12 w-12 shrink-0 place-items-center rounded-full ${
-              sessionOrders.length > 0 ? "bg-white text-[#1c1f16] shadow-sm" : "bg-white/40 text-[#1c1f16]/30"
-            }`}
+            onClick={() => setOrdersHistoryOpen(true)}
+            className="grid h-12 w-12 shrink-0 place-items-center rounded-full bg-white text-[#1c1f16] shadow-sm"
             aria-label={t("client.viewOrderDetails")}
           >
             <ClipboardList className="h-5 w-5" />
