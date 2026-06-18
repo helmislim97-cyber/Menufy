@@ -1606,10 +1606,11 @@ function MenuPage() {
             </div>
           ) : (
             <div className="space-y-3">
-              <div className="flex justify-center pb-1">
+              <div className="flex flex-col items-center gap-2 pb-1 text-center">
                 <div className="grid h-14 w-14 place-items-center rounded-full bg-[#1c1f16]/5 text-[#1c1f16]/40">
                   <BellRing className="h-7 w-7" />
                 </div>
+                <p className="text-xs text-[#1c1f16]/60">{t("client.assistance.instructions")}</p>
               </div>
               <div className="space-y-1.5">
                 <label className="text-xs font-medium text-[#1c1f16]/60">{t("client.assistance.namePlaceholder")}</label>
