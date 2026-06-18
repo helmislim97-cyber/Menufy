@@ -149,7 +149,7 @@ export const en: Record<string, string> = {
   "client.assistance.messagePlaceholder": "Your message (optional)",
   "client.assistance.send": "Send",
   "client.assistance.sent": "A staff member has been notified and is on the way!",
-  "client.assistance.instructions": "Need assistance? Enter your name and message, and a waiter will be with you shortly.",
+  "client.assistance.instructions": "Enter your name and message, and a waiter will be with you shortly.",
   "client.tracker.received": "Received",
   "client.tracker.preparing": "Preparing",
   "client.tracker.ready": "Ready",
