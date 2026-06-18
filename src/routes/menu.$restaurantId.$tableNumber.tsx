@@ -1042,6 +1042,14 @@ function MenuPage() {
           {t("client.viewOrderDetails")}
         </button>
 
+        <p className="mt-10 text-xs text-[#1c1f16]/40">
+          {t("client.poweredBy")}{" "}
+          <a href="https://menufy-tau.vercel.app" target="_blank" rel="noreferrer" className="font-semibold text-[#1c1f16]/60 hover:text-[#1c1f16]">
+            Menufy
+          </a>
+        </p>
+        <p className="mt-0.5 text-xs text-[#1c1f16]/40">© {new Date().getFullYear()} Menufy. {t("client.allRightsReserved")}</p>
+
         <Dialog open={orderDetailsOpen} onOpenChange={setOrderDetailsOpen}>
           <DialogContent className="max-h-[80vh] overflow-y-auto bg-[#f3efe4] text-[#1c1f16]">
             <DialogHeader>
