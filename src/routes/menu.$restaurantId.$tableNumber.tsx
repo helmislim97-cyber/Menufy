@@ -1416,7 +1416,12 @@ function MenuPage() {
           </DialogHeader>
 
           {cartItems.length === 0 ? (
-            <p className="py-6 text-center text-sm text-[#1c1f16]/60">{t("client.cartEmpty")}</p>
+            <div className="flex flex-col items-center gap-3 py-10">
+              <div className="grid h-16 w-16 place-items-center rounded-full bg-[#1c1f16]/5 text-[#1c1f16]/30">
+                <ShoppingCart className="h-8 w-8" />
+              </div>
+              <p className="text-sm text-[#1c1f16]/60">{t("client.cartEmpty")}</p>
+            </div>
           ) : (
             <div className="space-y-2">
               {cartItems.map(({ cartKey, product, qty, note, supplements, unitPrice }) => (
