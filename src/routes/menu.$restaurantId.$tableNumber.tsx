@@ -1598,9 +1598,19 @@ function MenuPage() {
             <DialogTitle className="text-[#1c1f16]">{t("client.assistance.title")}</DialogTitle>
           </DialogHeader>
           {assistanceSent ? (
-            <p className="py-4 text-center text-sm font-semibold text-[#1c1f16]">{t("client.assistance.sent")}</p>
+            <div className="flex flex-col items-center gap-3 py-6">
+              <div className="grid h-16 w-16 place-items-center rounded-full bg-primary/10 text-primary">
+                <BellRing className="h-8 w-8" />
+              </div>
+              <p className="text-center text-sm font-semibold text-[#1c1f16]">{t("client.assistance.sent")}</p>
+            </div>
           ) : (
             <div className="space-y-3">
+              <div className="flex justify-center pb-1">
+                <div className="grid h-14 w-14 place-items-center rounded-full bg-[#1c1f16]/5 text-[#1c1f16]/40">
+                  <BellRing className="h-7 w-7" />
+                </div>
+              </div>
               <div className="space-y-1.5">
                 <label className="text-xs font-medium text-[#1c1f16]/60">{t("client.assistance.namePlaceholder")}</label>
                 <Input
