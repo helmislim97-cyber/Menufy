@@ -142,6 +142,7 @@ export const en: Record<string, string> = {
   "client.viewOrderDetails": "View order details",
   "client.orderDetailsTitle": "Order details",
   "client.ordersHistoryTitle": "My orders",
+  "client.noOrdersYet": "No orders yet",
   "client.assistance.button": "Need assistance",
   "client.assistance.title": "Need assistance?",
   "client.assistance.namePlaceholder": "Your name",
