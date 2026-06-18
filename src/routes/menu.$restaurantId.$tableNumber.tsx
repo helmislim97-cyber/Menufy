@@ -986,6 +986,29 @@ function MenuPage() {
           </div>
         </div>
 
+
+
+        <div className="mt-6 w-full max-w-xs rounded-2xl bg-white p-4 shadow-sm">
+          {reviewSubmitted ? (
+            <p className="text-sm font-semibold text-[#1c1f16]">{t("client.review.thanks")}</p>
+          ) : (
+            <>
+              <p className="text-sm font-semibold text-[#1c1f16]">{t("client.review.prompt")}</p>
+              <div className="mt-3 flex items-center justify-center gap-1.5">
+                {[1, 2, 3, 4, 5].map((n) => (
+                  <button
+                    key={n}
+                    onClick={() => submitReview(n)}
+                    className="grid h-9 w-9 place-items-center text-[#d4a843]"
+                  >
+                    <Star className={`h-7 w-7 ${reviewRating && n <= reviewRating ? "fill-[#d4a843]" : ""}`} />
+                  </button>
+                ))}
+              </div>
+            </>
+          )}
+        </div>
+
         {(restaurant?.facebook_url || restaurant?.instagram_url) && (
           <div className="mt-6 flex flex-col items-center gap-2">
             <span className="text-xs font-semibold text-[#1c1f16]/50">{t("client.followUs")}</span>
@@ -1013,27 +1036,6 @@ function MenuPage() {
             </div>
           </div>
         )}
-
-        <div className="mt-6 w-full max-w-xs rounded-2xl bg-white p-4 shadow-sm">
-          {reviewSubmitted ? (
-            <p className="text-sm font-semibold text-[#1c1f16]">{t("client.review.thanks")}</p>
-          ) : (
-            <>
-              <p className="text-sm font-semibold text-[#1c1f16]">{t("client.review.prompt")}</p>
-              <div className="mt-3 flex items-center justify-center gap-1.5">
-                {[1, 2, 3, 4, 5].map((n) => (
-                  <button
-                    key={n}
-                    onClick={() => submitReview(n)}
-                    className="grid h-9 w-9 place-items-center text-[#d4a843]"
-                  >
-                    <Star className={`h-7 w-7 ${reviewRating && n <= reviewRating ? "fill-[#d4a843]" : ""}`} />
-                  </button>
-                ))}
-              </div>
-            </>
-          )}
-        </div>
 
         <Button onClick={startNewOrder} className="mt-8 w-full max-w-xs">
           {t("client.success.newOrder")}
