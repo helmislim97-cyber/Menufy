@@ -17,7 +17,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { RestaurantCover } from "@/components/restaurant-cover";
 import { CategoryGrid } from "@/components/category-grid";
-import { ShoppingCart, Plus, Minus, CheckCircle2, Search, ArrowLeft, MapPin, Flame, Clock, ChefHat, BellRing, ClipboardList, Wallet, XCircle, Star, Facebook, Instagram } from "lucide-react";
+import { ShoppingCart, Plus, Minus, CheckCircle2, Search, ArrowLeft, MapPin, Flame, Clock, ChefHat, BellRing, ClipboardList, Wallet, XCircle, Star, Facebook, Instagram, ChevronDown } from "lucide-react";
 
 export const Route = createFileRoute("/menu/$restaurantId/$tableNumber")({
   head: () => ({
@@ -1562,7 +1562,10 @@ function MenuPage() {
                           {o.status === "paid" && t("client.tracker.paidTitle")}
                         </p>
                       </div>
-                      <span className="text-sm font-bold text-gold">{o.total.toFixed(2)} DT</span>
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-bold text-gold">{o.total.toFixed(2)} DT</span>
+                        <ChevronDown className={`h-4 w-4 text-[#1c1f16]/40 transition-transform ${expanded ? "rotate-180" : ""}`} />
+                      </div>
                     </button>
                     {expanded && (
                       <div className="mt-3 space-y-1.5 border-t border-[#1c1f16]/10 pt-3">
