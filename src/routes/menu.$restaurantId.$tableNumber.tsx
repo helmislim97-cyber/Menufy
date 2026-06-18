@@ -410,6 +410,13 @@ function MenuPage() {
   const [orderDetailsOpen, setOrderDetailsOpen] = useState(false);
   const [orderDetailsItems, setOrderDetailsItems] = useState<{ product_name: string; product_price: number; quantity: number; notes: string | null }[]>([]);
   const [orderDetailsLoading, setOrderDetailsLoading] = useState(false);
+  const [sessionOrders, setSessionOrders] = useState<{ id: string; total: number; status: string; created_at: string }[]>([]);
+  const [ordersHistoryOpen, setOrdersHistoryOpen] = useState(false);
+  const [assistanceOpen, setAssistanceOpen] = useState(false);
+  const [assistanceName, setAssistanceName] = useState("");
+  const [assistanceMessage, setAssistanceMessage] = useState("");
+  const [assistanceSending, setAssistanceSending] = useState(false);
+  const [assistanceSent, setAssistanceSent] = useState(false);
 
   useEffect(() => {
     const storageKey = `menufy_session_${restaurantId}_${tableNumber}`;
@@ -794,6 +801,7 @@ function MenuPage() {
     setPlacing(false);
     setOrderStatus("pending");
     setPlacedOrder({ id: order.id, total: cartTotal });
+    setSessionOrders((prev) => [...prev, { id: order.id, total: cartTotal, status: "pending", created_at: new Date().toISOString() }]);
     setCartOpen(false);
     setCart({});
     setNotes("");
@@ -819,6 +827,29 @@ function MenuPage() {
     };
   }, [placedOrder]);
 
+  useEffect(() => {
+    if (sessionOrders.length === 0) return;
+
+    const channel = supabase
+      .channel(`session-orders-${tableNumber}`)
+      .on(
+        "postgres_changes",
+        { event: "UPDATE", schema: "public", table: "orders" },
+        (payload) => {
+          const updated = payload.new as { id?: string; status?: string };
+          if (!updated.id || !updated.status) return;
+          setSessionOrders((prev) =>
+            prev.map((o) => (o.id === updated.id ? { ...o, status: updated.status! } : o))
+          );
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [sessionOrders.length, tableNumber]);
+
   const openOrderDetails = async () => {
     if (!placedOrder) return;
     setOrderDetailsOpen(true);
@@ -843,6 +874,19 @@ function MenuPage() {
     if (rating >= 4 && restaurant?.google_review_url) {
       window.open(restaurant.google_review_url, "_blank");
     }
+  };
+
+  const sendAssistanceRequest = async () => {
+    if (!restaurant || !assistanceName.trim()) return;
+    setAssistanceSending(true);
+    await supabase.from("assistance_requests").insert({
+      restaurant_id: restaurant.id,
+      table_number: parseInt(tableNumber, 10) || null,
+      customer_name: assistanceName.trim(),
+      message: assistanceMessage.trim() || null,
+    });
+    setAssistanceSending(false);
+    setAssistanceSent(true);
   };
 
   const startNewOrder = () => {
@@ -1211,20 +1255,51 @@ function MenuPage() {
         <p className="mt-0.5">© {new Date().getFullYear()} Menufy. {t("client.allRightsReserved")}</p>
       </footer>
 
-      {cartCount > 0 && (
-        <div className="fixed inset-x-0 bottom-0 z-40 border-t border-[#1c1f16]/10 bg-[#f3efe4]/95 p-4 backdrop-blur-xl">
+      <div className="fixed inset-x-0 bottom-0 z-40 border-t border-[#1c1f16]/10 bg-[#f3efe4]/95 p-3 backdrop-blur-xl">
+        <div className="mx-auto flex max-w-md items-center gap-3">
           <button
-            onClick={() => setCartOpen(true)}
-            className="mx-auto flex max-w-md w-full items-center justify-between rounded-2xl bg-primary px-5 py-3.5 text-primary-foreground shadow-glow"
+            onClick={() => sessionOrders.length > 0 && setOrdersHistoryOpen(true)}
+            disabled={sessionOrders.length === 0}
+            className={`grid h-12 w-12 shrink-0 place-items-center rounded-full ${
+              sessionOrders.length > 0 ? "bg-white text-[#1c1f16] shadow-sm" : "bg-white/40 text-[#1c1f16]/30"
+            }`}
+            aria-label={t("client.viewOrderDetails")}
           >
-            <span className="flex items-center gap-2 text-sm font-bold">
-              <ShoppingCart className="h-4 w-4" />
-              {cartCount} {cartCount > 1 ? t("client.items") : t("client.item")}
-            </span>
-            <span className="text-sm font-extrabold">{cartTotal.toFixed(2)} DT</span>
+            <ClipboardList className="h-5 w-5" />
+          </button>
+
+          {cartCount > 0 ? (
+            <button
+              onClick={() => setCartOpen(true)}
+              className="flex flex-1 items-center justify-between rounded-2xl bg-primary px-5 py-3.5 text-primary-foreground shadow-glow"
+            >
+              <span className="flex items-center gap-2 text-sm font-bold">
+                <ShoppingCart className="h-4 w-4" />
+                {cartCount} {cartCount > 1 ? t("client.items") : t("client.item")}
+              </span>
+              <span className="text-sm font-extrabold">{cartTotal.toFixed(2)} DT</span>
+            </button>
+          ) : (
+            <div className="flex flex-1 justify-center">
+              <button
+                onClick={() => setCartOpen(true)}
+                className="grid h-12 w-12 place-items-center rounded-full bg-primary text-primary-foreground shadow-glow"
+                aria-label={t("client.cartTitle")}
+              >
+                <ShoppingCart className="h-5 w-5" />
+              </button>
+            </div>
+          )}
+
+          <button
+            onClick={() => setAssistanceOpen(true)}
+            className="grid h-12 w-12 shrink-0 place-items-center rounded-full bg-white text-[#1c1f16] shadow-sm"
+            aria-label={t("client.assistance.button")}
+          >
+            <BellRing className="h-5 w-5" />
           </button>
         </div>
-      )}
+      </div>
 
       <Dialog open={!!detailProduct} onOpenChange={(open) => !open && setDetailProduct(null)}>
         <DialogContent className="max-h-[90vh] overflow-y-auto bg-[#f3efe4] text-[#1c1f16]">
@@ -1442,6 +1517,67 @@ function MenuPage() {
                 {placing ? t("client.placing") : t("client.confirmOrder")}
               </Button>
             </DialogFooter>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={ordersHistoryOpen} onOpenChange={setOrdersHistoryOpen}>
+        <DialogContent className="max-h-[80vh] overflow-y-auto bg-[#f3efe4] text-[#1c1f16]">
+          <DialogHeader>
+            <DialogTitle className="text-[#1c1f16]">{t("client.ordersHistoryTitle")}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-2">
+            {sessionOrders.slice().reverse().map((o) => (
+              <div key={o.id} className="flex items-center justify-between rounded-xl bg-white p-3 shadow-sm">
+                <div>
+                  <p className="text-sm font-semibold text-[#1c1f16]">
+                    {new Date(o.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                  </p>
+                  <p className="text-xs text-[#1c1f16]/50">
+                    {o.status === "pending" && t("client.tracker.received")}
+                    {o.status === "preparing" && t("client.tracker.preparing")}
+                    {o.status === "ready" && t("client.tracker.ready")}
+                    {o.status === "cancelled" && t("client.tracker.cancelledTitle")}
+                    {o.status === "paid" && t("client.tracker.paidTitle")}
+                  </p>
+                </div>
+                <span className="text-sm font-bold text-gold">{o.total.toFixed(2)} DT</span>
+              </div>
+            ))}
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={assistanceOpen} onOpenChange={(open) => { setAssistanceOpen(open); if (!open) { setAssistanceSent(false); setAssistanceMessage(""); } }}>
+        <DialogContent className="bg-[#f3efe4] text-[#1c1f16]">
+          <DialogHeader>
+            <DialogTitle className="text-[#1c1f16]">{t("client.assistance.title")}</DialogTitle>
+          </DialogHeader>
+          {assistanceSent ? (
+            <p className="py-4 text-center text-sm font-semibold text-[#1c1f16]">{t("client.assistance.sent")}</p>
+          ) : (
+            <div className="space-y-3">
+              <div className="space-y-1.5">
+                <label className="text-xs font-medium text-[#1c1f16]/60">{t("client.assistance.namePlaceholder")}</label>
+                <Input
+                  value={assistanceName}
+                  onChange={(e) => setAssistanceName(e.target.value)}
+                  placeholder={t("client.assistance.namePlaceholder")}
+                />
+              </div>
+              <div className="space-y-1.5">
+                <label className="text-xs font-medium text-[#1c1f16]/60">{t("client.assistance.messagePlaceholder")}</label>
+                <Textarea
+                  value={assistanceMessage}
+                  onChange={(e) => setAssistanceMessage(e.target.value)}
+                  placeholder={t("client.assistance.messagePlaceholder")}
+                  rows={2}
+                />
+              </div>
+              <Button onClick={sendAssistanceRequest} disabled={assistanceSending || !assistanceName.trim()} className="w-full">
+                {assistanceSending ? t("client.placing") : t("client.assistance.send")}
+              </Button>
+            </div>
           )}
         </DialogContent>
       </Dialog>
