@@ -1035,6 +1035,34 @@ function MenuPage() {
           )}
         </div>
 
+        {(restaurant?.facebook_url || restaurant?.instagram_url) && (
+          <div className="mt-6 flex flex-col items-center gap-2">
+            <span className="text-xs font-semibold text-[#1c1f16]/50">{t("client.followUs")}</span>
+            <div className="flex items-center gap-3">
+              {restaurant.facebook_url && (
+                
+                  href={restaurant.facebook_url}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="grid h-10 w-10 place-items-center rounded-full bg-white text-[#1c1f16] shadow-sm"
+                >
+                  <Facebook className="h-4 w-4" />
+                </a>
+              )}
+              {restaurant.instagram_url && (
+                
+                  href={restaurant.instagram_url}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="grid h-10 w-10 place-items-center rounded-full bg-white text-[#1c1f16] shadow-sm"
+                >
+                  <Instagram className="h-4 w-4" />
+                </a>
+              )}
+            </div>
+          </div>
+        )}
+
         <Button onClick={startNewOrder} className="mt-8 w-full max-w-xs">
           {t("client.success.newOrder")}
         </Button>
