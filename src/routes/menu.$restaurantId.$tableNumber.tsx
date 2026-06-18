@@ -410,7 +410,8 @@ function MenuPage() {
   const [orderDetailsOpen, setOrderDetailsOpen] = useState(false);
   const [orderDetailsItems, setOrderDetailsItems] = useState<{ product_name: string; product_price: number; quantity: number; notes: string | null }[]>([]);
   const [orderDetailsLoading, setOrderDetailsLoading] = useState(false);
-  const [sessionOrders, setSessionOrders] = useState<{ id: string; total: number; status: string; created_at: string }[]>([]);
+  const [sessionOrders, setSessionOrders] = useState<{ id: string; total: number; status: string; created_at: string; customerName: string; items: { product_name: string; product_price: number; quantity: number }[] }[]>([]);
+  const [expandedHistoryOrderId, setExpandedHistoryOrderId] = useState<string | null>(null);
   const [ordersHistoryOpen, setOrdersHistoryOpen] = useState(false);
   const [assistanceOpen, setAssistanceOpen] = useState(false);
   const [assistanceName, setAssistanceName] = useState("");
@@ -801,7 +802,17 @@ function MenuPage() {
     setPlacing(false);
     setOrderStatus("pending");
     setPlacedOrder({ id: order.id, total: cartTotal });
-    setSessionOrders((prev) => [...prev, { id: order.id, total: cartTotal, status: "pending", created_at: new Date().toISOString() }]);
+    setSessionOrders((prev) => [
+      ...prev,
+      {
+        id: order.id,
+        total: cartTotal,
+        status: "pending",
+        created_at: new Date().toISOString(),
+        customerName: `${customerFirstName.trim()} ${customerLastName.trim()}`,
+        items: items.map((i) => ({ product_name: i.product_name, product_price: i.product_price, quantity: i.quantity })),
+      },
+    ]);
     setCartOpen(false);
     setCart({});
     setNotes("");
@@ -1526,25 +1537,48 @@ function MenuPage() {
           <DialogHeader>
             <DialogTitle className="text-[#1c1f16]">{t("client.ordersHistoryTitle")}</DialogTitle>
           </DialogHeader>
-          <div className="space-y-2">
-            {sessionOrders.slice().reverse().map((o) => (
-              <div key={o.id} className="flex items-center justify-between rounded-xl bg-white p-3 shadow-sm">
-                <div>
-                  <p className="text-sm font-semibold text-[#1c1f16]">
-                    {new Date(o.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
-                  </p>
-                  <p className="text-xs text-[#1c1f16]/50">
-                    {o.status === "pending" && t("client.tracker.received")}
-                    {o.status === "preparing" && t("client.tracker.preparing")}
-                    {o.status === "ready" && t("client.tracker.ready")}
-                    {o.status === "cancelled" && t("client.tracker.cancelledTitle")}
-                    {o.status === "paid" && t("client.tracker.paidTitle")}
-                  </p>
-                </div>
-                <span className="text-sm font-bold text-gold">{o.total.toFixed(2)} DT</span>
-              </div>
-            ))}
-          </div>
+          {sessionOrders.length === 0 ? (
+            <p className="py-6 text-center text-sm text-[#1c1f16]/60">{t("client.noOrdersYet")}</p>
+          ) : (
+            <div className="space-y-2">
+              {sessionOrders.slice().reverse().map((o) => {
+                const expanded = expandedHistoryOrderId === o.id;
+                return (
+                  <div key={o.id} className="rounded-xl bg-white p-3 shadow-sm">
+                    <button
+                      onClick={() => setExpandedHistoryOrderId(expanded ? null : o.id)}
+                      className="flex w-full items-center justify-between text-left"
+                    >
+                      <div>
+                        <p className="text-sm font-semibold text-[#1c1f16]">{o.customerName}</p>
+                        <p className="text-xs text-[#1c1f16]/50">
+                          {new Date(o.created_at).toLocaleString([], { dateStyle: "short", timeStyle: "short" })} · {t("client.table")} {tableNumber}
+                        </p>
+                        <p className="mt-0.5 text-xs font-medium text-primary">
+                          {o.status === "pending" && t("client.tracker.received")}
+                          {o.status === "preparing" && t("client.tracker.preparing")}
+                          {o.status === "ready" && t("client.tracker.ready")}
+                          {o.status === "cancelled" && t("client.tracker.cancelledTitle")}
+                          {o.status === "paid" && t("client.tracker.paidTitle")}
+                        </p>
+                      </div>
+                      <span className="text-sm font-bold text-gold">{o.total.toFixed(2)} DT</span>
+                    </button>
+                    {expanded && (
+                      <div className="mt-3 space-y-1.5 border-t border-[#1c1f16]/10 pt-3">
+                        {o.items.map((item, idx) => (
+                          <div key={idx} className="flex items-center justify-between text-sm">
+                            <span className="text-[#1c1f16]/70">{item.quantity}× {item.product_name}</span>
+                            <span className="font-semibold text-[#1c1f16]">{(item.product_price * item.quantity).toFixed(2)} DT</span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </DialogContent>
       </Dialog>
 
