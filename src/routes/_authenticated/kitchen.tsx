@@ -5,7 +5,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { useI18n } from "@/lib/i18n";
 import { LangSwitch } from "@/components/lang-switch";
 import { Button } from "@/components/ui/button";
-import { Clock, StickyNote, X, ArrowRight, CheckCircle2 } from "lucide-react";
+import { Clock, StickyNote, X, ArrowRight } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/kitchen")({
   component: KitchenPage,
@@ -32,7 +32,6 @@ interface Order {
 const NEXT_STATUS: Partial<Record<OrderStatus, OrderStatus>> = {
   pending: "preparing",
   preparing: "ready",
-  ready: "paid",
 };
 
 const CARD_STYLE: Record<OrderStatus, string> = {
@@ -68,7 +67,7 @@ function KitchenPage() {
       .from("orders")
       .select("id, table_number, status, notes, created_at, order_items(id, product_name, quantity, notes)")
       .eq("restaurant_id", rid)
-      .in("status", ["pending", "preparing", "ready"])
+      .in("status", ["pending", "preparing"])
       .order("created_at", { ascending: true });
     setOrders((data as Order[]) ?? []);
   };
@@ -177,8 +176,8 @@ function KitchenPage() {
 
                 {next && (
                   <Button onClick={() => advanceStatus(order)} className="mt-4 h-12 w-full gap-2 text-base font-bold">
-                    {next === "paid" ? <CheckCircle2 className="h-5 w-5" /> : <ArrowRight className="h-5 w-5" />}
-                    {t(`orders.action.${order.status === "pending" ? "start" : order.status === "preparing" ? "ready" : "paid"}`)}
+                    <ArrowRight className="h-5 w-5" />
+                    {t(`orders.action.${order.status === "pending" ? "start" : "ready"}`)}
                   </Button>
                 )}
               </div>
