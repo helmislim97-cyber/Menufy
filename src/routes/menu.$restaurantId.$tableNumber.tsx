@@ -1512,9 +1512,12 @@ function MenuPage() {
               </div>
 
               {suggestedItems.length > 0 && (
-                <div className="min-w-0 space-y-2 border-t border-[#1c1f16]/10 pt-3">
+                <div className="space-y-2 border-t border-[#1c1f16]/10 pt-3" style={{ width: "100%", overflow: "hidden" }}>
                   <p className="text-sm font-bold text-[#1c1f16]">{t("client.suggestedForYou")}</p>
-                  <div className="flex w-full max-w-full gap-2 overflow-x-auto pb-1">
+                  <div
+                    className="flex gap-2 pb-1"
+                    style={{ width: "100%", overflowX: "scroll", overflowY: "hidden", touchAction: "pan-x", WebkitOverflowScrolling: "touch" }}
+                  >
                     {suggestedItems.map(({ product, specialPrice }) => (
                       <button
                         key={product.id}
