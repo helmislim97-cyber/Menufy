@@ -489,6 +489,7 @@ function MenuPage() {
           .from("products")
           .select("id, category_id, name, description, price, emoji, image_url, is_available, position, kcal, prep_minutes, badge, badge_color, tags")
           .eq("restaurant_id", restaurantId)
+          .eq("is_visible", true)
           .order("position"),
         supabase
           .from("upsell_items")

@@ -67,6 +67,7 @@ interface Product {
   emoji: string | null;
   image_url: string | null;
   is_available: boolean;
+  is_visible: boolean;
   position: number;
   kcal: number | null;
   prep_minutes: number | null;
@@ -185,7 +186,7 @@ function MenuManagement() {
       supabase.from("categories").select("id, name, description, image_url, position, is_active").eq("restaurant_id", rid).order("position"),
       supabase
         .from("products")
-        .select("id, category_id, name, description, price, emoji, image_url, is_available, position, kcal, prep_minutes, badge, badge_color, tags")
+        .select("id, category_id, name, description, price, emoji, image_url, is_available, is_visible, position, kcal, prep_minutes, badge, badge_color, tags")
         .eq("restaurant_id", rid)
         .order("position"),
       supabase.from("upsell_items").select("id, product_id, special_price, position").eq("restaurant_id", rid).order("position"),
@@ -559,6 +560,17 @@ function MenuManagement() {
     }
   };
 
+  const toggleProductVisible = async (p: Product) => {
+    setProducts((prev) => prev.map((x) => (x.id === p.id ? { ...x, is_visible: !x.is_visible } : x)));
+    const { error } = await supabase.from("products").update({ is_visible: !p.is_visible }).eq("id", p.id);
+    if (error) {
+      toast.error(error.message);
+      setProducts((prev) => prev.map((x) => (x.id === p.id ? { ...x, is_visible: p.is_visible } : x)));
+    } else {
+      toast.success(p.is_visible ? t("menu.productHidden") : t("menu.productShown"));
+    }
+  };
+
   const groups: { id: string; name: string; products: Product[] }[] = [
     ...categories.map((c) => ({ id: c.id, name: c.name, products: products.filter((p) => p.category_id === c.id) })),
     {
@@ -658,7 +670,7 @@ function MenuManagement() {
                       {group.products.map((p) => (
                         <SortableProductRow key={p.id} id={p.id}>
                         <div
-                          className="flex items-center gap-3 rounded-2xl border border-border bg-surface p-3"
+                          className={`flex items-center gap-3 rounded-2xl border border-border bg-surface p-3 ${!p.is_visible ? "opacity-50" : ""}`}
                         >
                           <div className="grid h-10 w-10 shrink-0 place-items-center overflow-hidden rounded-xl bg-background text-xl">
                             {p.image_url ? (
@@ -674,6 +686,13 @@ function MenuManagement() {
                             )}
                           </div>
                           <p className="shrink-0 text-sm font-bold text-gold">{Number(p.price).toFixed(2)} DT</p>
+                          <button
+                            onClick={() => toggleProductVisible(p)}
+                            className="grid h-8 w-8 shrink-0 place-items-center rounded-full text-muted-foreground hover:text-foreground"
+                            title={p.is_visible ? t("menu.hideProduct") : t("menu.showProduct")}
+                          >
+                            {p.is_visible ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
+                          </button>
                           <Switch checked={p.is_available} onCheckedChange={() => toggleAvailability(p)} />
                           <button
                             onClick={() => openEditProduct(p)}
