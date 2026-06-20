@@ -1003,9 +1003,9 @@ function MenuPage() {
             {steps.map((s, i) => (
               <div key={s.key} className="relative flex flex-col items-center">
                 {i > 0 && (
-                  <div className="absolute right-1/2 top-6 h-1.5 w-full -translate-y-1/2 overflow-hidden rounded-full bg-[#1c1f16]/15">
+                  <div className="absolute end-1/2 top-6 h-1.5 w-full -translate-y-1/2 overflow-hidden rounded-full bg-[#1c1f16]/15">
                     <div
-                      className={`absolute inset-y-0 left-0 rounded-full bg-primary transition-all duration-500 ${
+                      className={`absolute inset-y-0 start-0 rounded-full bg-primary transition-all duration-500 ${
                         i - 1 < stepIndex ? "w-full" : i - 1 === stepIndex ? "w-full animate-track-pulse" : "w-0"
                       }`}
                     />
