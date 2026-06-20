@@ -80,7 +80,7 @@ const NAV_GROUPS: NavGroup[] = [
 ];
 
 export function DashboardSidebar() {
-  const { t } = useI18n();
+  const { t, dir } = useI18n();
   const { user, signOut } = useAuth();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const [expanded, setExpanded] = useState(false);
@@ -93,7 +93,8 @@ export function DashboardSidebar() {
   return (
     <div
       className={cn(
-        "fixed inset-y-0 left-0 z-40 flex flex-col bg-[#1a2332] text-white transition-all duration-200",
+        "fixed inset-y-0 z-40 flex flex-col bg-[#1a2332] text-white transition-all duration-200",
+        dir === "rtl" ? "right-0" : "left-0",
         expanded ? "w-64 sm:w-80" : "w-16 sm:w-20",
       )}
     >
