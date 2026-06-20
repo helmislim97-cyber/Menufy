@@ -67,6 +67,7 @@ interface Product {
   kcal: number | null;
   prep_minutes: number | null;
   badge: string | null;
+  badge_color: string | null;
   tags: string[] | null;
 }
 
@@ -306,7 +307,10 @@ function ProductCard({
         </span>
       ) : (
         p.badge && (
-          <span className="absolute top-0 end-0 rounded-ee-xl rounded-ss-xl bg-primary px-3 py-1.5 text-xs font-bold uppercase text-primary-foreground shadow-sm">
+          <span
+            className="absolute top-0 end-0 rounded-ee-xl rounded-ss-xl px-3 py-1.5 text-xs font-bold uppercase text-white shadow-sm"
+            style={{ backgroundColor: p.badge_color ?? "#16a34a" }}
+          >
             {p.badge}
           </span>
         )
@@ -481,7 +485,7 @@ function MenuPage() {
           .order("position"),
         supabase
           .from("products")
-          .select("id, category_id, name, description, price, emoji, image_url, is_available, position, kcal, prep_minutes, badge, tags")
+          .select("id, category_id, name, description, price, emoji, image_url, is_available, position, kcal, prep_minutes, badge, badge_color, tags")
           .eq("restaurant_id", restaurantId)
           .order("position"),
         supabase

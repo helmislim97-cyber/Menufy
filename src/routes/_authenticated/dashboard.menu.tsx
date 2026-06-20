@@ -70,6 +70,7 @@ interface Product {
   kcal: number | null;
   prep_minutes: number | null;
   badge: string | null;
+  badge_color: string | null;
   tags: string[] | null;
 }
 
@@ -152,8 +153,10 @@ function MenuManagement() {
     kcal: "",
     prep_minutes: "",
     badge: "",
+    badgeColor: "#16a34a",
     tags: "",
   });
+  const BADGE_COLORS = ["#16a34a", "#dc2626", "#ea580c", "#2563eb", "#9333ea", "#1c1f16"];
   const [savingProd, setSavingProd] = useState(false);
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
@@ -181,7 +184,7 @@ function MenuManagement() {
       supabase.from("categories").select("id, name, description, image_url, position").eq("restaurant_id", rid).order("position"),
       supabase
         .from("products")
-        .select("id, category_id, name, description, price, emoji, image_url, is_available, position, kcal, prep_minutes, badge, tags")
+        .select("id, category_id, name, description, price, emoji, image_url, is_available, position, kcal, prep_minutes, badge, badge_color, tags")
         .eq("restaurant_id", rid)
         .order("position"),
       supabase.from("upsell_items").select("id, product_id, special_price, position").eq("restaurant_id", rid).order("position"),
@@ -312,6 +315,7 @@ function MenuManagement() {
       kcal: "",
       prep_minutes: "",
       badge: "",
+      badgeColor: "#16a34a",
       tags: "",
     });
     setProdDialogOpen(true);
@@ -334,6 +338,7 @@ function MenuManagement() {
       kcal: p.kcal != null ? String(p.kcal) : "",
       prep_minutes: p.prep_minutes != null ? String(p.prep_minutes) : "",
       badge: p.badge ?? "",
+      badgeColor: p.badge_color ?? "#16a34a",
       tags: (p.tags ?? []).join(", "),
     });
     setProdDialogOpen(true);
@@ -423,6 +428,7 @@ function MenuManagement() {
       kcal: prodForm.kcal.trim() ? parseInt(prodForm.kcal, 10) : null,
       prep_minutes: prodForm.prep_minutes.trim() ? parseInt(prodForm.prep_minutes, 10) : null,
       badge: prodForm.badge.trim() || null,
+      badge_color: prodForm.badge.trim() ? prodForm.badgeColor : null,
       tags: tagsArray.length > 0 ? tagsArray : null,
     };
 
@@ -963,6 +969,20 @@ function MenuManagement() {
                 onChange={(e) => setProdForm((f) => ({ ...f, badge: e.target.value }))}
                 placeholder={t("menu.badgePlaceholder")}
               />
+              {prodForm.badge.trim() && (
+                <div className="flex items-center gap-2 pt-1">
+                  {BADGE_COLORS.map((c) => (
+                    <button
+                      key={c}
+                      type="button"
+                      onClick={() => setProdForm((f) => ({ ...f, badgeColor: c }))}
+                      className={`h-7 w-7 shrink-0 rounded-full border-2 ${prodForm.badgeColor === c ? "border-foreground" : "border-transparent"}`}
+                      style={{ backgroundColor: c }}
+                      aria-label={c}
+                    />
+                  ))}
+                </div>
+              )}
             </div>
 
             <div className="space-y-2">
