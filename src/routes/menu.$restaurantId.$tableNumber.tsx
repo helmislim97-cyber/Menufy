@@ -384,7 +384,7 @@ function MenuPage() {
   const [showCover, setShowCover] = useState(true);
   const [coverLeaving, setCoverLeaving] = useState(false);
   const [showCategories, setShowCategories] = useState(true);
-  const [cart, setCart] = useState<Record<string, { productId: string; qty: number; note: string; supplementIds: string[] }>>({});
+  const [cart, setCart] = useState<Record<string, { productId: string; qty: number; note: string; supplementIds: string[]; priceOverride?: number }>>({});
   const [productSupplements, setProductSupplements] = useState<Record<string, Supplement[]>>({});
 
   const makeCartKey = (productId: string, supplementIds: string[]) =>
@@ -412,6 +412,7 @@ function MenuPage() {
   const [orderDetailsOpen, setOrderDetailsOpen] = useState(false);
   const [orderDetailsItems, setOrderDetailsItems] = useState<{ product_name: string; product_price: number; quantity: number; notes: string | null }[]>([]);
   const [orderDetailsLoading, setOrderDetailsLoading] = useState(false);
+  const [upsellItems, setUpsellItems] = useState<{ product_id: string; special_price: number | null }[]>([]);
   const [sessionOrders, setSessionOrders] = useState<{ id: string; total: number; status: string; created_at: string; customerName: string; items: { product_name: string; product_price: number; quantity: number }[] }[]>([]);
   const [expandedHistoryOrderId, setExpandedHistoryOrderId] = useState<string | null>(null);
   const [ordersHistoryOpen, setOrdersHistoryOpen] = useState(false);
@@ -472,7 +473,7 @@ function MenuPage() {
         return;
       }
 
-      const [{ data: cats }, { data: prods }] = await Promise.all([
+      const [{ data: cats }, { data: prods }, { data: upsells }] = await Promise.all([
         supabase
           .from("categories")
           .select("id, name, description, image_url, position")
@@ -483,6 +484,11 @@ function MenuPage() {
           .select("id, category_id, name, description, price, emoji, image_url, is_available, position, kcal, prep_minutes, badge, tags")
           .eq("restaurant_id", restaurantId)
           .order("position"),
+        supabase
+          .from("upsell_items")
+          .select("product_id, special_price")
+          .eq("restaurant_id", restaurantId)
+          .order("position"),
       ]);
 
       if (cancelled) return;
@@ -490,6 +496,7 @@ function MenuPage() {
       const prodList = prods ?? [];
       setCategories(catList);
       setProducts(prodList);
+      setUpsellItems(upsells ?? []);
 
       const firstWithProducts = catList.find((c) => prodList.some((p) => p.category_id === c.id));
       if (firstWithProducts) {
@@ -705,7 +712,7 @@ function MenuPage() {
         if (!product || entry.qty <= 0) return null;
         const allSupp = productSupplements[entry.productId] ?? [];
         const chosenSupplements = allSupp.filter((s) => entry.supplementIds.includes(s.id));
-        const unitPrice = Number(product.price) + chosenSupplements.reduce((sum, s) => sum + Number(s.price), 0);
+        const unitPrice = entry.priceOverride != null ? Number(entry.priceOverride) : Number(product.price) + chosenSupplements.reduce((sum, s) => sum + Number(s.price), 0);
         return { cartKey, product, qty: entry.qty, note: entry.note, supplements: chosenSupplements, unitPrice };
       })
       .filter((x): x is { cartKey: string; product: Product; qty: number; note: string; supplements: Supplement[]; unitPrice: number } => x !== null);
@@ -714,7 +721,16 @@ function MenuPage() {
   const cartCount = cartItems.reduce((sum, i) => sum + i.qty, 0);
   const cartTotal = cartItems.reduce((sum, i) => sum + i.qty * i.unitPrice, 0);
 
-  const addToCart = (productId: string, note?: string, supplementIds: string[] = [], qtyToAdd: number = 1) => {
+  const cartProductIds = new Set(cartItems.map((i) => i.product.id));
+  const suggestedItems = upsellItems
+    .map((u) => {
+      const product = products.find((p) => p.id === u.product_id);
+      if (!product || cartProductIds.has(product.id)) return null;
+      return { product, specialPrice: u.special_price };
+    })
+    .filter((x): x is { product: Product; specialPrice: number | null } => x !== null);
+
+  const addToCart = (productId: string, note?: string, supplementIds: string[] = [], qtyToAdd: number = 1, priceOverride?: number) => {
     const cartKey = makeCartKey(productId, supplementIds);
     setCart((c) => ({
       ...c,
@@ -723,6 +739,7 @@ function MenuPage() {
         qty: (c[cartKey]?.qty ?? 0) + qtyToAdd,
         note: note ?? c[cartKey]?.note ?? "",
         supplementIds,
+        priceOverride: priceOverride ?? c[cartKey]?.priceOverride,
       },
     }));
   };
@@ -1493,6 +1510,41 @@ function MenuPage() {
                 <span>{t("client.total")}</span>
                 <span className="text-gold">{cartTotal.toFixed(2)} DT</span>
               </div>
+
+              {suggestedItems.length > 0 && (
+                <div className="space-y-2 border-t border-[#1c1f16]/10 pt-3">
+                  <p className="text-sm font-bold text-[#1c1f16]">{t("client.suggestedForYou")}</p>
+                  <div className="flex gap-2 overflow-x-auto pb-1">
+                    {suggestedItems.map(({ product, specialPrice }) => (
+                      <button
+                        key={product.id}
+                        onClick={() => addToCart(product.id, undefined, [], 1, specialPrice != null ? Number(specialPrice) : undefined)}
+                        className="flex w-28 shrink-0 flex-col items-center gap-1.5 rounded-xl border border-border bg-white p-2 text-center"
+                      >
+                        <div className="grid h-12 w-12 place-items-center overflow-hidden rounded-lg bg-background text-xl">
+                          {product.image_url ? (
+                            <img src={product.image_url} alt={product.name} className="h-full w-full object-cover" />
+                          ) : (
+                            product.emoji || "🍽️"
+                          )}
+                        </div>
+                        <p className="line-clamp-1 text-xs font-semibold text-[#1c1f16]">{product.name}</p>
+                        {specialPrice != null ? (
+                          <p className="text-[11px]">
+                            <span className="text-[#1c1f16]/40 line-through">{Number(product.price).toFixed(2)}</span>{" "}
+                            <span className="font-bold text-gold">{Number(specialPrice).toFixed(2)} DT</span>
+                          </p>
+                        ) : (
+                          <p className="text-[11px] font-bold text-gold">{Number(product.price).toFixed(2)} DT</p>
+                        )}
+                        <span className="grid h-6 w-6 place-items-center rounded-full bg-primary text-primary-foreground">
+                          <Plus className="h-3 w-3" />
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               <div className="space-y-2 border-t border-[#1c1f16]/10 pt-3">
                 <p className="text-sm font-bold text-[#1c1f16]">{t("client.yourInfo")} <span className="text-destructive">*</span></p>
