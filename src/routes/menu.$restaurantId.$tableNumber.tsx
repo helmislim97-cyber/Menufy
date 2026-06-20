@@ -1512,9 +1512,9 @@ function MenuPage() {
               </div>
 
               {suggestedItems.length > 0 && (
-                <div className="space-y-2 border-t border-[#1c1f16]/10 pt-3">
+                <div className="min-w-0 space-y-2 border-t border-[#1c1f16]/10 pt-3">
                   <p className="text-sm font-bold text-[#1c1f16]">{t("client.suggestedForYou")}</p>
-                  <div className="flex gap-2 overflow-x-auto pb-1">
+                  <div className="flex w-full max-w-full gap-2 overflow-x-auto pb-1">
                     {suggestedItems.map(({ product, specialPrice }) => (
                       <button
                         key={product.id}
