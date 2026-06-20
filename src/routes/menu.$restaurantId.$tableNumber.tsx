@@ -1439,7 +1439,7 @@ function MenuPage() {
       </Dialog>
 
       <Dialog open={cartOpen} onOpenChange={setCartOpen}>
-        <DialogContent className="max-h-[90vh] overflow-x-hidden overflow-y-auto bg-[#f3efe4] text-[#1c1f16]">
+        <DialogContent className="max-h-[90vh] w-[calc(100vw-2rem)] max-w-md overflow-x-hidden overflow-y-auto bg-[#f3efe4] text-[#1c1f16]">
           <DialogHeader>
             <DialogTitle className="text-[#1c1f16]">{t("client.cartTitle")}</DialogTitle>
           </DialogHeader>
