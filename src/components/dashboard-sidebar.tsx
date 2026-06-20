@@ -1,8 +1,8 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import { useState } from "react";
 import {
-  Menu as MenuIcon,
-  X,
+  ChevronRight,
+  ChevronLeft,
   ShoppingBag,
   BellRing,
   Heart,
@@ -83,7 +83,7 @@ export function DashboardSidebar() {
   const { t } = useI18n();
   const { user, signOut } = useAuth();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
-  const [open, setOpen] = useState(false);
+  const [expanded, setExpanded] = useState(false);
 
   const onLogout = async () => {
     await signOut();
@@ -91,75 +91,87 @@ export function DashboardSidebar() {
   };
 
   return (
-    <>
-      <button
-        onClick={() => setOpen(true)}
-        className="fixed left-4 top-4 z-40 grid h-10 w-10 place-items-center rounded-full bg-background shadow-lg border border-border"
-        aria-label={t("sidebar.open")}
-      >
-        <MenuIcon className="h-5 w-5" />
-      </button>
+    <div
+      className={cn(
+        "fixed inset-y-0 left-0 z-40 flex flex-col bg-[#1a2332] text-white transition-all duration-200",
+        expanded ? "w-64" : "w-16",
+      )}
+    >
+      <div className="flex items-center justify-between px-3 py-4">
+        {expanded && <Logo size="sm" />}
+        <button
+          onClick={() => setExpanded((v) => !v)}
+          className={cn(
+            "grid h-8 w-8 shrink-0 place-items-center rounded-full text-white/60 hover:text-white",
+            !expanded && "mx-auto",
+          )}
+          aria-label={t("sidebar.open")}
+        >
+          {expanded ? <ChevronLeft className="h-5 w-5" /> : <ChevronRight className="h-5 w-5" />}
+        </button>
+      </div>
 
-      {open && (
-        <div className="fixed inset-0 z-50 flex">
-          <div className="absolute inset-0 bg-black/50" onClick={() => setOpen(false)} />
-          <div className="relative flex h-full w-72 flex-col bg-[#1a2332] text-white shadow-xl">
-            <div className="flex items-center justify-between px-4 py-4">
-              <Logo size="sm" />
-              <button onClick={() => setOpen(false)} className="grid h-8 w-8 place-items-center rounded-full text-white/60 hover:text-white">
-                <X className="h-5 w-5" />
-              </button>
-            </div>
-
-            <nav className="flex-1 overflow-y-auto px-3 pb-3">
-              {NAV_GROUPS.map((group) => (
-                <div key={group.titleKey} className="mt-4 first:mt-0">
-                  <p className="px-3 text-[11px] font-bold uppercase tracking-wider text-white/40">{t(group.titleKey)}</p>
-                  <div className="mt-1 space-y-0.5">
-                    {group.items.map((item) => {
-                      const active = pathname === item.to || pathname.startsWith(item.to + "/");
-                      if (item.comingSoon) {
-                        return (
-                          <div
-                            key={item.to}
-                            className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-white/30"
-                          >
-                            <item.icon className="h-4.5 w-4.5 shrink-0" />
-                            {t(item.labelKey)}
-                          </div>
-                        );
-                      }
-                      return (
-                        <Link
-                          key={item.to}
-                          to={item.to}
-                          onClick={() => setOpen(false)}
-                          className={cn(
-                            "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors",
-                            active ? "bg-white/10 text-white" : "text-white/70 hover:bg-white/5 hover:text-white",
-                          )}
-                        >
-                          <item.icon className="h-4.5 w-4.5 shrink-0" />
-                          {t(item.labelKey)}
-                        </Link>
-                      );
-                    })}
-                  </div>
-                </div>
-              ))}
-            </nav>
-
-            <div className="border-t border-white/10 px-4 py-4">
-              <p className="text-sm font-semibold">{user?.email?.split("@")[0] ?? ""}</p>
-              <p className="text-xs text-white/40">{user?.email ?? ""}</p>
-              <button onClick={onLogout} className="mt-3 flex items-center gap-2 text-sm font-medium text-destructive">
-                <LogOut className="h-4 w-4" />
-                {t("sidebar.logout")}
-              </button>
+      <nav className="flex-1 overflow-y-auto overflow-x-hidden px-2 pb-3">
+        {NAV_GROUPS.map((group) => (
+          <div key={group.titleKey} className="mt-4 first:mt-0">
+            {expanded && (
+              <p className="px-3 text-[11px] font-bold uppercase tracking-wider text-white/40">{t(group.titleKey)}</p>
+            )}
+            <div className="mt-1 space-y-0.5">
+              {group.items.map((item) => {
+                const active = pathname === item.to || pathname.startsWith(item.to + "/");
+                if (item.comingSoon) {
+                  return (
+                    <div
+                      key={item.to}
+                      title={!expanded ? t(item.labelKey) : undefined}
+                      className={cn(
+                        "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-white/30",
+                        !expanded && "justify-center px-0",
+                      )}
+                    >
+                      <item.icon className="h-[18px] w-[18px] shrink-0" />
+                      {expanded && item.labelKey && t(item.labelKey)}
+                    </div>
+                  );
+                }
+                return (
+                  <Link
+                    key={item.to}
+                    to={item.to}
+                    title={!expanded ? t(item.labelKey) : undefined}
+                    className={cn(
+                      "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors",
+                      !expanded && "justify-center px-0",
+                      active ? "bg-white/10 text-white" : "text-white/70 hover:bg-white/5 hover:text-white",
+                    )}
+                  >
+                    <item.icon className="h-[18px] w-[18px] shrink-0" />
+                    {expanded && t(item.labelKey)}
+                  </Link>
+                );
+              })}
             </div>
           </div>
-        </div>
-      )}
-    </>
+        ))}
+      </nav>
+
+      <div className="border-t border-white/10 px-3 py-4">
+        {expanded && (
+          <div className="mb-3">
+            <p className="truncate text-sm font-semibold">{user?.email?.split("@")[0] ?? ""}</p>
+            <p className="truncate text-xs text-white/40">{user?.email ?? ""}</p>
+          </div>
+        )}
+        <button
+          onClick={onLogout}
+          title={!expanded ? t("sidebar.logout") : undefined}
+          className={cn("flex items-center gap-2 text-sm font-medium text-destructive", !expanded && "justify-center w-full")}
+        >
+          <LogOut className="h-[18px] w-[18px] shrink-0" />
+          {expanded && t("sidebar.logout")}
+        </button>
+      </div>
+    </div>
   );
 }
