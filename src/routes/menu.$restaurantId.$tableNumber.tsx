@@ -1049,7 +1049,7 @@ function MenuPage() {
           ) : (
             <>
               <p className="text-sm font-semibold text-[#1c1f16]">{t("client.review.prompt")}</p>
-              <div className="mt-3 flex items-center justify-center gap-1.5">
+              <div dir="ltr" className="mt-3 flex items-center justify-center gap-1.5">
                 {[1, 2, 3, 4, 5].map((n) => (
                   <button
                     key={n}
