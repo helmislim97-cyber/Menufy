@@ -1439,7 +1439,7 @@ function MenuPage() {
       </Dialog>
 
       <Dialog open={cartOpen} onOpenChange={setCartOpen}>
-        <DialogContent className="max-h-[90vh] w-[calc(100vw-2rem)] max-w-md overflow-x-hidden overflow-y-auto bg-[#f3efe4] text-[#1c1f16]">
+        <DialogContent className="max-h-[90vh] overflow-y-auto bg-[#f3efe4] text-[#1c1f16]">
           <DialogHeader>
             <DialogTitle className="text-[#1c1f16]">{t("client.cartTitle")}</DialogTitle>
           </DialogHeader>
@@ -1512,12 +1512,13 @@ function MenuPage() {
               </div>
 
               {suggestedItems.length > 0 && (
-                <div className="space-y-2 border-t border-[#1c1f16]/10 pt-3" style={{ width: "100%", overflow: "hidden" }}>
+                <div className="border-t border-[#1c1f16]/10 pt-3" style={{ contain: "layout" }}>
                   <p className="text-sm font-bold text-[#1c1f16]">{t("client.suggestedForYou")}</p>
-                  <div
-                    className="flex gap-2 pb-1"
-                    style={{ width: "100%", overflowX: "scroll", overflowY: "hidden", touchAction: "pan-x", WebkitOverflowScrolling: "touch" }}
-                  >
+                  <div className="mt-2" style={{ contain: "layout", overflow: "hidden" }}>
+                    <div
+                      className="flex gap-2 pb-1"
+                      style={{ overflowX: "auto", overflowY: "hidden", touchAction: "pan-x", WebkitOverflowScrolling: "touch", width: "max-content", maxWidth: "100%" }}
+                    >
                     {suggestedItems.map(({ product, specialPrice }) => (
                       <button
                         key={product.id}
@@ -1545,6 +1546,7 @@ function MenuPage() {
                         </span>
                       </button>
                     ))}
+                    </div>
                   </div>
                 </div>
               )}
