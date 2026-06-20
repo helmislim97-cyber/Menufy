@@ -5,7 +5,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { useI18n } from "@/lib/i18n";
 import { Logo } from "@/components/logo";
 import { LangSwitch } from "@/components/lang-switch";
-import { BottomNav } from "@/components/bottom-nav";
+import { DashboardSidebar } from "@/components/dashboard-sidebar";
 import { Button } from "@/components/ui/button";
 import { Clock, StickyNote, ChefHat, Wallet } from "lucide-react";
 import { AssistanceBell } from "@/components/assistance-bell";
@@ -140,7 +140,7 @@ function OrdersPage() {
 
   return (
     <div className="min-h-screen bg-background pb-24">
-      <header className="sticky top-0 z-30 border-b border-border/50 bg-background/85 backdrop-blur-xl">
+      <header className="sticky top-0 z-30 border-b border-border/50 bg-background/85 backdrop-blur-xl ps-16 sm:ps-20">
         <div className="mx-auto flex h-14 max-w-3xl items-center justify-between px-4">
           <Logo size="sm" />
           <div className="flex items-center gap-2">
@@ -150,7 +150,7 @@ function OrdersPage() {
         </div>
       </header>
 
-      <main className="mx-auto max-w-3xl px-4 py-6">
+      <main className="mx-auto max-w-3xl px-4 py-6 ps-16 sm:ps-20">
         <div className="flex items-start justify-between gap-3">
           <div>
             <h1 className="text-2xl font-extrabold">{t("orders.title")}</h1>
@@ -227,7 +227,7 @@ function OrdersPage() {
         )}
       </main>
 
-      <BottomNav />
+      <DashboardSidebar />
     </div>
   );
 }
