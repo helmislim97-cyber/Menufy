@@ -5,7 +5,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { useI18n } from "@/lib/i18n";
 import { Logo } from "@/components/logo";
 import { LangSwitch } from "@/components/lang-switch";
-import { BottomNav } from "@/components/bottom-nav";
+import { DashboardSidebar } from "@/components/dashboard-sidebar";
 import { LogOut, UtensilsCrossed, ShoppingBag, TrendingUp, Clock, ArrowRight } from "lucide-react";
 import { toast } from "sonner";
 import { AssistanceBell } from "@/components/assistance-bell";
@@ -115,7 +115,7 @@ function Dashboard() {
         )}
       </main>
 
-      <BottomNav />
+      <DashboardSidebar />
     </div>
   );
 }
