@@ -876,15 +876,15 @@ function MenuPage() {
   const submitReview = async (rating: number) => {
     setReviewRating(rating);
     setReviewSubmitted(true);
+    if (rating >= 4 && restaurant?.google_review_url) {
+      window.open(restaurant.google_review_url, "_blank");
+    }
     await supabase.from("reviews").insert({
       restaurant_id: restaurant?.id,
       order_id: placedOrder?.id ?? null,
       table_number: parseInt(tableNumber, 10) || null,
       rating,
     });
-    if (rating >= 4 && restaurant?.google_review_url) {
-      window.open(restaurant.google_review_url, "_blank");
-    }
   };
 
   const sendAssistanceRequest = async () => {
