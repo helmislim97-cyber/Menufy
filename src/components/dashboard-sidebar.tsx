@@ -94,7 +94,7 @@ export function DashboardSidebar() {
     <div
       className={cn(
         "fixed inset-y-0 left-0 z-40 flex flex-col bg-[#1a2332] text-white transition-all duration-200",
-        expanded ? "w-64 sm:w-72" : "w-16 sm:w-20",
+        expanded ? "w-64 sm:w-80" : "w-16 sm:w-20",
       )}
     >
       <div className="flex items-center justify-between px-3 py-4">
@@ -130,7 +130,7 @@ export function DashboardSidebar() {
                         !expanded && "h-11 w-11 sm:h-12 sm:w-12 justify-center px-0 mx-auto",
                       )}
                     >
-                      <item.icon className={expanded ? "h-[18px] w-[18px] shrink-0 sm:h-5 sm:w-5" : "h-5 w-5 shrink-0 sm:h-6 sm:w-6"} />
+                      <item.icon className={expanded ? "h-[18px] w-[18px] shrink-0 sm:h-6 sm:w-6" : "h-5 w-5 shrink-0 sm:h-6 sm:w-6"} />
                       {expanded && item.labelKey && t(item.labelKey)}
                     </div>
                   );
@@ -141,12 +141,12 @@ export function DashboardSidebar() {
                     to={item.to}
                     title={!expanded ? t(item.labelKey) : undefined}
                     className={cn(
-                      "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors",
+                      "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors sm:text-base sm:py-3",
                       !expanded && "h-11 w-11 sm:h-12 sm:w-12 justify-center px-0 mx-auto",
                       active ? "bg-white/10 text-white" : "text-white/70 hover:bg-white/5 hover:text-white",
                     )}
                   >
-                    <item.icon className={expanded ? "h-[18px] w-[18px] shrink-0 sm:h-5 sm:w-5" : "h-5 w-5 shrink-0 sm:h-6 sm:w-6"} />
+                    <item.icon className={expanded ? "h-[18px] w-[18px] shrink-0 sm:h-6 sm:w-6" : "h-5 w-5 shrink-0 sm:h-6 sm:w-6"} />
                     {expanded && t(item.labelKey)}
                   </Link>
                 );
