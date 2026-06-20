@@ -127,10 +127,10 @@ export function DashboardSidebar() {
                       title={!expanded ? t(item.labelKey) : undefined}
                       className={cn(
                         "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-white/30",
-                        !expanded && "justify-center px-0",
+                        !expanded && "h-11 w-11 justify-center px-0 mx-auto",
                       )}
                     >
-                      <item.icon className="h-[18px] w-[18px] shrink-0" />
+                      <item.icon className={expanded ? "h-[18px] w-[18px] shrink-0" : "h-5 w-5 shrink-0"} />
                       {expanded && item.labelKey && t(item.labelKey)}
                     </div>
                   );
@@ -142,11 +142,11 @@ export function DashboardSidebar() {
                     title={!expanded ? t(item.labelKey) : undefined}
                     className={cn(
                       "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors",
-                      !expanded && "justify-center px-0",
+                      !expanded && "h-11 w-11 justify-center px-0 mx-auto",
                       active ? "bg-white/10 text-white" : "text-white/70 hover:bg-white/5 hover:text-white",
                     )}
                   >
-                    <item.icon className="h-[18px] w-[18px] shrink-0" />
+                    <item.icon className={expanded ? "h-[18px] w-[18px] shrink-0" : "h-5 w-5 shrink-0"} />
                     {expanded && t(item.labelKey)}
                   </Link>
                 );
