@@ -73,7 +73,7 @@ function Dashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-background pb-24 ps-16">
+    <div className="min-h-screen bg-background pb-24 ps-16 sm:ps-20">
       <header className="sticky top-0 z-30 border-b border-border/50 bg-background/85 backdrop-blur-xl">
         <div className="mx-auto flex h-14 max-w-3xl items-center justify-between px-4">
           <Logo size="sm" />
