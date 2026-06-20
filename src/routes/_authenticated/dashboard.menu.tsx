@@ -163,17 +163,32 @@ function MenuManagement() {
   const [newSupplementName, setNewSupplementName] = useState("");
   const [newSupplementPrice, setNewSupplementPrice] = useState("");
 
+  // Upsell items
+  interface UpsellItem {
+    id: string;
+    product_id: string;
+    special_price: number | null;
+    position: number;
+  }
+  const [upsellItems, setUpsellItems] = useState<UpsellItem[]>([]);
+  const [upsellDialogOpen, setUpsellDialogOpen] = useState(false);
+  const [upsellProductId, setUpsellProductId] = useState("");
+  const [upsellSpecialPrice, setUpsellSpecialPrice] = useState("");
+  const [savingUpsell, setSavingUpsell] = useState(false);
+
   const loadData = async (rid: string) => {
-    const [{ data: cats }, { data: prods }] = await Promise.all([
+    const [{ data: cats }, { data: prods }, { data: upsells }] = await Promise.all([
       supabase.from("categories").select("id, name, description, image_url, position").eq("restaurant_id", rid).order("position"),
       supabase
         .from("products")
         .select("id, category_id, name, description, price, emoji, image_url, is_available, position, kcal, prep_minutes, badge, tags")
         .eq("restaurant_id", rid)
         .order("position"),
+      supabase.from("upsell_items").select("id, product_id, special_price, position").eq("restaurant_id", rid).order("position"),
     ]);
     setCategories(cats ?? []);
     setProducts(prods ?? []);
+    setUpsellItems(upsells ?? []);
     setLoading(false);
   };
 
@@ -436,6 +451,36 @@ function MenuManagement() {
     loadData(restaurantId);
   };
 
+  const openAddUpsell = () => {
+    setUpsellProductId("");
+    setUpsellSpecialPrice("");
+    setUpsellDialogOpen(true);
+  };
+
+  const saveUpsell = async () => {
+    if (!restaurantId || !upsellProductId) return;
+    setSavingUpsell(true);
+    const { error } = await supabase.from("upsell_items").insert({
+      restaurant_id: restaurantId,
+      product_id: upsellProductId,
+      special_price: upsellSpecialPrice.trim() ? parseFloat(upsellSpecialPrice) : null,
+      position: upsellItems.length,
+    });
+    setSavingUpsell(false);
+    if (error) return toast.error(error.message);
+    toast.success(t("menu.upsellAdded"));
+    setUpsellDialogOpen(false);
+    loadData(restaurantId);
+  };
+
+  const deleteUpsell = async (id: string) => {
+    if (!restaurantId) return;
+    const { error } = await supabase.from("upsell_items").delete().eq("id", id);
+    if (error) return toast.error(error.message);
+    toast.success(t("menu.upsellDeleted"));
+    loadData(restaurantId);
+  };
+
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
     useSensor(TouchSensor, { activationConstraint: { delay: 150, tolerance: 5 } }),
@@ -622,6 +667,62 @@ function MenuManagement() {
           </div>
           </SortableContext>
           </DndContext>
+        )}
+
+        {restaurantId && (
+          <section className="mt-8">
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <h2 className="text-lg font-extrabold">{t("menu.upsellTitle")}</h2>
+                <p className="mt-1 text-sm text-muted-foreground">{t("menu.upsellSubtitle")}</p>
+              </div>
+              <Button onClick={openAddUpsell} size="sm" variant="outline" className="shrink-0 gap-1.5">
+                <Plus className="h-4 w-4" />
+                {t("menu.upsellAdd")}
+              </Button>
+            </div>
+
+            {upsellItems.length === 0 ? (
+              <p className="mt-4 rounded-xl border border-dashed border-border bg-surface/40 p-4 text-center text-sm text-muted-foreground">
+                {t("menu.upsellEmpty")}
+              </p>
+            ) : (
+              <div className="mt-4 space-y-2">
+                {upsellItems.map((u) => {
+                  const product = products.find((p) => p.id === u.product_id);
+                  if (!product) return null;
+                  return (
+                    <div key={u.id} className="flex items-center gap-3 rounded-2xl border border-border bg-surface p-3">
+                      <div className="grid h-10 w-10 shrink-0 place-items-center overflow-hidden rounded-xl bg-background text-xl">
+                        {product.image_url ? (
+                          <img src={product.image_url} alt={product.name} className="h-full w-full object-cover" />
+                        ) : (
+                          product.emoji || "🍽️"
+                        )}
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate text-sm font-semibold">{product.name}</p>
+                        {u.special_price != null ? (
+                          <p className="text-xs">
+                            <span className="text-muted-foreground line-through">{Number(product.price).toFixed(2)} DT</span>{" "}
+                            <span className="font-bold text-gold">{Number(u.special_price).toFixed(2)} DT</span>
+                          </p>
+                        ) : (
+                          <p className="text-xs text-muted-foreground">{Number(product.price).toFixed(2)} DT</p>
+                        )}
+                      </div>
+                      <button
+                        onClick={() => deleteUpsell(u.id)}
+                        className="grid h-8 w-8 shrink-0 place-items-center rounded-full text-muted-foreground hover:text-destructive"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </section>
         )}
       </main>
 
@@ -920,6 +1021,55 @@ function MenuManagement() {
               {t("menu.cancel")}
             </Button>
             <Button onClick={saveProduct} disabled={savingProd || uploadingImage || !prodForm.name.trim()}>
+              {t("menu.save")}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={upsellDialogOpen} onOpenChange={setUpsellDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{t("menu.upsellAdd")}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            <div className="space-y-2">
+              <Label>{t("menu.upsellProduct")}</Label>
+              <Select value={upsellProductId} onValueChange={setUpsellProductId}>
+                <SelectTrigger>
+                  <SelectValue placeholder={t("menu.upsellProductPlaceholder")} />
+                </SelectTrigger>
+                <SelectContent>
+                  {products
+                    .filter((p) => !upsellItems.some((u) => u.product_id === p.id))
+                    .map((p) => (
+                      <SelectItem key={p.id} value={p.id}>
+                        {p.name} — {Number(p.price).toFixed(2)} DT
+                      </SelectItem>
+                    ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="upsell-price">{t("menu.upsellSpecialPrice")}</Label>
+              <Input
+                id="upsell-price"
+                type="number"
+                inputMode="decimal"
+                step="0.01"
+                min="0"
+                value={upsellSpecialPrice}
+                onChange={(e) => setUpsellSpecialPrice(e.target.value)}
+                placeholder={t("menu.upsellSpecialPricePlaceholder")}
+              />
+              <p className="text-xs text-muted-foreground">{t("menu.upsellSpecialPriceHint")}</p>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setUpsellDialogOpen(false)}>
+              {t("menu.cancel")}
+            </Button>
+            <Button onClick={saveUpsell} disabled={savingUpsell || !upsellProductId}>
               {t("menu.save")}
             </Button>
           </DialogFooter>
