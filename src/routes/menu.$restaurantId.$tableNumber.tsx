@@ -301,12 +301,12 @@ function ProductCard({
       className={`relative h-32 rounded-2xl bg-white shadow-[0_8px_24px_-8px_rgba(28,31,22,0.25)] cursor-pointer sm:h-auto ${soldOut ? "opacity-60" : ""}`}
     >
       {soldOut ? (
-        <span className="absolute top-3 right-0 rounded-l-full bg-[#1c1f16]/70 px-3 py-1 text-xs font-bold uppercase text-white shadow-sm">
+        <span className="absolute top-3 end-0 rounded-s-full bg-[#1c1f16]/70 px-3 py-1 text-xs font-bold uppercase text-white shadow-sm">
           {t("client.soldOut")}
         </span>
       ) : (
         p.badge && (
-          <span className="absolute top-3 right-0 rounded-l-full bg-primary px-3 py-1 text-xs font-bold uppercase text-primary-foreground shadow-sm">
+          <span className="absolute top-3 end-0 rounded-s-full bg-primary px-3 py-1 text-xs font-bold uppercase text-primary-foreground shadow-sm">
             {p.badge}
           </span>
         )
