@@ -402,6 +402,8 @@ function MenuPage() {
   const [customerCountryCode, setCustomerCountryCode] = useState("+216");
   const [sessionExpired, setSessionExpired] = useState(false);
   const [showInfoError, setShowInfoError] = useState(false);
+  const [infoErrorType, setInfoErrorType] = useState<"empty" | "invalid">("empty");
+  const [invalidFields, setInvalidFields] = useState<{ firstName: boolean; lastName: boolean; phone: boolean }>({ firstName: false, lastName: false, phone: false });
   const [placing, setPlacing] = useState(false);
   const [placedOrder, setPlacedOrder] = useState<{ id: string; total: number } | null>(null);
   const [orderStatus, setOrderStatus] = useState<string>("pending");
@@ -759,14 +761,20 @@ function MenuPage() {
 
   const placeOrder = async () => {
     if (!restaurant || cartItems.length === 0) return;
-    if (
-      customerFirstName.trim().length < 2 ||
-      customerLastName.trim().length < 2 ||
-      customerPhone.trim().length < 8
-    ) {
+    const fnEmpty = customerFirstName.trim().length === 0;
+    const lnEmpty = customerLastName.trim().length === 0;
+    const phEmpty = customerPhone.trim().length === 0;
+    const fnInvalid = !fnEmpty && customerFirstName.trim().length < 2;
+    const lnInvalid = !lnEmpty && customerLastName.trim().length < 2;
+    const phInvalid = !phEmpty && customerPhone.trim().length < 8;
+
+    if (fnEmpty || lnEmpty || phEmpty || fnInvalid || lnInvalid || phInvalid) {
+      setInvalidFields({ firstName: fnEmpty || fnInvalid, lastName: lnEmpty || lnInvalid, phone: phEmpty || phInvalid });
+      setInfoErrorType(fnEmpty && lnEmpty && phEmpty ? "empty" : (fnInvalid || lnInvalid || phInvalid) ? "invalid" : "empty");
       setShowInfoError(true);
       return;
     }
+    setInvalidFields({ firstName: false, lastName: false, phone: false });
     setShowInfoError(false);
     setPlacing(true);
 
@@ -1491,13 +1499,15 @@ function MenuPage() {
                 <div className="grid grid-cols-2 gap-2">
                   <Input
                     value={customerFirstName}
-                    onChange={(e) => setCustomerFirstName(e.target.value.replace(/[^\p{L}\s'-]/gu, ""))}
+                    onChange={(e) => { setCustomerFirstName(e.target.value.replace(/[^\p{L}\s'-]/gu, "")); setInvalidFields((f) => ({ ...f, firstName: false })); }}
                     placeholder={`${t("client.firstNamePlaceholder")} *`}
+                    className={invalidFields.firstName ? "border-destructive bg-destructive/5" : ""}
                   />
                   <Input
                     value={customerLastName}
-                    onChange={(e) => setCustomerLastName(e.target.value.replace(/[^\p{L}\s'-]/gu, ""))}
+                    onChange={(e) => { setCustomerLastName(e.target.value.replace(/[^\p{L}\s'-]/gu, "")); setInvalidFields((f) => ({ ...f, lastName: false })); }}
                     placeholder={`${t("client.lastNamePlaceholder")} *`}
+                    className={invalidFields.lastName ? "border-destructive bg-destructive/5" : ""}
                   />
                 </div>
                 <div className="flex gap-2">
@@ -1517,13 +1527,15 @@ function MenuPage() {
                     type="tel"
                     inputMode="numeric"
                     value={customerPhone}
-                    onChange={(e) => setCustomerPhone(e.target.value.replace(/[^0-9]/g, ""))}
+                    onChange={(e) => { setCustomerPhone(e.target.value.replace(/[^0-9]/g, "")); setInvalidFields((f) => ({ ...f, phone: false })); }}
                     placeholder={`${t("client.phonePlaceholder")} *`}
-                    className="flex-1"
+                    className={`flex-1 ${invalidFields.phone ? "border-destructive bg-destructive/5" : ""}`}
                   />
                 </div>
                 {showInfoError && (
-                  <p className="text-xs font-medium text-destructive">{t("client.missingInfoError")}</p>
+                  <p className="text-xs font-medium text-destructive">
+                    {infoErrorType === "empty" ? t("client.missingInfoError") : t("client.invalidInfoError")}
+                  </p>
                 )}
               </div>
             </div>
