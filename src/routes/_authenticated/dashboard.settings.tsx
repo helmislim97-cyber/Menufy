@@ -17,6 +17,7 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Plus, Trash2, QrCode, LogOut, ExternalLink, Download, Pencil, ImagePlus, X } from "lucide-react";
+import { AssistanceBell } from "@/components/assistance-bell";
 import { BannerCropper } from "@/components/banner-cropper";
 import { toast } from "sonner";
 
@@ -275,7 +276,10 @@ function SettingsPage() {
       <header className="sticky top-0 z-30 border-b border-border/50 bg-background/85 backdrop-blur-xl">
         <div className="mx-auto flex h-14 max-w-3xl items-center justify-between px-4">
           <Logo size="sm" />
-          <LangSwitch />
+          <div className="flex items-center gap-2">
+            <AssistanceBell />
+            <LangSwitch />
+          </div>
         </div>
       </header>
 

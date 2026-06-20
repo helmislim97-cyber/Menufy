@@ -8,6 +8,7 @@ import { LangSwitch } from "@/components/lang-switch";
 import { BottomNav } from "@/components/bottom-nav";
 import { LogOut, UtensilsCrossed, ShoppingBag, TrendingUp, Clock, ArrowRight } from "lucide-react";
 import { toast } from "sonner";
+import { AssistanceBell } from "@/components/assistance-bell";
 
 export const Route = createFileRoute("/_authenticated/dashboard/")({
   component: Dashboard,
@@ -77,6 +78,7 @@ function Dashboard() {
         <div className="mx-auto flex h-14 max-w-3xl items-center justify-between px-4">
           <Logo size="sm" />
           <div className="flex items-center gap-2">
+            <AssistanceBell />
             <LangSwitch />
             <button onClick={onLogout} className="grid h-9 w-9 place-items-center rounded-full border border-border bg-surface text-muted-foreground hover:text-foreground">
               <LogOut className="h-4 w-4" />

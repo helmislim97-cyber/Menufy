@@ -8,6 +8,7 @@ import { LangSwitch } from "@/components/lang-switch";
 import { BottomNav } from "@/components/bottom-nav";
 import { Button } from "@/components/ui/button";
 import { Clock, StickyNote, ChefHat, Wallet } from "lucide-react";
+import { AssistanceBell } from "@/components/assistance-bell";
 
 export const Route = createFileRoute("/_authenticated/dashboard/orders")({
   component: OrdersPage,
@@ -142,7 +143,10 @@ function OrdersPage() {
       <header className="sticky top-0 z-30 border-b border-border/50 bg-background/85 backdrop-blur-xl">
         <div className="mx-auto flex h-14 max-w-3xl items-center justify-between px-4">
           <Logo size="sm" />
-          <LangSwitch />
+          <div className="flex items-center gap-2">
+            <AssistanceBell />
+            <LangSwitch />
+          </div>
         </div>
       </header>
 

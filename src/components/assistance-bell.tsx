@@ -75,7 +75,7 @@ export function AssistanceBell() {
     <>
       <button
         onClick={() => setPanelOpen(true)}
-        className="fixed right-4 top-4 z-40 grid h-12 w-12 place-items-center rounded-full bg-background shadow-lg border border-border"
+        className="relative grid h-9 w-9 place-items-center rounded-full text-muted-foreground hover:text-foreground hover:bg-accent"
         aria-label={t("dashboard.assistance.button")}
       >
         <BellRing className={`h-5 w-5 ${requests.length > 0 ? "text-destructive" : "text-muted-foreground"}`} />

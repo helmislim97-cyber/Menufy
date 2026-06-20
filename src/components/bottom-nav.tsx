@@ -2,7 +2,8 @@ import { Link, useRouterState } from "@tanstack/react-router";
 import { Home, ClipboardList, UtensilsCrossed, Settings } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
-import { AssistanceBell } from "@/components/assistance-bell";
+return (
+    <nav className="fixed bottom-0 inset-x-0 z-30 border-t border-border bg-background/95 backdrop-blur-xl">
 
 export function BottomNav() {
   const { t } = useI18n();
@@ -16,8 +17,6 @@ export function BottomNav() {
   ] as const;
 
   return (
-    <>
-    <AssistanceBell />
     <nav className="fixed bottom-0 inset-x-0 z-30 border-t border-border bg-background/95 backdrop-blur-xl">
       <div className="mx-auto grid max-w-3xl grid-cols-4">
         {items.map(({ to, icon: Icon, label, exact }) => {
@@ -38,6 +37,5 @@ export function BottomNav() {
         })}
       </div>
     </nav>
-    </>
   );
 }

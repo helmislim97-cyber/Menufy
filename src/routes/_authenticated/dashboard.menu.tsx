@@ -26,6 +26,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Plus, Pencil, Trash2, ImagePlus, X, GripVertical } from "lucide-react";
+import { AssistanceBell } from "@/components/assistance-bell";
 import {
   DndContext,
   closestCenter,
@@ -495,7 +496,10 @@ function MenuManagement() {
       <header className="sticky top-0 z-30 border-b border-border/50 bg-background/85 backdrop-blur-xl">
         <div className="mx-auto flex h-14 max-w-3xl items-center justify-between px-4">
           <Logo size="sm" />
-          <LangSwitch />
+          <div className="flex items-center gap-2">
+            <AssistanceBell />
+            <LangSwitch />
+          </div>
         </div>
       </header>
 
