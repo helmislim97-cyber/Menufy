@@ -759,7 +759,11 @@ function MenuPage() {
 
   const placeOrder = async () => {
     if (!restaurant || cartItems.length === 0) return;
-    if (!customerFirstName.trim() || !customerLastName.trim() || !customerPhone.trim()) {
+    if (
+      customerFirstName.trim().length < 2 ||
+      customerLastName.trim().length < 2 ||
+      customerPhone.trim().length < 8
+    ) {
       setShowInfoError(true);
       return;
     }
