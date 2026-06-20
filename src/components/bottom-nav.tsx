@@ -2,8 +2,6 @@ import { Link, useRouterState } from "@tanstack/react-router";
 import { Home, ClipboardList, UtensilsCrossed, Settings } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
-return (
-    <nav className="fixed bottom-0 inset-x-0 z-30 border-t border-border bg-background/95 backdrop-blur-xl">
 
 export function BottomNav() {
   const { t } = useI18n();
