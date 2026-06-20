@@ -670,7 +670,7 @@ function MenuManagement() {
                       {group.products.map((p) => (
                         <SortableProductRow key={p.id} id={p.id}>
                         <div
-                          className={`flex items-center gap-3 rounded-2xl border border-border bg-surface p-3 ${!p.is_visible ? "opacity-50" : ""}`}
+                          className={`flex flex-wrap items-center gap-3 rounded-2xl border border-border bg-surface p-3 sm:flex-nowrap ${!p.is_visible ? "opacity-50" : ""}`}
                         >
                           <div className="grid h-10 w-10 shrink-0 place-items-center overflow-hidden rounded-xl bg-background text-xl">
                             {p.image_url ? (
@@ -679,33 +679,35 @@ function MenuManagement() {
                               p.emoji || "🍽️"
                             )}
                           </div>
-                          <div className="min-w-0 flex-1">
+                          <div className="min-w-0 flex-1 basis-[calc(100%-3.25rem)] sm:basis-0">
                             <p className="truncate text-sm font-semibold">{p.name}</p>
                             {p.description && (
                               <p className="line-clamp-2 text-xs text-muted-foreground">{p.description}</p>
                             )}
                           </div>
-                          <p className="shrink-0 text-sm font-bold text-gold">{Number(p.price).toFixed(2)} DT</p>
-                          <button
-                            onClick={() => toggleProductVisible(p)}
-                            className="grid h-8 w-8 shrink-0 place-items-center rounded-full text-muted-foreground hover:text-foreground"
-                            title={p.is_visible ? t("menu.hideProduct") : t("menu.showProduct")}
-                          >
-                            {p.is_visible ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
-                          </button>
-                          <Switch checked={p.is_available} onCheckedChange={() => toggleAvailability(p)} />
-                          <button
-                            onClick={() => openEditProduct(p)}
-                            className="grid h-8 w-8 shrink-0 place-items-center rounded-full text-muted-foreground hover:text-foreground"
-                          >
-                            <Pencil className="h-4 w-4" />
-                          </button>
-                          <button
-                            onClick={() => deleteProduct(p.id)}
-                            className="grid h-8 w-8 shrink-0 place-items-center rounded-full text-muted-foreground hover:text-destructive"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </button>
+                          <div className="ms-auto flex w-full items-center justify-end gap-2 sm:ms-0 sm:w-auto sm:gap-1">
+                            <p className="me-1 shrink-0 text-sm font-bold text-gold">{Number(p.price).toFixed(2)} DT</p>
+                            <button
+                              onClick={() => toggleProductVisible(p)}
+                              className="grid h-8 w-8 shrink-0 place-items-center rounded-full text-muted-foreground hover:text-foreground"
+                              title={p.is_visible ? t("menu.hideProduct") : t("menu.showProduct")}
+                            >
+                              {p.is_visible ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
+                            </button>
+                            <Switch checked={p.is_available} onCheckedChange={() => toggleAvailability(p)} />
+                            <button
+                              onClick={() => openEditProduct(p)}
+                              className="grid h-8 w-8 shrink-0 place-items-center rounded-full text-muted-foreground hover:text-foreground"
+                            >
+                              <Pencil className="h-4 w-4" />
+                            </button>
+                            <button
+                              onClick={() => deleteProduct(p.id)}
+                              className="grid h-8 w-8 shrink-0 place-items-center rounded-full text-muted-foreground hover:text-destructive"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </button>
+                          </div>
                         </div>
                         </SortableProductRow>
                       ))}
