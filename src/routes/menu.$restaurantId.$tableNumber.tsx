@@ -350,12 +350,12 @@ function ProductCard({
         qty === 0 ? (
           <button
             onClick={(e) => { e.stopPropagation(); onOpen(p); }}
-            className="absolute bottom-0 right-0 grid h-8 w-8 place-items-center rounded-tl-xl bg-primary text-primary-foreground shadow-md z-10"
+            className="absolute bottom-0 end-0 grid h-8 w-8 place-items-center rounded-ss-xl bg-primary text-primary-foreground shadow-md z-10"
           >
             <Plus className="h-4 w-4" />
           </button>
         ) : (
-          <div className="absolute bottom-0 right-0 flex items-center gap-1.5 rounded-tl-xl bg-white px-1.5 py-1 shadow-md z-10">
+          <div className="absolute bottom-0 end-0 flex items-center gap-1.5 rounded-ss-xl bg-white px-1.5 py-1 shadow-md z-10">
             <button onClick={(e) => { e.stopPropagation(); changeQty(p.id, -1); }} className="grid h-6 w-6 place-items-center rounded-full border border-border bg-background text-foreground">
               <Minus className="h-3 w-3" />
             </button>
