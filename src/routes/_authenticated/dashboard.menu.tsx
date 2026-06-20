@@ -92,11 +92,11 @@ function SortableProductRow({ id, children }: { id: string; children: ReactNode 
     opacity: isDragging ? 0.5 : 1,
   };
   return (
-    <div ref={setNodeRef} style={style} className="flex items-center gap-2">
+    <div ref={setNodeRef} style={style} className="flex min-w-0 items-center gap-2">
       <button {...attributes} {...listeners} className="grid h-8 w-6 shrink-0 cursor-grab touch-none place-items-center text-muted-foreground active:cursor-grabbing">
         <GripVertical className="h-4 w-4" />
       </button>
-      <div className="flex-1">{children}</div>
+      <div className="min-w-0 flex-1">{children}</div>
     </div>
   );
 }
@@ -651,7 +651,7 @@ function MenuManagement() {
                           <div className="min-w-0 flex-1">
                             <p className="truncate text-sm font-semibold">{p.name}</p>
                             {p.description && (
-                              <p className="truncate text-xs text-muted-foreground">{p.description}</p>
+                              <p className="line-clamp-2 text-xs text-muted-foreground">{p.description}</p>
                             )}
                           </div>
                           <p className="shrink-0 text-sm font-bold text-gold">{Number(p.price).toFixed(2)} DT</p>
