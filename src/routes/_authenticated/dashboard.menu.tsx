@@ -481,6 +481,20 @@ function MenuManagement() {
     loadData(restaurantId);
   };
 
+  const handleUpsellDragEnd = async (event: DragEndEvent) => {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+    const oldIndex = upsellItems.findIndex((u) => u.id === active.id);
+    const newIndex = upsellItems.findIndex((u) => u.id === over.id);
+    if (oldIndex === -1 || newIndex === -1) return;
+    const reordered = arrayMove(upsellItems, oldIndex, newIndex);
+    setUpsellItems(reordered);
+    const updates = reordered.map((u, idx) => ({ id: u.id, position: idx }));
+    for (const u of updates) {
+      await supabase.from("upsell_items").update({ position: u.position }).eq("id", u.id);
+    }
+  };
+
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
     useSensor(TouchSensor, { activationConstraint: { delay: 150, tolerance: 5 } }),
@@ -687,12 +701,15 @@ function MenuManagement() {
                 {t("menu.upsellEmpty")}
               </p>
             ) : (
+              <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleUpsellDragEnd}>
+              <SortableContext items={upsellItems.map((u) => u.id)} strategy={verticalListSortingStrategy}>
               <div className="mt-4 space-y-2">
                 {upsellItems.map((u) => {
                   const product = products.find((p) => p.id === u.product_id);
                   if (!product) return null;
                   return (
-                    <div key={u.id} className="flex items-center gap-3 rounded-2xl border border-border bg-surface p-3">
+                    <SortableProductRow key={u.id} id={u.id}>
+                    <div className="flex items-center gap-3 rounded-2xl border border-border bg-surface p-3">
                       <div className="grid h-10 w-10 shrink-0 place-items-center overflow-hidden rounded-xl bg-background text-xl">
                         {product.image_url ? (
                           <img src={product.image_url} alt={product.name} className="h-full w-full object-cover" />
@@ -718,9 +735,12 @@ function MenuManagement() {
                         <Trash2 className="h-4 w-4" />
                       </button>
                     </div>
+                    </SortableProductRow>
                   );
                 })}
               </div>
+              </SortableContext>
+              </DndContext>
             )}
           </section>
         )}
