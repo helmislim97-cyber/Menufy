@@ -986,16 +986,6 @@ function MenuManagement() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="prod-tags">{t("menu.tags")}</Label>
-              <Input
-                id="prod-tags"
-                value={prodForm.tags}
-                onChange={(e) => setProdForm((f) => ({ ...f, tags: e.target.value }))}
-                placeholder={t("menu.tagsPlaceholder")}
-              />
-            </div>
-
-            <div className="space-y-2">
               <Label>{t("menu.supplements")}</Label>
               {!editingProd ? (
                 <p className="rounded-xl border border-dashed border-border bg-surface/40 p-3 text-xs text-muted-foreground">
