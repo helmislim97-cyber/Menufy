@@ -52,6 +52,7 @@ interface Category {
   description: string | null;
   image_url: string | null;
   position: number;
+  is_active: boolean;
 }
 
 interface Product {
@@ -480,8 +481,9 @@ function MenuPage() {
       const [{ data: cats }, { data: prods }, { data: upsells }] = await Promise.all([
         supabase
           .from("categories")
-          .select("id, name, description, image_url, position")
+          .select("id, name, description, image_url, position, is_active")
           .eq("restaurant_id", restaurantId)
+          .eq("is_active", true)
           .order("position"),
         supabase
           .from("products")

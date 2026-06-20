@@ -25,7 +25,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Plus, Pencil, Trash2, ImagePlus, X, GripVertical } from "lucide-react";
+import { Plus, Pencil, Trash2, ImagePlus, X, GripVertical, Eye, EyeOff } from "lucide-react";
 import { AssistanceBell } from "@/components/assistance-bell";
 import {
   DndContext,
@@ -55,6 +55,7 @@ interface Category {
   description: string | null;
   image_url: string | null;
   position: number;
+  is_active: boolean;
 }
 
 interface Product {
@@ -181,7 +182,7 @@ function MenuManagement() {
 
   const loadData = async (rid: string) => {
     const [{ data: cats }, { data: prods }, { data: upsells }] = await Promise.all([
-      supabase.from("categories").select("id, name, description, image_url, position").eq("restaurant_id", rid).order("position"),
+      supabase.from("categories").select("id, name, description, image_url, position, is_active").eq("restaurant_id", rid).order("position"),
       supabase
         .from("products")
         .select("id, category_id, name, description, price, emoji, image_url, is_available, position, kcal, prep_minutes, badge, badge_color, tags")
@@ -294,6 +295,17 @@ function MenuManagement() {
     if (error) return toast.error(error.message);
     toast.success(t("menu.categoryDeleted"));
     loadData(restaurantId);
+  };
+
+  const toggleCategoryActive = async (c: Category) => {
+    setCategories((prev) => prev.map((x) => (x.id === c.id ? { ...x, is_active: !x.is_active } : x)));
+    const { error } = await supabase.from("categories").update({ is_active: !c.is_active }).eq("id", c.id);
+    if (error) {
+      toast.error(error.message);
+      setCategories((prev) => prev.map((x) => (x.id === c.id ? { ...x, is_active: c.is_active } : x)));
+    } else {
+      toast.success(c.is_active ? t("menu.categoryHidden") : t("menu.categoryShown"));
+    }
   };
 
   // ───────────── Products ─────────────
@@ -602,7 +614,7 @@ function MenuManagement() {
               const category = categories.find((c) => c.id === group.id);
               const sectionContent = (
                 <>
-                  <div className="mb-2 flex items-center justify-between">
+                  <div className={`mb-2 flex items-center justify-between ${category && !category.is_active ? "opacity-50" : ""}`}>
                     <h2 className="text-base font-bold">{group.name}</h2>
                     <div className="flex items-center gap-1">
                       <Button onClick={() => openNewProduct(group.id === UNCATEGORIZED ? undefined : group.id)} size="sm" variant="ghost" className="gap-1.5 text-primary">
@@ -611,6 +623,13 @@ function MenuManagement() {
                       </Button>
                       {category && (
                         <>
+                          <button
+                            onClick={() => toggleCategoryActive(category)}
+                            className="grid h-8 w-8 place-items-center rounded-full text-muted-foreground hover:text-foreground"
+                            title={category.is_active ? t("menu.hideCategory") : t("menu.showCategory")}
+                          >
+                            {category.is_active ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
+                          </button>
                           <button
                             onClick={() => openEditCategory(category)}
                             className="grid h-8 w-8 place-items-center rounded-full text-muted-foreground hover:text-foreground"
