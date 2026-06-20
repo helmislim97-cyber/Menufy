@@ -1487,12 +1487,12 @@ function MenuPage() {
                 <div className="grid grid-cols-2 gap-2">
                   <Input
                     value={customerFirstName}
-                    onChange={(e) => setCustomerFirstName(e.target.value)}
+                    onChange={(e) => setCustomerFirstName(e.target.value.replace(/[^\p{L}\s'-]/gu, ""))}
                     placeholder={`${t("client.firstNamePlaceholder")} *`}
                   />
                   <Input
                     value={customerLastName}
-                    onChange={(e) => setCustomerLastName(e.target.value)}
+                    onChange={(e) => setCustomerLastName(e.target.value.replace(/[^\p{L}\s'-]/gu, ""))}
                     placeholder={`${t("client.lastNamePlaceholder")} *`}
                   />
                 </div>
@@ -1511,8 +1511,9 @@ function MenuPage() {
                   </Select>
                   <Input
                     type="tel"
+                    inputMode="numeric"
                     value={customerPhone}
-                    onChange={(e) => setCustomerPhone(e.target.value)}
+                    onChange={(e) => setCustomerPhone(e.target.value.replace(/[^0-9]/g, ""))}
                     placeholder={`${t("client.phonePlaceholder")} *`}
                     className="flex-1"
                   />
