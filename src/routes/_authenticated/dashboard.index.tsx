@@ -73,8 +73,8 @@ function Dashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-background pb-24">
-      <header className="sticky top-0 z-30 border-b border-border/50 bg-background/85 backdrop-blur-xl ps-16 sm:ps-20">
+    <div className="min-h-screen bg-background pb-24 sm:ps-0">
+      <header className="sticky top-0 z-30 border-b border-border/50 bg-background/85 backdrop-blur-xl sm:ps-20">
         <div className="mx-auto flex h-14 max-w-3xl items-center justify-between px-4">
           <Logo size="sm" />
           <div className="flex items-center gap-2">
@@ -87,7 +87,7 @@ function Dashboard() {
         </div>
       </header>
 
-      <main className="mx-auto max-w-3xl px-4 py-6 ps-16 sm:ps-20">
+      <main className="mx-auto max-w-3xl px-4 py-6 sm:ps-20">
         <div className="rounded-3xl border border-border bg-gradient-brand p-6 text-primary-foreground shadow-glow">
           <p className="text-xs font-semibold uppercase tracking-wider opacity-80">Restaurant</p>
           <h1 className="mt-1 text-2xl font-extrabold">{restaurant?.name ?? "…"}</h1>
