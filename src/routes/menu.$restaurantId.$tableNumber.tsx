@@ -1516,8 +1516,8 @@ function MenuPage() {
                   <p className="text-sm font-bold text-[#1c1f16]">{t("client.suggestedForYou")}</p>
                   <div className="mt-2 min-w-0">
                     <div
-                      className="overflow-x-auto pb-1"
-                      style={{ touchAction: "pan-x", WebkitOverflowScrolling: "touch", maxWidth: "calc(100vw - 4rem)" }}
+                      className="w-full overflow-x-auto pb-1"
+                      style={{ touchAction: "pan-x", WebkitOverflowScrolling: "touch" }}
                     >
                       <div className="flex gap-2" style={{ width: "max-content" }}>
                     {suggestedItems.map(({ product, specialPrice }) => (
