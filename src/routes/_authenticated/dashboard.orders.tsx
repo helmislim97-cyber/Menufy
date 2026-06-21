@@ -3,12 +3,9 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { useI18n } from "@/lib/i18n";
-import { Logo } from "@/components/logo";
-import { LangSwitch } from "@/components/lang-switch";
-import { DashboardSidebar } from "@/components/dashboard-sidebar";
 import { Button } from "@/components/ui/button";
 import { Clock, StickyNote, ChefHat, Wallet } from "lucide-react";
-import { AssistanceBell } from "@/components/assistance-bell";
+import { DashboardPage } from "@/components/dashboard-page";
 
 export const Route = createFileRoute("/_authenticated/dashboard/orders")({
   component: OrdersPage,
@@ -139,18 +136,7 @@ function OrdersPage() {
   const todayRevenue = todayPaidOrders.reduce((sum, o) => sum + Number(o.total), 0);
 
   return (
-    <div className="min-h-screen bg-background pb-24">
-      <header className="sticky top-0 z-30 border-b border-border/50 bg-background/85 backdrop-blur-xl sm:ps-80">
-        <div className="mx-auto flex h-14 max-w-3xl items-center justify-between px-4 sm:max-w-6xl">
-          <Logo size="sm" />
-          <div className="flex items-center gap-2">
-            <AssistanceBell />
-            <LangSwitch />
-          </div>
-        </div>
-      </header>
-
-      <main className="mx-auto max-w-3xl px-4 py-6 sm:max-w-6xl sm:ps-80">
+    <DashboardPage>
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div>
             <h1 className="text-2xl font-extrabold">{t("orders.title")}</h1>
@@ -225,10 +211,7 @@ function OrdersPage() {
             )}
           </div>
         )}
-      </main>
-
-      <DashboardSidebar />
-    </div>
+    </DashboardPage>
   );
 }
 
