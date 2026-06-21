@@ -50,6 +50,71 @@ function Dashboard() {
   const [stuckOrders, setStuckOrders] = useState<StuckOrder[]>([]);
   const [pendingAssistance, setPendingAssistance] = useState<PendingAssistance[]>([]);
 
+  const loadDashboardData = async (restaurantId: string) => {
+    const todayStart = new Date();
+    todayStart.setHours(0, 0, 0, 0);
+    const yesterdayStart = new Date(todayStart);
+    yesterdayStart.setDate(yesterdayStart.getDate() - 1);
+
+    supabase
+      .from("products")
+      .select("id", { count: "exact", head: true })
+      .eq("restaurant_id", restaurantId)
+      .then(({ count }) => setProductCount(count ?? 0));
+
+    supabase
+      .from("orders")
+      .select("id, total, status", { count: "exact" })
+      .eq("restaurant_id", restaurantId)
+      .gte("created_at", todayStart.toISOString())
+      .then(({ data: orders, count }) => {
+        setOrderCount(count ?? 0);
+        const pending = (orders ?? []).filter((o) => o.status === "pending" || o.status === "preparing").length;
+        setPendingCount(pending);
+        const total = (orders ?? [])
+          .filter((o) => o.status === "paid")
+          .reduce((sum, o) => sum + Number(o.total ?? 0), 0);
+        setRevenue(total);
+      });
+
+    supabase
+      .from("orders")
+      .select("total, status")
+      .eq("restaurant_id", restaurantId)
+      .gte("created_at", yesterdayStart.toISOString())
+      .lt("created_at", todayStart.toISOString())
+      .then(({ data: yOrders }) => {
+        const total = (yOrders ?? [])
+          .filter((o) => o.status === "paid")
+          .reduce((sum, o) => sum + Number(o.total ?? 0), 0);
+        setYesterdayRevenue(total);
+      });
+
+    supabase
+      .from("orders")
+      .select("id, table_number, status, total, created_at")
+      .eq("restaurant_id", restaurantId)
+      .order("created_at", { ascending: false })
+      .limit(5)
+      .then(({ data: recent }) => setRecentOrders(recent ?? []));
+
+    const fifteenMinAgo = new Date(Date.now() - 15 * 60 * 1000);
+    supabase
+      .from("orders")
+      .select("id, table_number, created_at")
+      .eq("restaurant_id", restaurantId)
+      .in("status", ["pending", "preparing"])
+      .lt("created_at", fifteenMinAgo.toISOString())
+      .then(({ data: stuck }) => setStuckOrders(stuck ?? []));
+
+    supabase
+      .from("assistance_requests")
+      .select("id, table_number, customer_name")
+      .eq("restaurant_id", restaurantId)
+      .eq("status", "pending")
+      .then(({ data: assist }) => setPendingAssistance(assist ?? []));
+  };
+
   useEffect(() => {
     if (!user) return;
     supabase
@@ -60,71 +125,33 @@ function Dashboard() {
       .then(({ data }) => {
         setRestaurant(data);
         if (!data) return;
-
-        const todayStart = new Date();
-        todayStart.setHours(0, 0, 0, 0);
-        const yesterdayStart = new Date(todayStart);
-        yesterdayStart.setDate(yesterdayStart.getDate() - 1);
-
-        supabase
-          .from("products")
-          .select("id", { count: "exact", head: true })
-          .eq("restaurant_id", data.id)
-          .then(({ count }) => setProductCount(count ?? 0));
-
-        supabase
-          .from("orders")
-          .select("id, total, status", { count: "exact" })
-          .eq("restaurant_id", data.id)
-          .gte("created_at", todayStart.toISOString())
-          .then(({ data: orders, count }) => {
-            setOrderCount(count ?? 0);
-            const pending = (orders ?? []).filter((o) => o.status === "pending" || o.status === "preparing").length;
-            setPendingCount(pending);
-            const total = (orders ?? [])
-              .filter((o) => o.status === "paid")
-              .reduce((sum, o) => sum + Number(o.total ?? 0), 0);
-            setRevenue(total);
-          });
-
-        supabase
-          .from("orders")
-          .select("total, status")
-          .eq("restaurant_id", data.id)
-          .gte("created_at", yesterdayStart.toISOString())
-          .lt("created_at", todayStart.toISOString())
-          .then(({ data: yOrders }) => {
-            const total = (yOrders ?? [])
-              .filter((o) => o.status === "paid")
-              .reduce((sum, o) => sum + Number(o.total ?? 0), 0);
-            setYesterdayRevenue(total);
-          });
-
-        supabase
-          .from("orders")
-          .select("id, table_number, status, total, created_at")
-          .eq("restaurant_id", data.id)
-          .order("created_at", { ascending: false })
-          .limit(5)
-          .then(({ data: recent }) => setRecentOrders(recent ?? []));
-
-        const fifteenMinAgo = new Date(Date.now() - 15 * 60 * 1000);
-        supabase
-          .from("orders")
-          .select("id, table_number, created_at")
-          .eq("restaurant_id", data.id)
-          .in("status", ["pending", "preparing"])
-          .lt("created_at", fifteenMinAgo.toISOString())
-          .then(({ data: stuck }) => setStuckOrders(stuck ?? []));
-
-        supabase
-          .from("assistance_requests")
-          .select("id, table_number, customer_name")
-          .eq("restaurant_id", data.id)
-          .eq("status", "pending")
-          .then(({ data: assist }) => setPendingAssistance(assist ?? []));
+        loadDashboardData(data.id);
       });
   }, [user]);
+
+  useEffect(() => {
+    if (!restaurant) return;
+    const interval = setInterval(() => loadDashboardData(restaurant.id), 30000);
+    return () => clearInterval(interval);
+  }, [restaurant]);
+
+  useEffect(() => {
+    if (!restaurant) return;
+    const channel = supabase
+      .channel(`home-${restaurant.id}`)
+      .on("postgres_changes", { event: "*", schema: "public", table: "orders", filter: `restaurant_id=eq.${restaurant.id}` }, () =>
+        loadDashboardData(restaurant.id),
+      )
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "assistance_requests", filter: `restaurant_id=eq.${restaurant.id}` },
+        () => loadDashboardData(restaurant.id),
+      )
+      .subscribe();
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [restaurant]);
 
   const onLogout = async () => {
     await signOut();
