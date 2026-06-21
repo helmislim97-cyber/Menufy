@@ -17,9 +17,12 @@ import { Route as AuthenticatedDashboardRouteImport } from './routes/_authentica
 import { Route as AuthenticatedCashierRouteImport } from './routes/_authenticated/cashier'
 import { Route as AuthenticatedDashboardIndexRouteImport } from './routes/_authenticated/dashboard.index'
 import { Route as MenuRestaurantIdTableNumberRouteImport } from './routes/menu.$restaurantId.$tableNumber'
+import { Route as AuthenticatedDashboardTablesRouteImport } from './routes/_authenticated/dashboard.tables'
 import { Route as AuthenticatedDashboardSettingsRouteImport } from './routes/_authenticated/dashboard.settings'
 import { Route as AuthenticatedDashboardOrdersRouteImport } from './routes/_authenticated/dashboard.orders'
 import { Route as AuthenticatedDashboardMenuRouteImport } from './routes/_authenticated/dashboard.menu'
+import { Route as AuthenticatedDashboardInfoRouteImport } from './routes/_authenticated/dashboard.info'
+import { Route as AuthenticatedDashboardAppearanceRouteImport } from './routes/_authenticated/dashboard.appearance'
 
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
@@ -62,6 +65,12 @@ const MenuRestaurantIdTableNumberRoute =
     path: '/menu/$restaurantId/$tableNumber',
     getParentRoute: () => rootRouteImport,
   } as any)
+const AuthenticatedDashboardTablesRoute =
+  AuthenticatedDashboardTablesRouteImport.update({
+    id: '/tables',
+    path: '/tables',
+    getParentRoute: () => AuthenticatedDashboardRoute,
+  } as any)
 const AuthenticatedDashboardSettingsRoute =
   AuthenticatedDashboardSettingsRouteImport.update({
     id: '/settings',
@@ -80,6 +89,18 @@ const AuthenticatedDashboardMenuRoute =
     path: '/menu',
     getParentRoute: () => AuthenticatedDashboardRoute,
   } as any)
+const AuthenticatedDashboardInfoRoute =
+  AuthenticatedDashboardInfoRouteImport.update({
+    id: '/info',
+    path: '/info',
+    getParentRoute: () => AuthenticatedDashboardRoute,
+  } as any)
+const AuthenticatedDashboardAppearanceRoute =
+  AuthenticatedDashboardAppearanceRouteImport.update({
+    id: '/appearance',
+    path: '/appearance',
+    getParentRoute: () => AuthenticatedDashboardRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -87,9 +108,12 @@ export interface FileRoutesByFullPath {
   '/cashier': typeof AuthenticatedCashierRoute
   '/dashboard': typeof AuthenticatedDashboardRouteWithChildren
   '/kitchen': typeof AuthenticatedKitchenRoute
+  '/dashboard/appearance': typeof AuthenticatedDashboardAppearanceRoute
+  '/dashboard/info': typeof AuthenticatedDashboardInfoRoute
   '/dashboard/menu': typeof AuthenticatedDashboardMenuRoute
   '/dashboard/orders': typeof AuthenticatedDashboardOrdersRoute
   '/dashboard/settings': typeof AuthenticatedDashboardSettingsRoute
+  '/dashboard/tables': typeof AuthenticatedDashboardTablesRoute
   '/menu/$restaurantId/$tableNumber': typeof MenuRestaurantIdTableNumberRoute
   '/dashboard/': typeof AuthenticatedDashboardIndexRoute
 }
@@ -98,9 +122,12 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/cashier': typeof AuthenticatedCashierRoute
   '/kitchen': typeof AuthenticatedKitchenRoute
+  '/dashboard/appearance': typeof AuthenticatedDashboardAppearanceRoute
+  '/dashboard/info': typeof AuthenticatedDashboardInfoRoute
   '/dashboard/menu': typeof AuthenticatedDashboardMenuRoute
   '/dashboard/orders': typeof AuthenticatedDashboardOrdersRoute
   '/dashboard/settings': typeof AuthenticatedDashboardSettingsRoute
+  '/dashboard/tables': typeof AuthenticatedDashboardTablesRoute
   '/menu/$restaurantId/$tableNumber': typeof MenuRestaurantIdTableNumberRoute
   '/dashboard': typeof AuthenticatedDashboardIndexRoute
 }
@@ -112,9 +139,12 @@ export interface FileRoutesById {
   '/_authenticated/cashier': typeof AuthenticatedCashierRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRouteWithChildren
   '/_authenticated/kitchen': typeof AuthenticatedKitchenRoute
+  '/_authenticated/dashboard/appearance': typeof AuthenticatedDashboardAppearanceRoute
+  '/_authenticated/dashboard/info': typeof AuthenticatedDashboardInfoRoute
   '/_authenticated/dashboard/menu': typeof AuthenticatedDashboardMenuRoute
   '/_authenticated/dashboard/orders': typeof AuthenticatedDashboardOrdersRoute
   '/_authenticated/dashboard/settings': typeof AuthenticatedDashboardSettingsRoute
+  '/_authenticated/dashboard/tables': typeof AuthenticatedDashboardTablesRoute
   '/menu/$restaurantId/$tableNumber': typeof MenuRestaurantIdTableNumberRoute
   '/_authenticated/dashboard/': typeof AuthenticatedDashboardIndexRoute
 }
@@ -126,9 +156,12 @@ export interface FileRouteTypes {
     | '/cashier'
     | '/dashboard'
     | '/kitchen'
+    | '/dashboard/appearance'
+    | '/dashboard/info'
     | '/dashboard/menu'
     | '/dashboard/orders'
     | '/dashboard/settings'
+    | '/dashboard/tables'
     | '/menu/$restaurantId/$tableNumber'
     | '/dashboard/'
   fileRoutesByTo: FileRoutesByTo
@@ -137,9 +170,12 @@ export interface FileRouteTypes {
     | '/auth'
     | '/cashier'
     | '/kitchen'
+    | '/dashboard/appearance'
+    | '/dashboard/info'
     | '/dashboard/menu'
     | '/dashboard/orders'
     | '/dashboard/settings'
+    | '/dashboard/tables'
     | '/menu/$restaurantId/$tableNumber'
     | '/dashboard'
   id:
@@ -150,9 +186,12 @@ export interface FileRouteTypes {
     | '/_authenticated/cashier'
     | '/_authenticated/dashboard'
     | '/_authenticated/kitchen'
+    | '/_authenticated/dashboard/appearance'
+    | '/_authenticated/dashboard/info'
     | '/_authenticated/dashboard/menu'
     | '/_authenticated/dashboard/orders'
     | '/_authenticated/dashboard/settings'
+    | '/_authenticated/dashboard/tables'
     | '/menu/$restaurantId/$tableNumber'
     | '/_authenticated/dashboard/'
   fileRoutesById: FileRoutesById
@@ -222,6 +261,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof MenuRestaurantIdTableNumberRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/dashboard/tables': {
+      id: '/_authenticated/dashboard/tables'
+      path: '/tables'
+      fullPath: '/dashboard/tables'
+      preLoaderRoute: typeof AuthenticatedDashboardTablesRouteImport
+      parentRoute: typeof AuthenticatedDashboardRoute
+    }
     '/_authenticated/dashboard/settings': {
       id: '/_authenticated/dashboard/settings'
       path: '/settings'
@@ -243,21 +289,42 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedDashboardMenuRouteImport
       parentRoute: typeof AuthenticatedDashboardRoute
     }
+    '/_authenticated/dashboard/info': {
+      id: '/_authenticated/dashboard/info'
+      path: '/info'
+      fullPath: '/dashboard/info'
+      preLoaderRoute: typeof AuthenticatedDashboardInfoRouteImport
+      parentRoute: typeof AuthenticatedDashboardRoute
+    }
+    '/_authenticated/dashboard/appearance': {
+      id: '/_authenticated/dashboard/appearance'
+      path: '/appearance'
+      fullPath: '/dashboard/appearance'
+      preLoaderRoute: typeof AuthenticatedDashboardAppearanceRouteImport
+      parentRoute: typeof AuthenticatedDashboardRoute
+    }
   }
 }
 
 interface AuthenticatedDashboardRouteChildren {
+  AuthenticatedDashboardAppearanceRoute: typeof AuthenticatedDashboardAppearanceRoute
+  AuthenticatedDashboardInfoRoute: typeof AuthenticatedDashboardInfoRoute
   AuthenticatedDashboardMenuRoute: typeof AuthenticatedDashboardMenuRoute
   AuthenticatedDashboardOrdersRoute: typeof AuthenticatedDashboardOrdersRoute
   AuthenticatedDashboardSettingsRoute: typeof AuthenticatedDashboardSettingsRoute
+  AuthenticatedDashboardTablesRoute: typeof AuthenticatedDashboardTablesRoute
   AuthenticatedDashboardIndexRoute: typeof AuthenticatedDashboardIndexRoute
 }
 
 const AuthenticatedDashboardRouteChildren: AuthenticatedDashboardRouteChildren =
   {
+    AuthenticatedDashboardAppearanceRoute:
+      AuthenticatedDashboardAppearanceRoute,
+    AuthenticatedDashboardInfoRoute: AuthenticatedDashboardInfoRoute,
     AuthenticatedDashboardMenuRoute: AuthenticatedDashboardMenuRoute,
     AuthenticatedDashboardOrdersRoute: AuthenticatedDashboardOrdersRoute,
     AuthenticatedDashboardSettingsRoute: AuthenticatedDashboardSettingsRoute,
+    AuthenticatedDashboardTablesRoute: AuthenticatedDashboardTablesRoute,
     AuthenticatedDashboardIndexRoute: AuthenticatedDashboardIndexRoute,
   }
 
