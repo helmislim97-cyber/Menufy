@@ -35,6 +35,7 @@ interface NavItem {
   icon: typeof ShoppingBag;
   labelKey: string;
   comingSoon?: boolean;
+  children?: { to: string; labelKey: string }[];
 }
 
 interface NavGroup {
@@ -47,7 +48,15 @@ const NAV_GROUPS: NavGroup[] = [
     titleKey: "sidebar.group.activity",
     items: [
       { to: "/dashboard", icon: Home, labelKey: "sidebar.home" },
-      { to: "/dashboard/orders", icon: ShoppingBag, labelKey: "sidebar.orders" },
+      {
+        to: "/dashboard/orders",
+        icon: ShoppingBag,
+        labelKey: "sidebar.orders",
+        children: [
+          { to: "/kitchen", labelKey: "sidebar.kitchenMode" },
+          { to: "/cashier", labelKey: "sidebar.cashierMode" },
+        ],
+      },
       { to: "/dashboard/assistance", icon: BellRing, labelKey: "sidebar.assistance" },
       { to: "/dashboard/loyalty", icon: Heart, labelKey: "sidebar.loyalty", comingSoon: true },
     ],
@@ -85,7 +94,15 @@ const NAV_GROUPS: NavGroup[] = [
 
 const MOBILE_QUICK_ITEMS: NavItem[] = [
   { to: "/dashboard", icon: Home, labelKey: "sidebar.home" },
-  { to: "/dashboard/orders", icon: ShoppingBag, labelKey: "sidebar.orders" },
+  {
+        to: "/dashboard/orders",
+        icon: ShoppingBag,
+        labelKey: "sidebar.orders",
+        children: [
+          { to: "/kitchen", labelKey: "sidebar.kitchenMode" },
+          { to: "/cashier", labelKey: "sidebar.cashierMode" },
+        ],
+      },
   { to: "/dashboard/menu", icon: UtensilsCrossed, labelKey: "sidebar.menu" },
   { to: "/dashboard/assistance", icon: BellRing, labelKey: "sidebar.assistance" },
 ];
@@ -126,20 +143,41 @@ function NavLinks({
                 );
               }
               return (
-                <Link
-                  key={item.to}
-                  to={item.to}
-                  onClick={onNavigate}
-                  title={!expanded ? t(item.labelKey) : undefined}
-                  className={cn(
-                    "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors sm:text-base sm:py-3",
-                    !expanded && "h-11 w-11 sm:h-12 sm:w-12 justify-center px-0 mx-auto",
-                    active ? "bg-white/10 text-white" : "text-white/70 hover:bg-white/5 hover:text-white",
+                <div key={item.to}>
+                  <Link
+                    to={item.to}
+                    onClick={onNavigate}
+                    title={!expanded ? t(item.labelKey) : undefined}
+                    className={cn(
+                      "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors sm:text-base sm:py-3",
+                      !expanded && "h-11 w-11 sm:h-12 sm:w-12 justify-center px-0 mx-auto",
+                      active ? "bg-white/10 text-white" : "text-white/70 hover:bg-white/5 hover:text-white",
+                    )}
+                  >
+                    <item.icon className={expanded ? "h-[18px] w-[18px] shrink-0 sm:h-6 sm:w-6" : "h-5 w-5 shrink-0 sm:h-6 sm:w-6"} />
+                    {expanded && t(item.labelKey)}
+                  </Link>
+                  {expanded && item.children && (
+                    <div className="ms-6 mt-0.5 space-y-0.5 border-s border-white/10 ps-3">
+                      {item.children.map((child) => {
+                        const childActive = pathname === child.to || pathname.startsWith(child.to + "/");
+                        return (
+                          <Link
+                            key={child.to}
+                            to={child.to}
+                            onClick={onNavigate}
+                            className={cn(
+                              "block rounded-lg px-3 py-2 text-sm font-medium transition-colors",
+                              childActive ? "bg-white/10 text-white" : "text-white/60 hover:bg-white/5 hover:text-white",
+                            )}
+                          >
+                            {t(child.labelKey)}
+                          </Link>
+                        );
+                      })}
+                    </div>
                   )}
-                >
-                  <item.icon className={expanded ? "h-[18px] w-[18px] shrink-0 sm:h-6 sm:w-6" : "h-5 w-5 shrink-0 sm:h-6 sm:w-6"} />
-                  {expanded && t(item.labelKey)}
-                </Link>
+                </div>
               );
             })}
           </div>
