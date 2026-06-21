@@ -40,8 +40,8 @@ export function ThemeToggle({ expanded }: { expanded?: boolean }) {
       title={theme === "dark" ? "Mode clair" : "Mode sombre"}
       className={
         expanded
-          ? "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-white/70 hover:bg-white/5 hover:text-white"
-          : "grid h-11 w-11 mx-auto place-items-center rounded-full text-white/70 hover:bg-white/5 hover:text-white"
+          ? "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-muted-foreground hover:bg-accent/50 hover:text-foreground"
+          : "grid h-11 w-11 mx-auto place-items-center rounded-full text-muted-foreground hover:bg-accent/50 hover:text-foreground"
       }
     >
       {theme === "dark" ? <Sun className="h-[18px] w-[18px] shrink-0" /> : <Moon className="h-[18px] w-[18px] shrink-0" />}
