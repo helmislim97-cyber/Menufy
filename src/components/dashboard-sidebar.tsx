@@ -1,5 +1,6 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
 import {
   ChevronRight,
   ChevronLeft,
@@ -28,7 +29,6 @@ import {
 } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
 import { useAuth } from "@/hooks/use-auth";
-import { Logo } from "@/components/logo";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { cn } from "@/lib/utils";
 
@@ -227,6 +227,19 @@ export function DashboardSidebar() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const [expanded, setExpandedState] = useState(true);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [restaurantName, setRestaurantName] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!user) return;
+    supabase
+      .from("restaurants")
+      .select("name")
+      .eq("owner_id", user.id)
+      .maybeSingle()
+      .then(({ data }) => {
+        if (data) setRestaurantName(data.name);
+      });
+  }, [user]);
 
   const setExpanded = (v: boolean | ((prev: boolean) => boolean)) => {
     setExpandedState((prev) => {
@@ -252,7 +265,9 @@ export function DashboardSidebar() {
         )}
       >
         <div className="flex items-center justify-between px-3 py-4">
-          {expanded && <Logo size="sm" />}
+          {expanded && (
+            <p className="truncate text-base font-extrabold">{restaurantName ?? "…"}</p>
+          )}
           <button
             onClick={() => setExpanded((v) => !v)}
             className={cn("grid h-8 w-8 shrink-0 place-items-center rounded-full text-muted-foreground hover:text-foreground", !expanded && "mx-auto")}
@@ -326,7 +341,7 @@ export function DashboardSidebar() {
             )}
           >
             <div className="flex items-center justify-between px-4 py-4">
-              <Logo size="sm" />
+              <p className="truncate text-base font-extrabold">{restaurantName ?? "…"}</p>
               <button onClick={() => setMobileMenuOpen(false)} className="grid h-8 w-8 place-items-center rounded-full text-muted-foreground hover:text-foreground">
                 <X className="h-5 w-5" />
               </button>
