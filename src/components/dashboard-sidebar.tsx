@@ -206,7 +206,7 @@ export function DashboardSidebar() {
   const { t, dir } = useI18n();
   const { user, signOut } = useAuth();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
-  const [expanded, setExpanded] = useState(false);
+  const [expanded, setExpanded] = useState(true);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const onLogout = async () => {
