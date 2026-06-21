@@ -140,8 +140,8 @@ function OrdersPage() {
 
   return (
     <div className="min-h-screen bg-background pb-24">
-      <header className="sticky top-0 z-30 border-b border-border/50 bg-background/85 backdrop-blur-xl sm:ps-20">
-        <div className="mx-auto flex h-14 max-w-3xl items-center justify-between px-4">
+      <header className="sticky top-0 z-30 border-b border-border/50 bg-background/85 backdrop-blur-xl sm:ps-80">
+        <div className="mx-auto flex h-14 max-w-3xl items-center justify-between px-4 sm:max-w-6xl">
           <Logo size="sm" />
           <div className="flex items-center gap-2">
             <AssistanceBell />
@@ -150,7 +150,7 @@ function OrdersPage() {
         </div>
       </header>
 
-      <main className="mx-auto max-w-3xl px-4 py-6 sm:ps-20">
+      <main className="mx-auto max-w-3xl px-4 py-6 sm:max-w-6xl sm:ps-80">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div>
             <h1 className="text-2xl font-extrabold">{t("orders.title")}</h1>
@@ -181,7 +181,7 @@ function OrdersPage() {
           </div>
         ) : (
           <div className="mt-6 space-y-6">
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
               <div className="rounded-2xl border border-border bg-surface p-4">
                 <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{t("orders.todayRevenue")}</p>
                 <p className="mt-1 text-2xl font-extrabold text-gold">{todayRevenue.toFixed(2)} DT</p>
