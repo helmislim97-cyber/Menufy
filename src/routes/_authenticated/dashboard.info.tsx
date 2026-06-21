@@ -3,12 +3,9 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { useI18n } from "@/lib/i18n";
-import { Logo } from "@/components/logo";
-import { LangSwitch } from "@/components/lang-switch";
-import { DashboardSidebar } from "@/components/dashboard-sidebar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { AssistanceBell } from "@/components/assistance-bell";
+import { DashboardPage } from "@/components/dashboard-page";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/dashboard/info")({
@@ -87,18 +84,7 @@ function InfoPage() {
   };
 
   return (
-    <div className="min-h-screen bg-background pb-24">
-      <header className="sticky top-0 z-30 border-b border-border/50 bg-background/85 backdrop-blur-xl sm:ps-80">
-        <div className="mx-auto flex h-14 max-w-3xl items-center justify-between px-4">
-          <Logo size="sm" />
-          <div className="flex items-center gap-2">
-            <AssistanceBell />
-            <LangSwitch />
-          </div>
-        </div>
-      </header>
-
-      <main className="mx-auto max-w-3xl px-4 py-6 sm:ps-80">
+    <DashboardPage>
         <h1 className="text-2xl font-extrabold">{t("sidebar.info")}</h1>
 
         {loading ? (
@@ -145,9 +131,6 @@ function InfoPage() {
             </Button>
           </div>
         )}
-      </main>
-
-      <DashboardSidebar />
-    </div>
+    </DashboardPage>
   );
 }
