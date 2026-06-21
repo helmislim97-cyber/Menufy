@@ -151,20 +151,20 @@ function OrdersPage() {
       </header>
 
       <main className="mx-auto max-w-3xl px-4 py-6 ps-16 sm:ps-20">
-        <div className="flex items-start justify-between gap-3">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div>
             <h1 className="text-2xl font-extrabold">{t("orders.title")}</h1>
             <p className="mt-1 text-sm text-muted-foreground">{t("orders.subtitle")}</p>
           </div>
-          <div className="flex shrink-0 gap-2">
-            <Link to="/kitchen">
-              <Button size="sm" variant="outline" className="gap-1.5">
+          <div className="flex gap-2">
+            <Link to="/kitchen" className="flex-1 sm:flex-none">
+              <Button size="sm" variant="outline" className="w-full gap-1.5">
                 <ChefHat className="h-4 w-4" />
                 {t("kitchen.openKitchen")}
               </Button>
             </Link>
-            <Link to="/cashier">
-              <Button size="sm" variant="outline" className="gap-1.5">
+            <Link to="/cashier" className="flex-1 sm:flex-none">
+              <Button size="sm" variant="outline" className="w-full gap-1.5">
                 <Wallet className="h-4 w-4" />
                 {t("cashier.openCashier")}
               </Button>
