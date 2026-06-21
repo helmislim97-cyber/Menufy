@@ -3,12 +3,9 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { useI18n } from "@/lib/i18n";
-import { Logo } from "@/components/logo";
-import { LangSwitch } from "@/components/lang-switch";
-import { DashboardSidebar } from "@/components/dashboard-sidebar";
 import { LogOut, UtensilsCrossed, ShoppingBag, TrendingUp, Clock, ArrowRight } from "lucide-react";
 import { toast } from "sonner";
-import { AssistanceBell } from "@/components/assistance-bell";
+import { DashboardPage } from "@/components/dashboard-page";
 
 export const Route = createFileRoute("/_authenticated/dashboard/")({
   component: Dashboard,
@@ -73,21 +70,13 @@ function Dashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-background pb-24 sm:ps-0">
-      <header className="sticky top-0 z-30 border-b border-border/50 bg-background/85 backdrop-blur-xl sm:ps-80">
-        <div className="mx-auto flex h-14 max-w-3xl items-center justify-between px-4 sm:max-w-6xl">
-          <Logo size="sm" />
-          <div className="flex items-center gap-2">
-            <AssistanceBell />
-            <LangSwitch />
-            <button onClick={onLogout} className="grid h-9 w-9 place-items-center rounded-full border border-border bg-surface text-muted-foreground hover:text-foreground">
-              <LogOut className="h-4 w-4" />
-            </button>
-          </div>
-        </div>
-      </header>
-
-      <main className="mx-auto max-w-3xl px-4 py-6 sm:max-w-6xl sm:ps-80">
+    <DashboardPage
+      headerExtra={
+        <button onClick={onLogout} className="grid h-9 w-9 place-items-center rounded-full border border-border bg-surface text-muted-foreground hover:text-foreground">
+          <LogOut className="h-4 w-4" />
+        </button>
+      }
+    >
         <div className="rounded-3xl border border-border bg-gradient-brand p-6 text-primary-foreground shadow-glow">
           <p className="text-xs font-semibold uppercase tracking-wider opacity-80">Restaurant</p>
           <h1 className="mt-1 text-2xl font-extrabold">{restaurant?.name ?? "…"}</h1>
@@ -113,10 +102,7 @@ function Dashboard() {
             <ArrowRight className="h-5 w-5 shrink-0 text-primary" />
           </Link>
         )}
-      </main>
-
-      <DashboardSidebar />
-    </div>
+    </DashboardPage>
   );
 }
 
