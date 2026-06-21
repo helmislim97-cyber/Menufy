@@ -1,5 +1,5 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   ChevronRight,
   ChevronLeft,
@@ -30,6 +30,24 @@ import { useI18n } from "@/lib/i18n";
 import { useAuth } from "@/hooks/use-auth";
 import { Logo } from "@/components/logo";
 import { cn } from "@/lib/utils";
+
+type Listener = (expanded: boolean) => void;
+const listeners = new Set<Listener>();
+let sidebarExpandedValue = true;
+function setSidebarExpandedGlobal(v: boolean) {
+  sidebarExpandedValue = v;
+  listeners.forEach((l) => l(v));
+}
+export function useSidebarExpanded() {
+  const [val, setVal] = useState(sidebarExpandedValue);
+  useEffect(() => {
+    listeners.add(setVal);
+    return () => {
+      listeners.delete(setVal);
+    };
+  }, []);
+  return val;
+}
 
 interface NavItem {
   to: string;
@@ -206,8 +224,16 @@ export function DashboardSidebar() {
   const { t, dir } = useI18n();
   const { user, signOut } = useAuth();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
-  const [expanded, setExpanded] = useState(true);
+  const [expanded, setExpandedState] = useState(true);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  const setExpanded = (v: boolean | ((prev: boolean) => boolean)) => {
+    setExpandedState((prev) => {
+      const next = typeof v === "function" ? v(prev) : v;
+      setSidebarExpandedGlobal(next);
+      return next;
+    });
+  };
 
   const onLogout = async () => {
     await signOut();
