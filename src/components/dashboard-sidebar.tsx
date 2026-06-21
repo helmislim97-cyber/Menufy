@@ -3,6 +3,7 @@ import { useState } from "react";
 import {
   ChevronRight,
   ChevronLeft,
+  ChevronDown,
   Home,
   ShoppingBag,
   BellRing,
@@ -116,6 +117,7 @@ function NavLinks({
 }) {
   const { t } = useI18n();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const [openSubmenu, setOpenSubmenu] = useState<string | null>(null);
 
   return (
     <nav className="flex-1 overflow-y-auto overflow-x-hidden px-2 pb-3">
@@ -142,24 +144,37 @@ function NavLinks({
                   </div>
                 );
               }
+              const hasChildren = !!item.children;
+              const submenuOpen = openSubmenu === item.to;
               return (
                 <div key={item.to}>
-                  <Link
-                    to={item.to}
-                    onClick={onNavigate}
-                    title={!expanded ? t(item.labelKey) : undefined}
-                    className={cn(
-                      "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors sm:text-base sm:py-3",
-                      !expanded && "h-11 w-11 sm:h-12 sm:w-12 justify-center px-0 mx-auto",
-                      active ? "bg-white/10 text-white" : "text-white/70 hover:bg-white/5 hover:text-white",
+                  <div className="flex items-center">
+                    <Link
+                      to={item.to}
+                      onClick={onNavigate}
+                      title={!expanded ? t(item.labelKey) : undefined}
+                      className={cn(
+                        "flex flex-1 items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors sm:text-base sm:py-3",
+                        !expanded && "h-11 w-11 sm:h-12 sm:w-12 justify-center px-0 mx-auto",
+                        active ? "bg-white/10 text-white" : "text-white/70 hover:bg-white/5 hover:text-white",
+                      )}
+                    >
+                      <item.icon className={expanded ? "h-[18px] w-[18px] shrink-0 sm:h-6 sm:w-6" : "h-5 w-5 shrink-0 sm:h-6 sm:w-6"} />
+                      {expanded && t(item.labelKey)}
+                    </Link>
+                    {expanded && hasChildren && (
+                      <button
+                        onClick={() => setOpenSubmenu(submenuOpen ? null : item.to)}
+                        className="grid h-8 w-8 shrink-0 place-items-center rounded-full text-white/50 hover:text-white"
+                        aria-label="Toggle submenu"
+                      >
+                        <ChevronDown className={cn("h-4 w-4 transition-transform", submenuOpen && "rotate-180")} />
+                      </button>
                     )}
-                  >
-                    <item.icon className={expanded ? "h-[18px] w-[18px] shrink-0 sm:h-6 sm:w-6" : "h-5 w-5 shrink-0 sm:h-6 sm:w-6"} />
-                    {expanded && t(item.labelKey)}
-                  </Link>
-                  {expanded && item.children && (
+                  </div>
+                  {expanded && hasChildren && submenuOpen && (
                     <div className="ms-6 mt-0.5 space-y-0.5 border-s border-white/10 ps-3">
-                      {item.children.map((child) => {
+                      {item.children!.map((child) => {
                         const childActive = pathname === child.to || pathname.startsWith(child.to + "/");
                         return (
                           <Link
