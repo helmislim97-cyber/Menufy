@@ -18,7 +18,6 @@ import { Route as AuthenticatedCashierRouteImport } from './routes/_authenticate
 import { Route as AuthenticatedDashboardIndexRouteImport } from './routes/_authenticated/dashboard.index'
 import { Route as MenuRestaurantIdTableNumberRouteImport } from './routes/menu.$restaurantId.$tableNumber'
 import { Route as AuthenticatedDashboardTablesRouteImport } from './routes/_authenticated/dashboard.tables'
-import { Route as AuthenticatedDashboardSettingsRouteImport } from './routes/_authenticated/dashboard.settings'
 import { Route as AuthenticatedDashboardOrdersRouteImport } from './routes/_authenticated/dashboard.orders'
 import { Route as AuthenticatedDashboardMenuRouteImport } from './routes/_authenticated/dashboard.menu'
 import { Route as AuthenticatedDashboardInfoRouteImport } from './routes/_authenticated/dashboard.info'
@@ -71,12 +70,6 @@ const AuthenticatedDashboardTablesRoute =
     path: '/tables',
     getParentRoute: () => AuthenticatedDashboardRoute,
   } as any)
-const AuthenticatedDashboardSettingsRoute =
-  AuthenticatedDashboardSettingsRouteImport.update({
-    id: '/settings',
-    path: '/settings',
-    getParentRoute: () => AuthenticatedDashboardRoute,
-  } as any)
 const AuthenticatedDashboardOrdersRoute =
   AuthenticatedDashboardOrdersRouteImport.update({
     id: '/orders',
@@ -112,7 +105,6 @@ export interface FileRoutesByFullPath {
   '/dashboard/info': typeof AuthenticatedDashboardInfoRoute
   '/dashboard/menu': typeof AuthenticatedDashboardMenuRoute
   '/dashboard/orders': typeof AuthenticatedDashboardOrdersRoute
-  '/dashboard/settings': typeof AuthenticatedDashboardSettingsRoute
   '/dashboard/tables': typeof AuthenticatedDashboardTablesRoute
   '/menu/$restaurantId/$tableNumber': typeof MenuRestaurantIdTableNumberRoute
   '/dashboard/': typeof AuthenticatedDashboardIndexRoute
@@ -126,7 +118,6 @@ export interface FileRoutesByTo {
   '/dashboard/info': typeof AuthenticatedDashboardInfoRoute
   '/dashboard/menu': typeof AuthenticatedDashboardMenuRoute
   '/dashboard/orders': typeof AuthenticatedDashboardOrdersRoute
-  '/dashboard/settings': typeof AuthenticatedDashboardSettingsRoute
   '/dashboard/tables': typeof AuthenticatedDashboardTablesRoute
   '/menu/$restaurantId/$tableNumber': typeof MenuRestaurantIdTableNumberRoute
   '/dashboard': typeof AuthenticatedDashboardIndexRoute
@@ -143,7 +134,6 @@ export interface FileRoutesById {
   '/_authenticated/dashboard/info': typeof AuthenticatedDashboardInfoRoute
   '/_authenticated/dashboard/menu': typeof AuthenticatedDashboardMenuRoute
   '/_authenticated/dashboard/orders': typeof AuthenticatedDashboardOrdersRoute
-  '/_authenticated/dashboard/settings': typeof AuthenticatedDashboardSettingsRoute
   '/_authenticated/dashboard/tables': typeof AuthenticatedDashboardTablesRoute
   '/menu/$restaurantId/$tableNumber': typeof MenuRestaurantIdTableNumberRoute
   '/_authenticated/dashboard/': typeof AuthenticatedDashboardIndexRoute
@@ -160,7 +150,6 @@ export interface FileRouteTypes {
     | '/dashboard/info'
     | '/dashboard/menu'
     | '/dashboard/orders'
-    | '/dashboard/settings'
     | '/dashboard/tables'
     | '/menu/$restaurantId/$tableNumber'
     | '/dashboard/'
@@ -174,7 +163,6 @@ export interface FileRouteTypes {
     | '/dashboard/info'
     | '/dashboard/menu'
     | '/dashboard/orders'
-    | '/dashboard/settings'
     | '/dashboard/tables'
     | '/menu/$restaurantId/$tableNumber'
     | '/dashboard'
@@ -190,7 +178,6 @@ export interface FileRouteTypes {
     | '/_authenticated/dashboard/info'
     | '/_authenticated/dashboard/menu'
     | '/_authenticated/dashboard/orders'
-    | '/_authenticated/dashboard/settings'
     | '/_authenticated/dashboard/tables'
     | '/menu/$restaurantId/$tableNumber'
     | '/_authenticated/dashboard/'
@@ -268,13 +255,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedDashboardTablesRouteImport
       parentRoute: typeof AuthenticatedDashboardRoute
     }
-    '/_authenticated/dashboard/settings': {
-      id: '/_authenticated/dashboard/settings'
-      path: '/settings'
-      fullPath: '/dashboard/settings'
-      preLoaderRoute: typeof AuthenticatedDashboardSettingsRouteImport
-      parentRoute: typeof AuthenticatedDashboardRoute
-    }
     '/_authenticated/dashboard/orders': {
       id: '/_authenticated/dashboard/orders'
       path: '/orders'
@@ -311,7 +291,6 @@ interface AuthenticatedDashboardRouteChildren {
   AuthenticatedDashboardInfoRoute: typeof AuthenticatedDashboardInfoRoute
   AuthenticatedDashboardMenuRoute: typeof AuthenticatedDashboardMenuRoute
   AuthenticatedDashboardOrdersRoute: typeof AuthenticatedDashboardOrdersRoute
-  AuthenticatedDashboardSettingsRoute: typeof AuthenticatedDashboardSettingsRoute
   AuthenticatedDashboardTablesRoute: typeof AuthenticatedDashboardTablesRoute
   AuthenticatedDashboardIndexRoute: typeof AuthenticatedDashboardIndexRoute
 }
@@ -323,7 +302,6 @@ const AuthenticatedDashboardRouteChildren: AuthenticatedDashboardRouteChildren =
     AuthenticatedDashboardInfoRoute: AuthenticatedDashboardInfoRoute,
     AuthenticatedDashboardMenuRoute: AuthenticatedDashboardMenuRoute,
     AuthenticatedDashboardOrdersRoute: AuthenticatedDashboardOrdersRoute,
-    AuthenticatedDashboardSettingsRoute: AuthenticatedDashboardSettingsRoute,
     AuthenticatedDashboardTablesRoute: AuthenticatedDashboardTablesRoute,
     AuthenticatedDashboardIndexRoute: AuthenticatedDashboardIndexRoute,
   }
