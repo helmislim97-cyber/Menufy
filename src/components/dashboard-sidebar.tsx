@@ -245,7 +245,7 @@ export function DashboardSidebar() {
       {/* Desktop: always-visible collapsible vertical sidebar */}
       <div
         className={cn(
-          "fixed inset-y-0 z-40 hidden sm:flex flex-col bg-[#1a2332] text-white transition-all duration-200",
+          "fixed inset-y-0 z-40 hidden lg:flex flex-col bg-[#1a2332] text-white transition-all duration-200",
           dir === "rtl" ? "right-0" : "left-0",
           expanded ? "w-80" : "w-20",
         )}
@@ -282,7 +282,7 @@ export function DashboardSidebar() {
       </div>
 
       {/* Mobile: fixed bottom bar */}
-      <nav className="fixed bottom-0 inset-x-0 z-40 border-t border-border bg-[#1a2332] sm:hidden">
+      <nav className="fixed bottom-0 inset-x-0 z-40 border-t border-border bg-[#1a2332] lg:hidden">
         <div className="grid grid-cols-5">
           {MOBILE_QUICK_ITEMS.map((item) => {
             const active = pathname === item.to || (item.to !== "/dashboard" && pathname.startsWith(item.to + "/"));
@@ -312,7 +312,7 @@ export function DashboardSidebar() {
 
       {/* Mobile: slide-out full menu, triggered by "Plus" */}
       {mobileMenuOpen && (
-        <div className="fixed inset-0 z-50 flex sm:hidden">
+        <div className="fixed inset-0 z-50 flex lg:hidden">
           <div className="absolute inset-0 bg-black/50" onClick={() => setMobileMenuOpen(false)} />
           <div
             className={cn(
