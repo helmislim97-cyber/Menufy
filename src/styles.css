@@ -53,44 +53,7 @@
 :root {
   --radius: 0.95rem;
 
-  /* Brand palette — dark by default */
-  --background: oklch(0.18 0.015 130);          /* #0c0f0a */
-  --foreground: oklch(0.96 0.01 110);
-  --surface: oklch(0.22 0.018 130);             /* #131710 */
-  --surface-elevated: oklch(0.26 0.02 130);
-  --card: oklch(0.22 0.018 130);
-  --card-foreground: oklch(0.96 0.01 110);
-  --popover: oklch(0.24 0.02 130);
-  --popover-foreground: oklch(0.96 0.01 110);
-
-  --primary: oklch(0.74 0.16 135);              /* #7ab450 green */
-  --primary-foreground: oklch(0.15 0.02 130);
-  --primary-glow: oklch(0.82 0.18 135);
-
-  --secondary: oklch(0.28 0.02 130);
-  --secondary-foreground: oklch(0.96 0.01 110);
-
-  --muted: oklch(0.26 0.018 130);
-  --muted-foreground: oklch(0.7 0.015 120);
-
-  --accent: oklch(0.3 0.025 130);
-  --accent-foreground: oklch(0.96 0.01 110);
-
-  --gold: oklch(0.78 0.13 85);                  /* #d4a843 */
-  --gold-foreground: oklch(0.18 0.02 110);
-
-  --destructive: oklch(0.62 0.22 25);
-  --destructive-foreground: oklch(0.98 0 0);
-  --success: oklch(0.74 0.16 145);
-  --warning: oklch(0.82 0.16 85);
-  --info: oklch(0.7 0.13 230);
-
-  --border: oklch(0.32 0.02 130);
-  --input: oklch(0.28 0.02 130);
-  --ring: oklch(0.74 0.16 135);
-}
-
-.light {
+  /* Light theme (default for dashboard light mode) */
   --background: oklch(0.99 0.002 110);
   --foreground: oklch(0.2 0.015 130);
   --surface: oklch(0.97 0.004 110);
@@ -125,6 +88,43 @@
   --border: oklch(0.9 0.006 110);
   --input: oklch(0.93 0.006 110);
   --ring: oklch(0.6 0.16 135);
+}
+
+.dark {
+  --background: oklch(0.18 0.015 130);          /* #0c0f0a */
+  --foreground: oklch(0.96 0.01 110);
+  --surface: oklch(0.22 0.018 130);             /* #131710 */
+  --surface-elevated: oklch(0.26 0.02 130);
+  --card: oklch(0.22 0.018 130);
+  --card-foreground: oklch(0.96 0.01 110);
+  --popover: oklch(0.24 0.02 130);
+  --popover-foreground: oklch(0.96 0.01 110);
+
+  --primary: oklch(0.74 0.16 135);              /* #7ab450 green */
+  --primary-foreground: oklch(0.15 0.02 130);
+  --primary-glow: oklch(0.82 0.18 135);
+
+  --secondary: oklch(0.28 0.02 130);
+  --secondary-foreground: oklch(0.96 0.01 110);
+
+  --muted: oklch(0.26 0.018 130);
+  --muted-foreground: oklch(0.7 0.015 120);
+
+  --accent: oklch(0.3 0.025 130);
+  --accent-foreground: oklch(0.96 0.01 110);
+
+  --gold: oklch(0.78 0.13 85);                  /* #d4a843 */
+  --gold-foreground: oklch(0.18 0.02 110);
+
+  --destructive: oklch(0.62 0.22 25);
+  --destructive-foreground: oklch(0.98 0 0);
+  --success: oklch(0.74 0.16 145);
+  --warning: oklch(0.82 0.16 85);
+  --info: oklch(0.7 0.13 230);
+
+  --border: oklch(0.32 0.02 130);
+  --input: oklch(0.28 0.02 130);
+  --ring: oklch(0.74 0.16 135);
 }
 
 @layer base {
