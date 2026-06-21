@@ -20,7 +20,10 @@ interface Restaurant {
   banner_position_x: number | null;
   banner_position_y: number | null;
   banner_zoom: number | null;
+  brand_color: string | null;
 }
+
+const BRAND_COLORS = ["#7ab450", "#dc2626", "#ea580c", "#2563eb", "#9333ea", "#0891b2", "#d4a843", "#1c1f16"];
 
 function AppearancePage() {
   const { user } = useAuth();
@@ -41,12 +44,13 @@ function AppearancePage() {
   const [bannerPosX, setBannerPosX] = useState(50);
   const [bannerPosY, setBannerPosY] = useState(50);
   const [bannerZoom, setBannerZoom] = useState(1);
+  const [brandColor, setBrandColor] = useState("#7ab450");
 
   useEffect(() => {
     if (!user) return;
     supabase
       .from("restaurants")
-      .select("id, logo_url, banner_url, banner_position_x, banner_position_y, banner_zoom")
+      .select("id, logo_url, banner_url, banner_position_x, banner_position_y, banner_zoom, brand_color")
       .eq("owner_id", user.id)
       .maybeSingle()
       .then(({ data }) => {
@@ -59,6 +63,7 @@ function AppearancePage() {
           setBannerPosX(data.banner_position_x ?? 50);
           setBannerPosY(data.banner_position_y ?? 50);
           setBannerZoom(data.banner_zoom ?? 1);
+          setBrandColor(data.brand_color ?? "#7ab450");
         }
         setLoading(false);
       });
@@ -151,6 +156,7 @@ function AppearancePage() {
       banner_position_x: bannerPosX,
       banner_position_y: bannerPosY,
       banner_zoom: bannerZoom,
+      brand_color: brandColor,
     };
     const { error } = await supabase.from("restaurants").update(updates).eq("id", restaurant.id);
     setSaving(false);
@@ -263,6 +269,32 @@ function AppearancePage() {
                     </button>
                   )}
                 </div>
+              </div>
+            </div>
+
+            <div>
+              <label className="text-xs font-semibold text-muted-foreground">{t("settings.brandColor")}</label>
+              <p className="mt-0.5 text-xs text-muted-foreground/70">{t("settings.brandColorHint")}</p>
+              <div className="mt-2 flex flex-wrap items-center gap-2">
+                {BRAND_COLORS.map((c) => (
+                  <button
+                    key={c}
+                    type="button"
+                    onClick={() => setBrandColor(c)}
+                    className={`h-9 w-9 shrink-0 rounded-full border-2 transition-transform ${brandColor === c ? "border-foreground scale-110" : "border-transparent"}`}
+                    style={{ backgroundColor: c }}
+                    aria-label={c}
+                  />
+                ))}
+                <label className="grid h-9 w-9 shrink-0 cursor-pointer place-items-center rounded-full border border-dashed border-border text-muted-foreground">
+                  <input
+                    type="color"
+                    value={brandColor}
+                    onChange={(e) => setBrandColor(e.target.value)}
+                    className="h-0 w-0 opacity-0"
+                  />
+                  <span className="text-[10px] font-bold">+</span>
+                </label>
               </div>
             </div>
 
