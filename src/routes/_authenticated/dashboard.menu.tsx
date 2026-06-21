@@ -611,9 +611,14 @@ function MenuManagement() {
               if (group.id === UNCATEGORIZED && group.products.length === 0) return null;
               const category = categories.find((c) => c.id === group.id);
               const sectionContent = (
-                <>
-                  <div className={`mb-2 flex items-center justify-between ${category && !category.is_active ? "opacity-50" : ""}`}>
-                    <h2 className="text-base font-bold">{group.name}</h2>
+                <div className={`rounded-2xl border border-border bg-surface/60 p-4 ${category && !category.is_active ? "opacity-50" : ""}`}>
+                  <div className="mb-3 flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <h2 className="text-base font-bold">{group.name}</h2>
+                      <span className="rounded-full bg-background px-2 py-0.5 text-xs font-semibold text-muted-foreground">
+                        {group.products.length}
+                      </span>
+                    </div>
                     <div className="flex items-center gap-1">
                       <Button onClick={() => openNewProduct(group.id === UNCATEGORIZED ? undefined : group.id)} size="sm" variant="ghost" className="gap-1.5 text-primary">
                         <Plus className="h-4 w-4" />
@@ -646,7 +651,7 @@ function MenuManagement() {
                   </div>
 
                   {group.products.length === 0 ? (
-                    <p className="rounded-xl border border-dashed border-border bg-surface/40 p-4 text-center text-sm text-muted-foreground">
+                    <p className="rounded-xl border border-dashed border-border bg-background/60 p-4 text-center text-sm text-muted-foreground">
                       {t("menu.noProducts")}
                     </p>
                   ) : (
@@ -702,7 +707,7 @@ function MenuManagement() {
             
                   </DndContext>
                   )}
-                </>
+                </div>
               );
               return (
                 <SortableCategorySection key={group.id} id={group.id}>
