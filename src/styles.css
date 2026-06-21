@@ -137,6 +137,11 @@
     font-family: var(--font-sans);
     -webkit-font-smoothing: antialiased;
   }
+  @media (min-width: 1024px) {
+    html {
+      font-size: 17px;
+    }
+  }
   html[dir="rtl"], html[dir="rtl"] body {
     font-family: var(--font-arabic);
   }
