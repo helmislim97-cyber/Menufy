@@ -29,6 +29,7 @@ import {
 import { useI18n } from "@/lib/i18n";
 import { useAuth } from "@/hooks/use-auth";
 import { Logo } from "@/components/logo";
+import { ThemeToggle } from "@/components/theme-toggle";
 import { cn } from "@/lib/utils";
 
 type Listener = (expanded: boolean) => void;
@@ -263,6 +264,10 @@ export function DashboardSidebar() {
 
         <NavLinks expanded={expanded} />
 
+        <div className="border-t border-white/10 px-3 py-2">
+          <ThemeToggle expanded={expanded} />
+        </div>
+
         <div className="border-t border-white/10 px-3 py-4">
           {expanded && (
             <div className="mb-3">
@@ -327,6 +332,9 @@ export function DashboardSidebar() {
               </button>
             </div>
             <NavLinks expanded onNavigate={() => setMobileMenuOpen(false)} />
+            <div className="border-t border-white/10 px-4 py-2">
+              <ThemeToggle expanded />
+            </div>
             <div className="border-t border-white/10 px-4 py-4">
               <p className="truncate text-sm font-semibold">{user?.email?.split("@")[0] ?? ""}</p>
               <p className="truncate text-xs text-white/40">{user?.email ?? ""}</p>
