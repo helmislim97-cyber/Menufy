@@ -1140,9 +1140,13 @@ function MenuPage() {
           </div>
         )}
 
-        <Button onClick={startNewOrder} className="mt-8 w-full max-w-xs">
+        <button
+          onClick={startNewOrder}
+          className="mt-8 w-full max-w-xs rounded-xl px-4 py-3 text-sm font-semibold"
+          style={primaryStyle}
+        >
           {t("client.success.newOrder")}
-        </Button>
+        </button>
         <button onClick={openOrderDetails} className="mt-3 text-sm font-semibold text-[#1c1f16]/60 underline">
           {t("client.viewOrderDetails")}
         </button>
@@ -1439,16 +1443,17 @@ function MenuPage() {
                     />
                   </div>
 
-                  <Button
+                  <button
                     onClick={() => {
                       addToCart(detailProduct.id, detailNote, selectedSupplementIds, detailQty);
                       setDetailProduct(null);
                     }}
-                    className="mt-4 w-full gap-2"
+                    className="mt-4 w-full rounded-xl px-4 py-3 text-sm font-semibold flex items-center justify-center gap-2"
+                    style={primaryStyle}
                   >
                     <ShoppingCart className="h-4 w-4" />
                     {t("client.addToCart")}
-                  </Button>
+                  </button>
                 </>
               )}
             </div>
@@ -1621,9 +1626,14 @@ function MenuPage() {
 
           {cartItems.length > 0 && (
             <DialogFooter>
-              <Button onClick={placeOrder} disabled={placing} className="w-full">
+              <button
+                onClick={placeOrder}
+                disabled={placing}
+                className="w-full rounded-xl px-4 py-3 text-sm font-semibold disabled:opacity-50"
+                style={primaryStyle}
+              >
                 {placing ? t("client.placing") : t("client.confirmOrder")}
-              </Button>
+              </button>
             </DialogFooter>
           )}
         </DialogContent>
@@ -1724,9 +1734,14 @@ function MenuPage() {
                   rows={2}
                 />
               </div>
-              <Button onClick={sendAssistanceRequest} disabled={assistanceSending || !assistanceName.trim()} className="w-full">
+              <button
+                onClick={sendAssistanceRequest}
+                disabled={assistanceSending || !assistanceName.trim()}
+                className="w-full rounded-xl px-4 py-3 text-sm font-semibold disabled:opacity-50"
+                style={primaryStyle}
+              >
                 {assistanceSending ? t("client.placing") : t("client.assistance.send")}
-              </Button>
+              </button>
             </div>
           )}
         </DialogContent>
