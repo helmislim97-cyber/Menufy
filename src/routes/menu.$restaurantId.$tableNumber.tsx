@@ -902,6 +902,17 @@ function MenuPage() {
     };
   }, [sessionOrders.length, tableNumber]);
 
+  useEffect(() => {
+    if (!restaurant) return;
+    const color = restaurant.bg_color ?? "#f3efe4";
+    document.body.style.backgroundColor = color;
+    document.documentElement.style.backgroundColor = color;
+    return () => {
+      document.body.style.backgroundColor = "";
+      document.documentElement.style.backgroundColor = "";
+    };
+  }, [restaurant?.bg_color]);
+
   const openOrderDetails = async () => {
     if (!placedOrder) return;
     setOrderDetailsOpen(true);
@@ -1197,9 +1208,10 @@ function MenuPage() {
 
   return (
     <div
-      className="min-h-screen animate-fade-in bg-[#f3efe4] pb-28"
+      className="min-h-screen animate-fade-in pb-28"
+      style={{ backgroundColor: bgColor }}
     >
-      <div className="mx-auto max-w-5xl sm:px-6 sm:py-8" style={{ backgroundColor: bgColor }}>
+      <div className="mx-auto max-w-5xl sm:px-6 sm:py-8">
       <header className="relative" style={{ backgroundColor: bgColor }}>
         <div className="relative h-56 w-full overflow-hidden sm:-mx-6 sm:-mt-8 sm:w-[calc(100%+3rem)]">
           {restaurant.banner_url ? (
