@@ -1179,7 +1179,12 @@ function MenuPage() {
   return (
     <div
       className="min-h-screen animate-fade-in bg-[#f3efe4] pb-28"
-      style={restaurant.brand_color ? { "--color-primary": restaurant.brand_color, "--color-primary-foreground": "#ffffff" } as React.CSSProperties : undefined}
+      style={{
+        "--primary": restaurant.brand_color ?? "#7ab450",
+        "--color-primary": restaurant.brand_color ?? "#7ab450",
+        "--primary-foreground": "#ffffff",
+        "--color-primary-foreground": "#ffffff",
+      } as React.CSSProperties}
     >
       <div className="mx-auto max-w-5xl sm:px-6 sm:py-8">
       <header className="relative bg-[#f3efe4]">
