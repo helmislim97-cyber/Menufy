@@ -46,6 +46,7 @@ interface Restaurant {
   banner_zoom: number | null;
   brand_color: string | null;
   bg_color: string | null;
+  bg_pattern: string | null;
 }
 
 interface Category {
@@ -471,7 +472,7 @@ function MenuPage() {
     async function load() {
       const { data: rest } = await supabase
         .from("restaurants")
-        .select("id, name, logo_url, facebook_url, instagram_url, google_review_url, address, phone, description, wifi, banner_url, banner_position_x, banner_position_y, banner_zoom, brand_color, bg_color")
+        .select("id, name, logo_url, facebook_url, instagram_url, google_review_url, address, phone, description, wifi, banner_url, banner_position_x, banner_position_y, banner_zoom, brand_color, bg_color, bg_pattern")
         .eq("id", restaurantId)
         .eq("is_active", true)
         .maybeSingle();
@@ -985,6 +986,25 @@ function MenuPage() {
 
   const brandColor = restaurant?.brand_color ?? "#7ab450";
   const bgColor = restaurant?.bg_color ?? "#f3efe4";
+  const bgPattern = restaurant?.bg_pattern ?? "none";
+
+  function getPatternStyle(pattern: string): React.CSSProperties {
+    if (pattern === "none") return {};
+    const c = encodeURIComponent("#1c1f1615");
+    const patterns: Record<string, string> = {
+      foods: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80'%3E%3Ctext x='10' y='30' font-size='20' fill='${c}'%3E🍕%3C/text%3E%3Ctext x='45' y='65' font-size='20' fill='${c}'%3E🍔%3C/text%3E%3C/svg%3E")`,
+      bubbles: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='60'%3E%3Ccircle cx='15' cy='15' r='8' fill='none' stroke='${c}' stroke-width='1.5'/%3E%3Ccircle cx='45' cy='45' r='5' fill='none' stroke='${c}' stroke-width='1.5'/%3E%3Ccircle cx='50' cy='15' r='3' fill='none' stroke='${c}' stroke-width='1.5'/%3E%3Ccircle cx='15' cy='50' r='4' fill='none' stroke='${c}' stroke-width='1.5'/%3E%3C/svg%3E")`,
+      dots: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20'%3E%3Ccircle cx='10' cy='10' r='1.5' fill='${c}'/%3E%3C/svg%3E")`,
+      hexagons: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='50' height='57'%3E%3Cpolygon points='25,2 48,14 48,43 25,55 2,43 2,14' fill='none' stroke='${c}' stroke-width='1.5'/%3E%3C/svg%3E")`,
+      waves: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='20'%3E%3Cpath d='M0 10 Q10 0 20 10 Q30 20 40 10 Q50 0 60 10 Q70 20 80 10' fill='none' stroke='${c}' stroke-width='1.5'/%3E%3C/svg%3E")`,
+      diamonds: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='40'%3E%3Crect x='20' y='2' width='24' height='24' rx='1' fill='none' stroke='${c}' stroke-width='1.5' transform='rotate(45 20 14)'/%3E%3C/svg%3E")`,
+      crosses: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='30' height='30'%3E%3Cline x1='15' y1='8' x2='15' y2='22' stroke='${c}' stroke-width='1.5'/%3E%3Cline x1='8' y1='15' x2='22' y2='15' stroke='${c}' stroke-width='1.5'/%3E%3C/svg%3E")`,
+    };
+    return patterns[pattern] ? { backgroundImage: patterns[pattern], backgroundSize: "40px 40px" } : {};
+  }
+
+  const patternStyle = getPatternStyle(bgPattern);
+  const bgWithPattern: React.CSSProperties = { backgroundColor: bgColor, ...patternStyle };
   const primaryStyle = { backgroundColor: brandColor, color: "#ffffff" };
   const primaryBorderStyle = { borderColor: brandColor };
   const primaryTextStyle = { color: brandColor };
@@ -1000,6 +1020,7 @@ function MenuPage() {
         tableNumber={tableNumber}
         leaving={coverLeaving}
         bgColor={bgColor}
+        bgPattern={bgPattern}
         onOrder={() => {
           setCoverLeaving(true);
           window.history.pushState({ view: "categories" }, "");
@@ -1021,6 +1042,7 @@ function MenuPage() {
         description={restaurant.description}
         wifi={restaurant.wifi}
         bgColor={bgColor}
+        bgPattern={bgPattern}
         categories={categoryCards}
         onSelect={(id) => {
           categoriesScrollPos.current = window.scrollY;
@@ -1044,7 +1066,7 @@ function MenuPage() {
     const isPaid = orderStatus === "paid";
 
     return (
-      <div className="flex min-h-screen flex-col items-center justify-center px-6 text-center text-[#1c1f16]" style={{ backgroundColor: bgColor }}>
+      <div className="flex min-h-screen flex-col items-center justify-center px-6 text-center text-[#1c1f16]" style={bgWithPattern}>
         <div
           className={`grid h-16 w-16 place-items-center rounded-full ${
             isCancelled ? "bg-destructive/15 text-destructive" : isPaid ? "bg-gold/15 text-gold" : "bg-primary/15 text-primary"
@@ -1209,7 +1231,7 @@ function MenuPage() {
   return (
     <div
       className="min-h-screen animate-fade-in pb-28"
-      style={{ backgroundColor: bgColor }}
+      style={bgWithPattern}
     >
       <div className="mx-auto max-w-5xl sm:px-6 sm:py-8">
       <header className="relative" style={{ backgroundColor: bgColor }}>

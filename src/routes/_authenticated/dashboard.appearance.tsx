@@ -22,10 +22,25 @@ interface Restaurant {
   banner_zoom: number | null;
   brand_color: string | null;
   bg_color: string | null;
+  bg_pattern: string | null;
 }
 
 const BRAND_COLORS = ["#7ab450", "#dc2626", "#ea580c", "#2563eb", "#9333ea", "#0891b2", "#d4a843", "#1c1f16"];
 const BG_COLORS = ["#f3efe4", "#ffffff", "#f8f8f8", "#1c1f16", "#0f172a", "#1a1a2e", "#fdf6e3", "#f0fdf4"];
+
+function getPatternDataUrl(pattern: string, color: string): string {
+  const c = encodeURIComponent(color);
+  const patterns: Record<string, string> = {
+    foods: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80'%3E%3Ctext x='10' y='30' font-size='20' fill='${c}'%3E🍕%3C/text%3E%3Ctext x='45' y='65' font-size='20' fill='${c}'%3E🍔%3C/text%3E%3C/svg%3E")`,
+    bubbles: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='60'%3E%3Ccircle cx='15' cy='15' r='8' fill='none' stroke='${c}' stroke-width='1.5'/%3E%3Ccircle cx='45' cy='45' r='5' fill='none' stroke='${c}' stroke-width='1.5'/%3E%3Ccircle cx='50' cy='15' r='3' fill='none' stroke='${c}' stroke-width='1.5'/%3E%3Ccircle cx='15' cy='50' r='4' fill='none' stroke='${c}' stroke-width='1.5'/%3E%3C/svg%3E")`,
+    dots: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20'%3E%3Ccircle cx='10' cy='10' r='1.5' fill='${c}'/%3E%3C/svg%3E")`,
+    hexagons: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='50' height='57'%3E%3Cpolygon points='25,2 48,14 48,43 25,55 2,43 2,14' fill='none' stroke='${c}' stroke-width='1.5'/%3E%3C/svg%3E")`,
+    waves: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='20'%3E%3Cpath d='M0 10 Q10 0 20 10 Q30 20 40 10 Q50 0 60 10 Q70 20 80 10' fill='none' stroke='${c}' stroke-width='1.5'/%3E%3C/svg%3E")`,
+    diamonds: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='40'%3E%3Crect x='20' y='2' width='24' height='24' rx='1' fill='none' stroke='${c}' stroke-width='1.5' transform='rotate(45 20 14)'/%3E%3C/svg%3E")`,
+    crosses: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='30' height='30'%3E%3Cline x1='15' y1='8' x2='15' y2='22' stroke='${c}' stroke-width='1.5'/%3E%3Cline x1='8' y1='15' x2='22' y2='15' stroke='${c}' stroke-width='1.5'/%3E%3C/svg%3E")`,
+  };
+  return patterns[pattern] ?? "";
+}
 
 function AppearancePage() {
   const { user } = useAuth();
@@ -48,12 +63,13 @@ function AppearancePage() {
   const [bannerZoom, setBannerZoom] = useState(1);
   const [brandColor, setBrandColor] = useState("#7ab450");
   const [bgColor, setBgColor] = useState("#f3efe4");
+  const [bgPattern, setBgPattern] = useState("none");
 
   useEffect(() => {
     if (!user) return;
     supabase
       .from("restaurants")
-      .select("id, logo_url, banner_url, banner_position_x, banner_position_y, banner_zoom, brand_color, bg_color")
+      .select("id, logo_url, banner_url, banner_position_x, banner_position_y, banner_zoom, brand_color, bg_color, bg_pattern")
       .eq("owner_id", user.id)
       .maybeSingle()
       .then(({ data }) => {
@@ -68,6 +84,7 @@ function AppearancePage() {
           setBannerZoom(data.banner_zoom ?? 1);
           setBrandColor(data.brand_color ?? "#7ab450");
           setBgColor(data.bg_color ?? "#f3efe4");
+          setBgPattern(data.bg_pattern ?? "none");
         }
         setLoading(false);
       });
@@ -162,6 +179,7 @@ function AppearancePage() {
       banner_zoom: bannerZoom,
       brand_color: brandColor,
       bg_color: bgColor,
+      bg_pattern: bgPattern,
     };
     const { error } = await supabase.from("restaurants").update(updates).eq("id", restaurant.id);
     setSaving(false);
@@ -326,6 +344,36 @@ function AppearancePage() {
                   />
                   <span className="text-[10px] font-bold">+</span>
                 </label>
+              </div>
+            </div>
+
+            <div>
+              <label className="text-xs font-semibold text-muted-foreground">{t("settings.bgPattern")}</label>
+              <p className="mt-0.5 text-xs text-muted-foreground/70">{t("settings.bgPatternHint")}</p>
+              <div className="mt-2 grid grid-cols-3 gap-2 sm:grid-cols-4">
+                {[
+                  { id: "none", label: "Aucun" },
+                  { id: "foods", label: "Foods" },
+                  { id: "bubbles", label: "Bubbles" },
+                  { id: "dots", label: "Dots" },
+                  { id: "hexagons", label: "Hexagons" },
+                  { id: "waves", label: "Waves" },
+                  { id: "diamonds", label: "Diamonds" },
+                  { id: "crosses", label: "Crosses" },
+                ].map((p) => (
+                  <button
+                    key={p.id}
+                    type="button"
+                    onClick={() => setBgPattern(p.id)}
+                    className={`relative h-20 rounded-xl border-2 overflow-hidden transition-all ${bgPattern === p.id ? "border-foreground" : "border-border"}`}
+                    style={{ backgroundColor: bgColor }}
+                  >
+                    {p.id !== "none" && (
+                      <div className="absolute inset-0" style={{ backgroundImage: getPatternDataUrl(p.id, "#1c1f1620"), backgroundSize: "40px 40px" }} />
+                    )}
+                    <span className="absolute bottom-1 left-0 right-0 text-center text-[10px] font-semibold text-foreground/70">{p.label}</span>
+                  </button>
+                ))}
               </div>
             </div>
 
