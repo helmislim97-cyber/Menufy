@@ -1197,6 +1197,8 @@ function MenuPage() {
         </p>
         <p className="mt-0.5 text-xs text-[#1c1f16]/40">© {new Date().getFullYear()} Menufy. {t("client.allRightsReserved")}</p>
 
+        </div>
+
         <Dialog open={orderDetailsOpen} onOpenChange={setOrderDetailsOpen}>
           <DialogContent className="max-h-[80vh] overflow-y-auto text-[#1c1f16]" style={{ backgroundColor: bgColor }}>
             <DialogHeader>
@@ -1290,7 +1292,7 @@ function MenuPage() {
       </header>
 
       {visibleCategories.length > 0 && (
-        <div className={`scrollbar-none sticky top-0 z-30 flex gap-2 overflow-x-auto px-4 py-3 mx-auto max-w-md sm:max-w-none ${searchQuery.trim() ? "opacity-40" : ""}`} style={{ backgroundColor: `${bgColor}ee` }}>
+        <div className={`scrollbar-none sticky top-0 z-30 flex gap-2 overflow-x-auto px-4 py-3 mx-auto max-w-md sm:max-w-none ${searchQuery.trim() ? "opacity-40" : ""}`} style={bgWithPattern}>
           {visibleCategories.map((c) => (
             <button
               key={c.id}
@@ -1356,7 +1358,7 @@ function MenuPage() {
         <p className="mt-0.5">© {new Date().getFullYear()} Menufy. {t("client.allRightsReserved")}</p>
       </footer>
 
-      <div className="fixed inset-x-0 bottom-0 z-50 border-t border-[#1c1f16]/10 p-3 backdrop-blur-xl" style={{ backgroundColor: `${bgColor}ee` }}>
+      <div className="fixed inset-x-0 bottom-0 z-50 border-t border-[#1c1f16]/10 p-3 backdrop-blur-xl" style={bgWithPattern}>
         <div className="mx-auto flex max-w-md items-center gap-3">
           <button
             onClick={() => setOrdersHistoryOpen(true)}
