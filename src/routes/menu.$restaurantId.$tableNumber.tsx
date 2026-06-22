@@ -356,7 +356,7 @@ function ProductCard({
         qty === 0 ? (
           <button
             onClick={(e) => { e.stopPropagation(); onOpen(p); }}
-            className="absolute bottom-0 end-0 grid h-8 w-8 place-items-center rounded-ss-xl bg-primary text-primary-foreground shadow-md z-10"
+            className="absolute bottom-0 end-0 grid h-8 w-8 place-items-center rounded-ss-xl shadow-md z-10" style={primaryStyle}
           >
             <Plus className="h-4 w-4" />
           </button>
@@ -366,7 +366,7 @@ function ProductCard({
               <Minus className="h-3 w-3" />
             </button>
             <span className="w-4 text-center text-sm font-bold text-[#1c1f16]">{qty}</span>
-            <button onClick={(e) => { e.stopPropagation(); changeQty(p.id, 1); }} className="grid h-6 w-6 place-items-center rounded-full bg-primary text-primary-foreground">
+            <button onClick={(e) => { e.stopPropagation(); changeQty(p.id, 1); }} className="grid h-6 w-6 place-items-center rounded-full" style={primaryStyle}>
               <Plus className="h-3 w-3" />
             </button>
           </div>
@@ -968,23 +968,11 @@ function MenuPage() {
     );
   }
 
-  useEffect(() => {
-    if (!restaurant) return;
-    const root = document.documentElement;
-    const color = restaurant.brand_color ?? "#7ab450";
-    root.style.setProperty("--primary", color);
-    root.style.setProperty("--color-primary", color);
-    root.style.setProperty("--primary-foreground", "#ffffff");
-    root.style.setProperty("--color-primary-foreground", "#ffffff");
-    return () => {
-      root.style.removeProperty("--primary");
-      root.style.removeProperty("--color-primary");
-      root.style.removeProperty("--primary-foreground");
-      root.style.removeProperty("--color-primary-foreground");
-    };
-  }, [restaurant?.brand_color]);
-
-  const brandStyle = {} as React.CSSProperties;
+  const brandColor = restaurant?.brand_color ?? "#7ab450";
+  const primaryStyle = { backgroundColor: brandColor, color: "#ffffff" };
+  const primaryBorderStyle = { borderColor: brandColor };
+  const primaryTextStyle = { color: brandColor };
+  const primaryBgLightStyle = { backgroundColor: `${brandColor}1a` }; // 10% opacity
 
   if (showCover) {
     return (
@@ -1065,16 +1053,18 @@ function MenuPage() {
                 {i > 0 && (
                   <div className="absolute end-1/2 top-6 h-1.5 w-full -translate-y-1/2 overflow-hidden rounded-full bg-[#1c1f16]/15">
                     <div
-                      className={`absolute inset-y-0 start-0 rounded-full bg-primary transition-all duration-500 ${
+                      className={`absolute inset-y-0 start-0 rounded-full transition-all duration-500 ${
                         i - 1 < stepIndex ? "w-full" : i - 1 === stepIndex ? "w-full animate-track-pulse" : "w-0"
                       }`}
+                      style={{ backgroundColor: brandColor }}
                     />
                   </div>
                 )}
                 <div
                   className={`relative z-10 grid h-12 w-12 shrink-0 place-items-center rounded-full transition-colors ${
-                    i <= stepIndex ? "bg-primary text-primary-foreground" : "bg-white text-[#1c1f16]/30"
+                    i <= stepIndex ? "" : "bg-white text-[#1c1f16]/30"
                   }`}
+                  style={i <= stepIndex ? primaryStyle : undefined}
                 >
                   <s.icon className="h-5 w-5" />
                 </div>
@@ -1270,11 +1260,8 @@ function MenuPage() {
                 setSearchQuery("");
                 scrollToCategory(c.id);
               }}
-              className={`shrink-0 rounded-full border px-4 py-1.5 text-sm font-semibold transition-colors ${
-                activeCategory === c.id
-                  ? "border-primary bg-primary text-primary-foreground"
-                  : "border-[#1c1f16]/15 bg-white text-[#1c1f16]/70"
-              }`}
+              className="shrink-0 rounded-full border px-4 py-1.5 text-sm font-semibold transition-colors"
+              style={activeCategory === c.id ? primaryStyle : { borderColor: "rgba(28,31,22,0.15)", backgroundColor: "white", color: "rgba(28,31,22,0.7)" }}
             >
               {c.name}
             </button>
@@ -1343,7 +1330,7 @@ function MenuPage() {
           {cartCount > 0 ? (
             <button
               onClick={() => setCartOpen(true)}
-              className="flex flex-1 items-center justify-between rounded-2xl bg-primary px-5 py-3.5 text-primary-foreground shadow-glow"
+              className="flex flex-1 items-center justify-between rounded-2xl px-5 py-3.5 shadow-glow" style={primaryStyle}
             >
               <span className="flex items-center gap-2 text-sm font-bold">
                 <ShoppingCart className="h-4 w-4" />
@@ -1355,7 +1342,7 @@ function MenuPage() {
             <div className="flex flex-1 justify-center">
               <button
                 onClick={() => setCartOpen(true)}
-                className="grid h-12 w-12 place-items-center rounded-full bg-primary text-primary-foreground shadow-glow"
+                className="grid h-12 w-12 place-items-center rounded-full shadow-glow" style={primaryStyle}
                 aria-label={t("client.cartTitle")}
               >
                 <ShoppingCart className="h-5 w-5" />
@@ -1515,7 +1502,8 @@ function MenuPage() {
                     <span className="w-4 text-center text-sm font-bold text-[#1c1f16]">{qty}</span>
                     <button
                       onClick={() => changeQtyByKey(cartKey, 1)}
-                      className="grid h-7 w-7 place-items-center rounded-full bg-primary text-primary-foreground"
+                      className="grid h-7 w-7 place-items-center rounded-full"
+                      style={primaryStyle}
                     >
                       <Plus className="h-3 w-3" />
                     </button>
@@ -1577,7 +1565,7 @@ function MenuPage() {
                         ) : (
                           <p className="text-[11px] font-bold text-gold">{Number(product.price).toFixed(2)} DT</p>
                         )}
-                        <span className="grid h-6 w-6 place-items-center rounded-full bg-primary text-primary-foreground">
+                        <span className="grid h-6 w-6 place-items-center rounded-full" style={primaryStyle}>
                           <Plus className="h-3 w-3" />
                         </span>
                       </button>
@@ -1710,7 +1698,7 @@ function MenuPage() {
           </DialogHeader>
           {assistanceSent ? (
             <div className="flex flex-col items-center gap-3 py-6">
-              <div className="grid h-16 w-16 place-items-center rounded-full bg-primary/10 text-primary">
+              <div className="grid h-16 w-16 place-items-center rounded-full" style={{ backgroundColor: `${brandColor}1a`, color: brandColor }}>
                 <BellRing className="h-8 w-8" />
               </div>
               <p className="text-center text-sm font-semibold text-[#1c1f16]">{t("client.assistance.sent")}</p>
