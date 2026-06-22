@@ -1000,7 +1000,7 @@ function MenuPage() {
       diamonds: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='40'%3E%3Crect x='20' y='2' width='24' height='24' rx='1' fill='none' stroke='${c}' stroke-width='1.5' transform='rotate(45 20 14)'/%3E%3C/svg%3E")`,
       crosses: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='30' height='30'%3E%3Cline x1='15' y1='8' x2='15' y2='22' stroke='${c}' stroke-width='1.5'/%3E%3Cline x1='8' y1='15' x2='22' y2='15' stroke='${c}' stroke-width='1.5'/%3E%3C/svg%3E")`,
     };
-    return patterns[pattern] ? { backgroundImage: patterns[pattern], backgroundSize: pattern === "foods" ? "120px 120px" : "40px 40px" } : {};
+    return patterns[pattern] ? { backgroundImage: patterns[pattern], backgroundSize: pattern === "foods" ? "120px 120px" : pattern === "hexagons" ? "80px 80px" : pattern === "bubbles" ? "80px 80px" : pattern === "dots" ? "30px 30px" : pattern === "waves" ? "100px 30px" : pattern === "diamonds" ? "60px 60px" : pattern === "crosses" ? "50px 50px" : "40px 40px" } : {};
   }
 
   const patternStyle = getPatternStyle(bgPattern);
@@ -1066,11 +1066,8 @@ function MenuPage() {
     const isPaid = orderStatus === "paid";
 
     return (
-      <div className="relative flex min-h-screen flex-col items-center justify-center px-6 text-center text-[#1c1f16]" style={{ backgroundColor: bgColor }}>
-        {bgPattern && bgPattern !== "none" && (
-          <div className="pointer-events-none fixed inset-0 z-0" style={patternStyle} />
-        )}
-        <div className="relative z-10 flex w-full flex-col items-center">
+      <div className="flex min-h-screen flex-col items-center justify-center px-6 text-center text-[#1c1f16]" style={bgWithPattern}>
+        <div className="flex w-full flex-col items-center">
         <div
           className={`grid h-16 w-16 place-items-center rounded-full ${
             isCancelled ? "bg-destructive/15 text-destructive" : isPaid ? "bg-gold/15 text-gold" : "bg-primary/15 text-primary"
@@ -1228,20 +1225,16 @@ function MenuPage() {
             )}
           </DialogContent>
         </Dialog>
-        </div>
       </div>
     );
   }
 
   return (
     <div
-      className="relative min-h-screen animate-fade-in pb-28"
-      style={{ backgroundColor: bgColor }}
+      className="min-h-screen animate-fade-in pb-28"
+      style={bgWithPattern}
     >
-      {bgPattern && bgPattern !== "none" && (
-        <div className="pointer-events-none fixed inset-0 z-0" style={patternStyle} />
-      )}
-      <div className="relative z-10 mx-auto max-w-5xl sm:px-6 sm:py-8">
+      <div className="mx-auto max-w-5xl sm:px-6 sm:py-8">
       <header className="relative">
         <div className="relative h-56 w-full overflow-hidden sm:-mx-6 sm:-mt-8 sm:w-[calc(100%+3rem)]">
           {restaurant.banner_url ? (
@@ -1273,7 +1266,7 @@ function MenuPage() {
         </div>
         <div className="relative rounded-t-3xl -mt-6 px-4 pb-3 pt-20 text-center">
           {restaurant.logo_url && (
-            <div className="absolute left-1/2 top-0 -translate-x-1/2 -translate-y-1/2 flex h-36 w-36 items-center justify-center rounded-full border-4 bg-white p-5 shadow-md" style={{ borderColor: bgColor }}>
+            <div className="absolute left-1/2 top-0 -translate-x-1/2 -translate-y-1/2 flex h-36 w-36 items-center justify-center rounded-full border-4 bg-white p-5 shadow-md" style={{ borderColor: bgColor, backgroundColor: "white" }}>
               <img src={restaurant.logo_url} alt={restaurant.name} className="max-h-full max-w-full object-contain" />
             </div>
           )}
@@ -1315,7 +1308,7 @@ function MenuPage() {
         </div>
       )}
 
-      <main className="mx-auto max-w-md px-2 py-4 pb-[60vh] sm:px-4 sm:max-w-none" style={{ backgroundColor: bgColor }}>
+      <main className="mx-auto max-w-md px-2 py-4 pb-[60vh] sm:px-4 sm:max-w-none">
         {visibleCategories.length === 0 ? (
           <p className="mt-10 text-center text-sm text-muted-foreground">{t("client.empty")}</p>
         ) : searchResults ? (
@@ -1353,7 +1346,7 @@ function MenuPage() {
         )}
       </main>
 
-      <footer className="mx-auto max-w-md px-4 py-6 text-center text-xs text-[#1c1f16]/40" style={{ backgroundColor: bgColor }}>
+      <footer className="mx-auto max-w-md px-4 py-6 text-center text-xs text-[#1c1f16]/40">
         <p>
           {t("client.poweredBy")}{" "}
           <a href="https://menufy-tau.vercel.app" target="_blank" rel="noreferrer" className="font-semibold text-[#1c1f16]/60 hover:text-[#1c1f16]">

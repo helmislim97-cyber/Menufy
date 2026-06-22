@@ -40,7 +40,7 @@ export function CategoryGrid({ name, logoUrl, facebookUrl, instagramUrl, address
   const bg = bgColor ?? "#f3efe4";
   const bgStyle: CSSProperties = {
     backgroundColor: bg,
-    ...(bgPattern && bgPattern !== "none" && PATTERN_MAP[bgPattern] ? { backgroundImage: PATTERN_MAP[bgPattern], backgroundSize: bgPattern === "foods" ? "120px 120px" : bgPattern === "hexagons" ? "60px 60px" : bgPattern === "bubbles" ? "80px 80px" : "40px 40px" } : {}),
+    ...(bgPattern && bgPattern !== "none" && PATTERN_MAP[bgPattern] ? { backgroundImage: PATTERN_MAP[bgPattern], backgroundSize: bgPattern === "foods" ? "120px 120px" : bgPattern === "hexagons" ? "80px 80px" : bgPattern === "bubbles" ? "80px 80px" : bgPattern === "dots" ? "30px 30px" : bgPattern === "waves" ? "100px 30px" : bgPattern === "diamonds" ? "60px 60px" : bgPattern === "crosses" ? "50px 50px" : "40px 40px" } : {}),
   };
   const { t } = useI18n();
   const hasSocial = !!(facebookUrl || instagramUrl);
@@ -55,7 +55,7 @@ export function CategoryGrid({ name, logoUrl, facebookUrl, instagramUrl, address
 
       <div className="mt-4 flex flex-col items-center">
         {logoUrl ? (
-          <div className="flex h-32 w-32 items-center justify-center rounded-[2rem] border border-[#1c1f16]/25 p-3">
+          <div className="flex h-32 w-32 items-center justify-center rounded-[2rem] border border-[#1c1f16]/25 p-3" style={{ backgroundColor: bg }}>
             <img src={logoUrl} alt={name} className="max-h-full max-w-full object-contain" />
           </div>
         ) : (

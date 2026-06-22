@@ -10,7 +10,7 @@ const PATTERN_MAP: Record<string, string> = {
   waves: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='20'%3E%3Cpath d='M0 10 Q10 0 20 10 Q30 20 40 10 Q50 0 60 10 Q70 20 80 10' fill='none' stroke='%231c1f1615' stroke-width='1.5'/%3E%3C/svg%3E")`,
   diamonds: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='40'%3E%3Crect x='20' y='2' width='24' height='24' rx='1' fill='none' stroke='%231c1f1615' stroke-width='1.5' transform='rotate(45 20 14)'/%3E%3C/svg%3E")`,
   crosses: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='30' height='30'%3E%3Cline x1='15' y1='8' x2='15' y2='22' stroke='%231c1f1615' stroke-width='1.5'/%3E%3Cline x1='8' y1='15' x2='22' y2='15' stroke='%231c1f1615' stroke-width='1.5'/%3E%3C/svg%3E")`,
-  foods: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cpath d='M20 70 L45 20 L70 70 Z' fill='none' stroke='%231c1f1618' stroke-width='2.5'/%3E%3Ccircle cx='45' cy='38' r='6' fill='%231c1f1618'/%3E%3Ccircle cx='33' cy='55' r='4' fill='%231c1f1618'/%3E%3Ccircle cx='57' cy='55' r='4' fill='%231c1f1618'/%3E%3Crect x='75' y='75' width='36' height='6' rx='3' fill='none' stroke='%231c1f1618' stroke-width='2.5'/%3E%3Crect x='70' y='85' width='46' height='9' rx='4' fill='none' stroke='%231c1f1618' stroke-width='2.5'/%3E%3Crect x='78' y='66' width='30' height='6' rx='3' fill='none' stroke='%231c1f1618' stroke-width='2.5'/%3E%3C/svg%3E")`,
+  foods: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cpath d='M20 70 L45 20 L70 70 Z' fill='none' stroke='%231c1f1625' stroke-width='2.5'/%3E%3Ccircle cx='45' cy='38' r='6' fill='%231c1f1625'/%3E%3Ccircle cx='33' cy='55' r='4' fill='%231c1f1625'/%3E%3Ccircle cx='57' cy='55' r='4' fill='%231c1f1625'/%3E%3Crect x='75' y='75' width='36' height='6' rx='3' fill='none' stroke='%231c1f1625' stroke-width='2.5'/%3E%3Crect x='70' y='85' width='46' height='9' rx='4' fill='none' stroke='%231c1f1625' stroke-width='2.5'/%3E%3Crect x='78' y='66' width='30' height='6' rx='3' fill='none' stroke='%231c1f1625' stroke-width='2.5'/%3E%3C/svg%3E")`,
 };
 
 interface RestaurantCoverProps {
@@ -31,7 +31,7 @@ export function RestaurantCover({ name, logoUrl, facebookUrl, instagramUrl, tabl
   const hasSocial = !!(facebookUrl || instagramUrl);
   const bgStyle: CSSProperties = {
     backgroundColor: bg,
-    ...(bgPattern && bgPattern !== "none" && PATTERN_MAP[bgPattern] ? { backgroundImage: PATTERN_MAP[bgPattern], backgroundSize: "40px 40px" } : {}),
+    ...(bgPattern && bgPattern !== "none" && PATTERN_MAP[bgPattern] ? { backgroundImage: PATTERN_MAP[bgPattern], backgroundSize: bgPattern === "foods" ? "120px 120px" : bgPattern === "hexagons" ? "80px 80px" : bgPattern === "bubbles" ? "80px 80px" : bgPattern === "dots" ? "30px 30px" : bgPattern === "waves" ? "100px 30px" : bgPattern === "diamonds" ? "60px 60px" : bgPattern === "crosses" ? "50px 50px" : "40px 40px" } : {}),
   };
 
   return (
@@ -44,7 +44,7 @@ export function RestaurantCover({ name, logoUrl, facebookUrl, instagramUrl, tabl
       </div>
 
       <div className="flex flex-1 flex-col items-center justify-center pt-12">
-        <div className="flex h-60 w-56 flex-col items-center justify-center rounded-[3rem] border border-[#1c1f16]/25 px-6 text-center">
+        <div className="flex h-60 w-56 flex-col items-center justify-center rounded-[3rem] border border-[#1c1f16]/25 px-6 text-center" style={{ backgroundColor: bg }}>
           {logoUrl ? (
             <img src={logoUrl} alt={name} className="max-h-40 max-w-full object-contain" />
           ) : (
