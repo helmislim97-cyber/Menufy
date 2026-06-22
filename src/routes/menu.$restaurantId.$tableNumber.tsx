@@ -1009,6 +1009,7 @@ function MenuPage() {
         phone={restaurant.phone}
         description={restaurant.description}
         wifi={restaurant.wifi}
+        bgColor={bgColor}
         categories={categoryCards}
         onSelect={(id) => {
           categoriesScrollPos.current = window.scrollY;
@@ -1419,7 +1420,7 @@ function MenuPage() {
                 </span>
               ) : (
                 <>
-                  <div className="mt-4 flex items-center gap-6 rounded-full bg-[#ebe7dc] px-6 py-2.5">
+                  <div className="mt-4 flex items-center gap-6 rounded-full px-6 py-2.5" style={{ backgroundColor: `${bgColor}cc` }}>
                     <button
                       onClick={() => setDetailQty((q) => Math.max(1, q - 1))}
                       className="grid h-7 w-7 place-items-center text-[#1c1f16]"
