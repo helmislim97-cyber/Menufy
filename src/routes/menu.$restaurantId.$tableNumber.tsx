@@ -968,8 +968,16 @@ function MenuPage() {
     );
   }
 
+  const brandStyle = {
+    "--primary": restaurant.brand_color ?? "#7ab450",
+    "--color-primary": restaurant.brand_color ?? "#7ab450",
+    "--primary-foreground": "#ffffff",
+    "--color-primary-foreground": "#ffffff",
+  } as React.CSSProperties;
+
   if (showCover) {
     return (
+      <div style={brandStyle}>
       <RestaurantCover
         name={restaurant.name}
         logoUrl={restaurant.logo_url}
@@ -983,11 +991,13 @@ function MenuPage() {
           setTimeout(() => setShowCover(false), 250);
         }}
       />
+      </div>
     );
   }
 
   if (showCategories && categoryCards.length > 0) {
     return (
+      <div style={brandStyle}>
       <CategoryGrid
         name={restaurant.name}
         logoUrl={restaurant.logo_url}
@@ -1006,6 +1016,7 @@ function MenuPage() {
         }}
         onBack={() => { setCoverLeaving(false); setShowCover(true); }}
       />
+      </div>
     );
   }
 
@@ -1020,6 +1031,7 @@ function MenuPage() {
     const isPaid = orderStatus === "paid";
 
     return (
+      <div style={brandStyle}>
       <div className="flex min-h-screen flex-col items-center justify-center bg-[#f3efe4] px-6 text-center text-[#1c1f16]">
         <div
           className={`grid h-16 w-16 place-items-center rounded-full ${
@@ -1173,18 +1185,14 @@ function MenuPage() {
           </DialogContent>
         </Dialog>
       </div>
+      </div>
     );
   }
 
   return (
     <div
       className="min-h-screen animate-fade-in bg-[#f3efe4] pb-28"
-      style={{
-        "--primary": restaurant.brand_color ?? "#7ab450",
-        "--color-primary": restaurant.brand_color ?? "#7ab450",
-        "--primary-foreground": "#ffffff",
-        "--color-primary-foreground": "#ffffff",
-      } as React.CSSProperties}
+      style={brandStyle}
     >
       <div className="mx-auto max-w-5xl sm:px-6 sm:py-8">
       <header className="relative bg-[#f3efe4]">
