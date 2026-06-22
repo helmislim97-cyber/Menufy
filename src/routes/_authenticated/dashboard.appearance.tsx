@@ -21,9 +21,11 @@ interface Restaurant {
   banner_position_y: number | null;
   banner_zoom: number | null;
   brand_color: string | null;
+  bg_color: string | null;
 }
 
 const BRAND_COLORS = ["#7ab450", "#dc2626", "#ea580c", "#2563eb", "#9333ea", "#0891b2", "#d4a843", "#1c1f16"];
+const BG_COLORS = ["#f3efe4", "#ffffff", "#f8f8f8", "#1c1f16", "#0f172a", "#1a1a2e", "#fdf6e3", "#f0fdf4"];
 
 function AppearancePage() {
   const { user } = useAuth();
@@ -45,12 +47,13 @@ function AppearancePage() {
   const [bannerPosY, setBannerPosY] = useState(50);
   const [bannerZoom, setBannerZoom] = useState(1);
   const [brandColor, setBrandColor] = useState("#7ab450");
+  const [bgColor, setBgColor] = useState("#f3efe4");
 
   useEffect(() => {
     if (!user) return;
     supabase
       .from("restaurants")
-      .select("id, logo_url, banner_url, banner_position_x, banner_position_y, banner_zoom, brand_color")
+      .select("id, logo_url, banner_url, banner_position_x, banner_position_y, banner_zoom, brand_color, bg_color")
       .eq("owner_id", user.id)
       .maybeSingle()
       .then(({ data }) => {
@@ -64,6 +67,7 @@ function AppearancePage() {
           setBannerPosY(data.banner_position_y ?? 50);
           setBannerZoom(data.banner_zoom ?? 1);
           setBrandColor(data.brand_color ?? "#7ab450");
+          setBgColor(data.bg_color ?? "#f3efe4");
         }
         setLoading(false);
       });
@@ -157,6 +161,7 @@ function AppearancePage() {
       banner_position_y: bannerPosY,
       banner_zoom: bannerZoom,
       brand_color: brandColor,
+      bg_color: bgColor,
     };
     const { error } = await supabase.from("restaurants").update(updates).eq("id", restaurant.id);
     setSaving(false);
@@ -291,6 +296,32 @@ function AppearancePage() {
                     type="color"
                     value={brandColor}
                     onChange={(e) => setBrandColor(e.target.value)}
+                    className="h-0 w-0 opacity-0"
+                  />
+                  <span className="text-[10px] font-bold">+</span>
+                </label>
+              </div>
+            </div>
+
+            <div>
+              <label className="text-xs font-semibold text-muted-foreground">{t("settings.bgColor")}</label>
+              <p className="mt-0.5 text-xs text-muted-foreground/70">{t("settings.bgColorHint")}</p>
+              <div className="mt-2 flex flex-wrap items-center gap-2">
+                {BG_COLORS.map((c) => (
+                  <button
+                    key={c}
+                    type="button"
+                    onClick={() => setBgColor(c)}
+                    className={`h-9 w-9 shrink-0 rounded-full border-2 transition-transform ${bgColor === c ? "border-foreground scale-110" : "border-border"}`}
+                    style={{ backgroundColor: c }}
+                    aria-label={c}
+                  />
+                ))}
+                <label className="grid h-9 w-9 shrink-0 cursor-pointer place-items-center rounded-full border border-dashed border-border text-muted-foreground">
+                  <input
+                    type="color"
+                    value={bgColor}
+                    onChange={(e) => setBgColor(e.target.value)}
                     className="h-0 w-0 opacity-0"
                   />
                   <span className="text-[10px] font-bold">+</span>

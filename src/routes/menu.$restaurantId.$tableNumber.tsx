@@ -45,6 +45,7 @@ interface Restaurant {
   banner_position_y: number | null;
   banner_zoom: number | null;
   brand_color: string | null;
+  bg_color: string | null;
 }
 
 interface Category {
@@ -470,7 +471,7 @@ function MenuPage() {
     async function load() {
       const { data: rest } = await supabase
         .from("restaurants")
-        .select("id, name, logo_url, facebook_url, instagram_url, google_review_url, address, phone, description, wifi, banner_url, banner_position_x, banner_position_y, banner_zoom, brand_color")
+        .select("id, name, logo_url, facebook_url, instagram_url, google_review_url, address, phone, description, wifi, banner_url, banner_position_x, banner_position_y, banner_zoom, brand_color, bg_color")
         .eq("id", restaurantId)
         .eq("is_active", true)
         .maybeSingle();
@@ -972,10 +973,11 @@ function MenuPage() {
   }
 
   const brandColor = restaurant?.brand_color ?? "#7ab450";
+  const bgColor = restaurant?.bg_color ?? "#f3efe4";
   const primaryStyle = { backgroundColor: brandColor, color: "#ffffff" };
   const primaryBorderStyle = { borderColor: brandColor };
   const primaryTextStyle = { color: brandColor };
-  const primaryBgLightStyle = { backgroundColor: `${brandColor}1a` }; // 10% opacity
+  const primaryBgLightStyle = { backgroundColor: `${brandColor}1a` };
 
   if (showCover) {
     return (
@@ -986,6 +988,7 @@ function MenuPage() {
         instagramUrl={restaurant.instagram_url}
         tableNumber={tableNumber}
         leaving={coverLeaving}
+        bgColor={bgColor}
         onOrder={() => {
           setCoverLeaving(true);
           window.history.pushState({ view: "categories" }, "");
@@ -1029,7 +1032,7 @@ function MenuPage() {
     const isPaid = orderStatus === "paid";
 
     return (
-      <div className="flex min-h-screen flex-col items-center justify-center bg-[#f3efe4] px-6 text-center text-[#1c1f16]">
+      <div className="flex min-h-screen flex-col items-center justify-center px-6 text-center text-[#1c1f16]" style={{ backgroundColor: bgColor }}>
         <div
           className={`grid h-16 w-16 place-items-center rounded-full ${
             isCancelled ? "bg-destructive/15 text-destructive" : isPaid ? "bg-gold/15 text-gold" : "bg-primary/15 text-primary"
@@ -1160,7 +1163,7 @@ function MenuPage() {
         <p className="mt-0.5 text-xs text-[#1c1f16]/40">© {new Date().getFullYear()} Menufy. {t("client.allRightsReserved")}</p>
 
         <Dialog open={orderDetailsOpen} onOpenChange={setOrderDetailsOpen}>
-          <DialogContent className="max-h-[80vh] overflow-y-auto bg-[#f3efe4] text-[#1c1f16]">
+          <DialogContent className="max-h-[80vh] overflow-y-auto text-[#1c1f16]" style={{ backgroundColor: bgColor }}>
             <DialogHeader>
               <DialogTitle className="text-[#1c1f16]">{t("client.orderDetailsTitle")}</DialogTitle>
             </DialogHeader>
@@ -1196,7 +1199,7 @@ function MenuPage() {
       className="min-h-screen animate-fade-in bg-[#f3efe4] pb-28"
     >
       <div className="mx-auto max-w-5xl sm:px-6 sm:py-8">
-      <header className="relative bg-[#f3efe4]">
+      <header className="relative" style={{ backgroundColor: bgColor }}>
         <div className="relative h-56 w-full overflow-hidden sm:-mx-6 sm:-mt-8 sm:w-[calc(100%+3rem)]">
           {restaurant.banner_url ? (
             <img
@@ -1225,9 +1228,9 @@ function MenuPage() {
             <LangSwitch variant="light" />
           </div>
         </div>
-        <div className="relative rounded-t-3xl bg-[#f3efe4] -mt-6 px-4 pb-3 pt-20 text-center">
+        <div className="relative rounded-t-3xl -mt-6 px-4 pb-3 pt-20 text-center" style={{ backgroundColor: bgColor }}>
           {restaurant.logo_url && (
-            <div className="absolute left-1/2 top-0 -translate-x-1/2 -translate-y-1/2 flex h-36 w-36 items-center justify-center rounded-full border-4 border-[#f3efe4] bg-white p-5 shadow-md">
+            <div className="absolute left-1/2 top-0 -translate-x-1/2 -translate-y-1/2 flex h-36 w-36 items-center justify-center rounded-full border-4 bg-white p-5 shadow-md" style={{ borderColor: bgColor }}>
               <img src={restaurant.logo_url} alt={restaurant.name} className="max-h-full max-w-full object-contain" />
             </div>
           )}
@@ -1251,7 +1254,7 @@ function MenuPage() {
       </header>
 
       {visibleCategories.length > 0 && (
-        <div className={`scrollbar-none sticky top-0 z-30 flex gap-2 overflow-x-auto bg-[#f3efe4] px-4 py-3 mx-auto max-w-md sm:max-w-none ${searchQuery.trim() ? "opacity-40" : ""}`}>
+        <div className={`scrollbar-none sticky top-0 z-30 flex gap-2 overflow-x-auto px-4 py-3 mx-auto max-w-md sm:max-w-none ${searchQuery.trim() ? "opacity-40" : ""}`} style={{ backgroundColor: bgColor }}>
           {visibleCategories.map((c) => (
             <button
               key={c.id}
@@ -1317,7 +1320,7 @@ function MenuPage() {
         <p className="mt-0.5">© {new Date().getFullYear()} Menufy. {t("client.allRightsReserved")}</p>
       </footer>
 
-      <div className="fixed inset-x-0 bottom-0 z-40 border-t border-[#1c1f16]/10 bg-[#f3efe4]/95 p-3 backdrop-blur-xl">
+      <div className="fixed inset-x-0 bottom-0 z-40 border-t border-[#1c1f16]/10 p-3 backdrop-blur-xl" style={{ backgroundColor: `${bgColor}f2` }}>
         <div className="mx-auto flex max-w-md items-center gap-3">
           <button
             onClick={() => setOrdersHistoryOpen(true)}
@@ -1361,7 +1364,7 @@ function MenuPage() {
       </div>
 
       <Dialog open={!!detailProduct} onOpenChange={(open) => !open && setDetailProduct(null)}>
-        <DialogContent className="max-h-[90vh] overflow-y-auto bg-[#f3efe4] text-[#1c1f16]">
+        <DialogContent className="max-h-[90vh] overflow-y-auto text-[#1c1f16]" style={{ backgroundColor: bgColor }}>
           {detailProduct && (
             <div className="flex flex-col items-center text-center">
               <div className="grid h-56 w-56 place-items-center overflow-hidden rounded-2xl bg-background text-6xl">
@@ -1462,7 +1465,7 @@ function MenuPage() {
       </Dialog>
 
       <Dialog open={cartOpen} onOpenChange={setCartOpen}>
-        <DialogContent className="max-h-[90vh] overflow-y-auto bg-[#f3efe4] text-[#1c1f16]">
+        <DialogContent className="max-h-[90vh] overflow-y-auto text-[#1c1f16]" style={{ backgroundColor: bgColor }}>
           <DialogHeader>
             <DialogTitle className="text-[#1c1f16]">{t("client.cartTitle")}</DialogTitle>
           </DialogHeader>
@@ -1640,7 +1643,7 @@ function MenuPage() {
       </Dialog>
 
       <Dialog open={ordersHistoryOpen} onOpenChange={setOrdersHistoryOpen}>
-        <DialogContent className="max-h-[80vh] overflow-y-auto bg-[#f3efe4] text-[#1c1f16]">
+        <DialogContent className="max-h-[80vh] overflow-y-auto text-[#1c1f16]" style={{ backgroundColor: bgColor }}>
           <DialogHeader>
             <DialogTitle className="text-[#1c1f16]">{t("client.ordersHistoryTitle")}</DialogTitle>
           </DialogHeader>
@@ -1698,7 +1701,7 @@ function MenuPage() {
       </Dialog>
 
       <Dialog open={assistanceOpen} onOpenChange={(open) => { setAssistanceOpen(open); if (!open) { setAssistanceSent(false); setAssistanceMessage(""); } }}>
-        <DialogContent className="bg-[#f3efe4] text-[#1c1f16]">
+        <DialogContent className="text-[#1c1f16]" style={{ backgroundColor: bgColor }}>
           <DialogHeader>
             <DialogTitle className="text-[#1c1f16]">{t("client.assistance.title")}</DialogTitle>
           </DialogHeader>
@@ -1748,7 +1751,7 @@ function MenuPage() {
       </Dialog>
 
       <Dialog open={sessionExpired} onOpenChange={() => {}}>
-        <DialogContent className="bg-[#f3efe4] text-[#1c1f16] [&>button]:hidden">
+        <DialogContent className="text-[#1c1f16] [&>button]:hidden" style={{ backgroundColor: bgColor }}>
           <div className="flex flex-col items-center px-2 py-4 text-center">
             <h2 className="text-lg font-extrabold">{t("client.sessionExpired.title")}</h2>
             <p className="mt-2 text-sm text-[#1c1f16]/70">{t("client.sessionExpired.subtitle")}</p>

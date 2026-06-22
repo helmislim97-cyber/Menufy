@@ -10,14 +10,19 @@ interface RestaurantCoverProps {
   tableNumber: string;
   leaving?: boolean;
   onOrder: () => void;
+  bgColor?: string;
 }
 
-export function RestaurantCover({ name, logoUrl, facebookUrl, instagramUrl, tableNumber, leaving, onOrder }: RestaurantCoverProps) {
+export function RestaurantCover({ name, logoUrl, facebookUrl, instagramUrl, tableNumber, leaving, onOrder, bgColor }: RestaurantCoverProps) {
   const { t } = useI18n();
+  const bg = bgColor ?? "#f3efe4";
   const hasSocial = !!(facebookUrl || instagramUrl);
 
   return (
-    <div className={`relative flex h-[100dvh] flex-col items-center justify-between overflow-hidden bg-[#f3efe4] px-6 py-4 text-[#1c1f16] transition-opacity duration-300 ease-out ${leaving ? "opacity-0" : "opacity-100"}`}>
+    <div
+      className={`relative flex h-[100dvh] flex-col items-center justify-between overflow-hidden px-6 py-4 text-[#1c1f16] transition-opacity duration-300 ease-out ${leaving ? "opacity-0" : "opacity-100"}`}
+      style={{ backgroundColor: bg }}
+    >
       <div className="absolute right-4 top-4 z-10">
         <LangSwitch variant="light" />
       </div>
@@ -54,7 +59,8 @@ export function RestaurantCover({ name, logoUrl, facebookUrl, instagramUrl, tabl
         <button
           onClick={onOrder}
           disabled={leaving}
-          className="w-full rounded-2xl bg-[#1c1f16] py-3.5 text-base font-extrabold uppercase tracking-widest text-[#f3efe4] transition-transform active:scale-[0.98]"
+          className="w-full rounded-2xl bg-[#1c1f16] py-3.5 text-base font-extrabold uppercase tracking-widest transition-transform active:scale-[0.98]"
+          style={{ color: bg }}
         >
           {t("client.orderNow")}
         </button>
