@@ -968,12 +968,22 @@ function MenuPage() {
     );
   }
 
-  const brandStyle = {
-    "--primary": restaurant.brand_color ?? "#7ab450",
-    "--color-primary": restaurant.brand_color ?? "#7ab450",
-    "--primary-foreground": "#ffffff",
-    "--color-primary-foreground": "#ffffff",
-  } as React.CSSProperties;
+  useEffect(() => {
+    const root = document.documentElement;
+    const color = restaurant.brand_color ?? "#7ab450";
+    root.style.setProperty("--primary", color);
+    root.style.setProperty("--color-primary", color);
+    root.style.setProperty("--primary-foreground", "#ffffff");
+    root.style.setProperty("--color-primary-foreground", "#ffffff");
+    return () => {
+      root.style.removeProperty("--primary");
+      root.style.removeProperty("--color-primary");
+      root.style.removeProperty("--primary-foreground");
+      root.style.removeProperty("--color-primary-foreground");
+    };
+  }, [restaurant.brand_color]);
+
+  const brandStyle = {} as React.CSSProperties;
 
   if (showCover) {
     return (
