@@ -1066,7 +1066,11 @@ function MenuPage() {
     const isPaid = orderStatus === "paid";
 
     return (
-      <div className="flex min-h-screen flex-col items-center justify-center px-6 text-center text-[#1c1f16]" style={bgWithPattern}>
+      <div className="relative flex min-h-screen flex-col items-center justify-center px-6 text-center text-[#1c1f16]" style={{ backgroundColor: bgColor }}>
+        {bgPattern && bgPattern !== "none" && (
+          <div className="pointer-events-none fixed inset-0 z-0" style={patternStyle} />
+        )}
+        <div className="relative z-10 flex w-full flex-col items-center">
         <div
           className={`grid h-16 w-16 place-items-center rounded-full ${
             isCancelled ? "bg-destructive/15 text-destructive" : isPaid ? "bg-gold/15 text-gold" : "bg-primary/15 text-primary"
@@ -1224,17 +1228,21 @@ function MenuPage() {
             )}
           </DialogContent>
         </Dialog>
+        </div>
       </div>
     );
   }
 
   return (
     <div
-      className="min-h-screen animate-fade-in pb-28"
-      style={bgWithPattern}
+      className="relative min-h-screen animate-fade-in pb-28"
+      style={{ backgroundColor: bgColor }}
     >
-      <div className="mx-auto max-w-5xl sm:px-6 sm:py-8">
-      <header className="relative" style={{ backgroundColor: bgColor }}>
+      {bgPattern && bgPattern !== "none" && (
+        <div className="pointer-events-none fixed inset-0 z-0" style={patternStyle} />
+      )}
+      <div className="relative z-10 mx-auto max-w-5xl sm:px-6 sm:py-8">
+      <header className="relative">
         <div className="relative h-56 w-full overflow-hidden sm:-mx-6 sm:-mt-8 sm:w-[calc(100%+3rem)]">
           {restaurant.banner_url ? (
             <img
@@ -1263,7 +1271,7 @@ function MenuPage() {
             <LangSwitch variant="light" />
           </div>
         </div>
-        <div className="relative rounded-t-3xl -mt-6 px-4 pb-3 pt-20 text-center" style={{ backgroundColor: bgColor }}>
+        <div className="relative rounded-t-3xl -mt-6 px-4 pb-3 pt-20 text-center">
           {restaurant.logo_url && (
             <div className="absolute left-1/2 top-0 -translate-x-1/2 -translate-y-1/2 flex h-36 w-36 items-center justify-center rounded-full border-4 bg-white p-5 shadow-md" style={{ borderColor: bgColor }}>
               <img src={restaurant.logo_url} alt={restaurant.name} className="max-h-full max-w-full object-contain" />
@@ -1289,7 +1297,7 @@ function MenuPage() {
       </header>
 
       {visibleCategories.length > 0 && (
-        <div className={`scrollbar-none sticky top-0 z-30 flex gap-2 overflow-x-auto px-4 py-3 mx-auto max-w-md sm:max-w-none ${searchQuery.trim() ? "opacity-40" : ""}`} style={{ backgroundColor: bgColor }}>
+        <div className={`scrollbar-none sticky top-0 z-30 flex gap-2 overflow-x-auto px-4 py-3 mx-auto max-w-md sm:max-w-none ${searchQuery.trim() ? "opacity-40" : ""}`} style={{ backgroundColor: `${bgColor}ee` }}>
           {visibleCategories.map((c) => (
             <button
               key={c.id}
@@ -1355,7 +1363,7 @@ function MenuPage() {
         <p className="mt-0.5">© {new Date().getFullYear()} Menufy. {t("client.allRightsReserved")}</p>
       </footer>
 
-      <div className="fixed inset-x-0 bottom-0 z-40 border-t border-[#1c1f16]/10 p-3 backdrop-blur-xl" style={{ backgroundColor: `${bgColor}f2` }}>
+      <div className="fixed inset-x-0 bottom-0 z-50 border-t border-[#1c1f16]/10 p-3 backdrop-blur-xl" style={{ backgroundColor: `${bgColor}ee` }}>
         <div className="mx-auto flex max-w-md items-center gap-3">
           <button
             onClick={() => setOrdersHistoryOpen(true)}
