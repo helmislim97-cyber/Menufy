@@ -289,6 +289,7 @@ function ProductCard({
   addToCart,
   changeQty,
   onOpen,
+  brandColor,
 }: {
   p: Product;
   qty: number;
@@ -296,7 +297,9 @@ function ProductCard({
   addToCart: (id: string) => void;
   changeQty: (id: string, delta: number) => void;
   onOpen: (p: Product) => void;
+  brandColor: string;
 }) {
+  const primaryStyle = { backgroundColor: brandColor, color: "#ffffff" };
   const soldOut = !p.is_available;
   return (
     <div
@@ -976,7 +979,6 @@ function MenuPage() {
 
   if (showCover) {
     return (
-      <div style={brandStyle}>
       <RestaurantCover
         name={restaurant.name}
         logoUrl={restaurant.logo_url}
@@ -990,13 +992,11 @@ function MenuPage() {
           setTimeout(() => setShowCover(false), 250);
         }}
       />
-      </div>
     );
   }
 
   if (showCategories && categoryCards.length > 0) {
     return (
-      <div style={brandStyle}>
       <CategoryGrid
         name={restaurant.name}
         logoUrl={restaurant.logo_url}
@@ -1015,7 +1015,6 @@ function MenuPage() {
         }}
         onBack={() => { setCoverLeaving(false); setShowCover(true); }}
       />
-      </div>
     );
   }
 
@@ -1030,7 +1029,6 @@ function MenuPage() {
     const isPaid = orderStatus === "paid";
 
     return (
-      <div style={brandStyle}>
       <div className="flex min-h-screen flex-col items-center justify-center bg-[#f3efe4] px-6 text-center text-[#1c1f16]">
         <div
           className={`grid h-16 w-16 place-items-center rounded-full ${
@@ -1186,14 +1184,12 @@ function MenuPage() {
           </DialogContent>
         </Dialog>
       </div>
-      </div>
     );
   }
 
   return (
     <div
       className="min-h-screen animate-fade-in bg-[#f3efe4] pb-28"
-      style={brandStyle}
     >
       <div className="mx-auto max-w-5xl sm:px-6 sm:py-8">
       <header className="relative bg-[#f3efe4]">
@@ -1278,7 +1274,7 @@ function MenuPage() {
           ) : (
             <div className="space-y-2 sm:grid sm:grid-cols-2 sm:gap-4 sm:space-y-0">
               {searchResults.map((p) => (
-                <ProductCard key={p.id} p={p} qty={cart[makeCartKey(p.id, [])]?.qty ?? 0} t={t} addToCart={addToCart} changeQty={changeQty} onOpen={setDetailProduct} />
+                <ProductCard key={p.id} p={p} qty={cart[makeCartKey(p.id, [])]?.qty ?? 0} t={t} addToCart={addToCart} changeQty={changeQty} onOpen={setDetailProduct} brandColor={brandColor} />
               ))}
             </div>
           )
@@ -1297,7 +1293,7 @@ function MenuPage() {
                   <h2 className="mb-3 text-lg font-extrabold uppercase tracking-wide text-[#1c1f16]">{c.name}</h2>
                   <div className="space-y-2 sm:grid sm:grid-cols-2 sm:gap-4 sm:space-y-0">
                     {prods.map((p) => (
-                      <ProductCard key={p.id} p={p} qty={cart[makeCartKey(p.id, [])]?.qty ?? 0} t={t} addToCart={addToCart} changeQty={changeQty} onOpen={setDetailProduct} />
+                      <ProductCard key={p.id} p={p} qty={cart[makeCartKey(p.id, [])]?.qty ?? 0} t={t} addToCart={addToCart} changeQty={changeQty} onOpen={setDetailProduct} brandColor={brandColor} />
                     ))}
                   </div>
                 </div>
