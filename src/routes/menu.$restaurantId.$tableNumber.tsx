@@ -1199,7 +1199,7 @@ function MenuPage() {
     <div
       className="min-h-screen animate-fade-in bg-[#f3efe4] pb-28"
     >
-      <div className="mx-auto max-w-5xl sm:px-6 sm:py-8">
+      <div className="mx-auto max-w-5xl sm:px-6 sm:py-8" style={{ backgroundColor: bgColor }}>
       <header className="relative" style={{ backgroundColor: bgColor }}>
         <div className="relative h-56 w-full overflow-hidden sm:-mx-6 sm:-mt-8 sm:w-[calc(100%+3rem)]">
           {restaurant.banner_url ? (
@@ -1273,7 +1273,7 @@ function MenuPage() {
         </div>
       )}
 
-      <main className="mx-auto max-w-md px-2 py-4 pb-[60vh] sm:px-4 sm:max-w-none">
+      <main className="mx-auto max-w-md px-2 py-4 pb-[60vh] sm:px-4 sm:max-w-none" style={{ backgroundColor: bgColor }}>
         {visibleCategories.length === 0 ? (
           <p className="mt-10 text-center text-sm text-muted-foreground">{t("client.empty")}</p>
         ) : searchResults ? (
@@ -1311,7 +1311,7 @@ function MenuPage() {
         )}
       </main>
 
-      <footer className="mx-auto max-w-md px-4 py-6 text-center text-xs text-[#1c1f16]/40">
+      <footer className="mx-auto max-w-md px-4 py-6 text-center text-xs text-[#1c1f16]/40" style={{ backgroundColor: bgColor }}>
         <p>
           {t("client.poweredBy")}{" "}
           <a href="https://menufy-tau.vercel.app" target="_blank" rel="noreferrer" className="font-semibold text-[#1c1f16]/60 hover:text-[#1c1f16]">
