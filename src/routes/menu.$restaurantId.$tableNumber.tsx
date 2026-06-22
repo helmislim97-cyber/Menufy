@@ -44,6 +44,7 @@ interface Restaurant {
   banner_position_x: number | null;
   banner_position_y: number | null;
   banner_zoom: number | null;
+  brand_color: string | null;
 }
 
 interface Category {
@@ -466,7 +467,7 @@ function MenuPage() {
     async function load() {
       const { data: rest } = await supabase
         .from("restaurants")
-        .select("id, name, logo_url, facebook_url, instagram_url, google_review_url, address, phone, description, wifi, banner_url, banner_position_x, banner_position_y, banner_zoom")
+        .select("id, name, logo_url, facebook_url, instagram_url, google_review_url, address, phone, description, wifi, banner_url, banner_position_x, banner_position_y, banner_zoom, brand_color")
         .eq("id", restaurantId)
         .eq("is_active", true)
         .maybeSingle();
@@ -1176,7 +1177,10 @@ function MenuPage() {
   }
 
   return (
-    <div className="min-h-screen animate-fade-in bg-[#f3efe4] pb-28">
+    <div
+      className="min-h-screen animate-fade-in bg-[#f3efe4] pb-28"
+      style={restaurant.brand_color ? { "--color-primary": restaurant.brand_color, "--color-primary-foreground": "#ffffff" } as React.CSSProperties : undefined}
+    >
       <div className="mx-auto max-w-5xl sm:px-6 sm:py-8">
       <header className="relative bg-[#f3efe4]">
         <div className="relative h-56 w-full overflow-hidden sm:-mx-6 sm:-mt-8 sm:w-[calc(100%+3rem)]">
