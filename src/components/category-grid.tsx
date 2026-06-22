@@ -40,7 +40,7 @@ export function CategoryGrid({ name, logoUrl, facebookUrl, instagramUrl, address
   const bg = bgColor ?? "#f3efe4";
   const bgStyle: CSSProperties = {
     backgroundColor: bg,
-    ...(bgPattern && bgPattern !== "none" && PATTERN_MAP[bgPattern] ? { backgroundImage: PATTERN_MAP[bgPattern], backgroundSize: "40px 40px" } : {}),
+    ...(bgPattern && bgPattern !== "none" && PATTERN_MAP[bgPattern] ? { backgroundImage: PATTERN_MAP[bgPattern], backgroundSize: bgPattern === "foods" ? "120px 120px" : "40px 40px" } : {}),
   };
   const { t } = useI18n();
   const hasSocial = !!(facebookUrl || instagramUrl);

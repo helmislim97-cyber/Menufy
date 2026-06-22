@@ -992,7 +992,7 @@ function MenuPage() {
     if (pattern === "none") return {};
     const c = encodeURIComponent("#1c1f1615");
     const patterns: Record<string, string> = {
-      foods: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80'%3E%3Cpath d='M10 35 L25 10 L40 35 Z' fill='none' stroke='${c}' stroke-width='1.5'/%3E%3Ccircle cx='25' cy='22' r='3' fill='${c}' opacity='0.3'/%3E%3Crect x='50' y='45' width='22' height='4' rx='2' fill='none' stroke='${c}' stroke-width='1.5'/%3E%3Crect x='47' y='52' width='28' height='6' rx='3' fill='none' stroke='${c}' stroke-width='1.5'/%3E%3Crect x='52' y='41' width='18' height='4' rx='2' fill='none' stroke='${c}' stroke-width='1.5'/%3E%3C/svg%3E")`,
+      foods: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cpath d='M20 70 L45 20 L70 70 Z' fill='none' stroke='${c}' stroke-width='2.5'/%3E%3Ccircle cx='45' cy='38' r='6' fill='${c}'/%3E%3Ccircle cx='33' cy='55' r='4' fill='${c}'/%3E%3Ccircle cx='57' cy='55' r='4' fill='${c}'/%3E%3Crect x='75' y='75' width='36' height='6' rx='3' fill='none' stroke='${c}' stroke-width='2.5'/%3E%3Crect x='70' y='85' width='46' height='9' rx='4' fill='none' stroke='${c}' stroke-width='2.5'/%3E%3Crect x='78' y='66' width='30' height='6' rx='3' fill='none' stroke='${c}' stroke-width='2.5'/%3E%3C/svg%3E")`,
       bubbles: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='60'%3E%3Ccircle cx='15' cy='15' r='8' fill='none' stroke='${c}' stroke-width='1.5'/%3E%3Ccircle cx='45' cy='45' r='5' fill='none' stroke='${c}' stroke-width='1.5'/%3E%3Ccircle cx='50' cy='15' r='3' fill='none' stroke='${c}' stroke-width='1.5'/%3E%3Ccircle cx='15' cy='50' r='4' fill='none' stroke='${c}' stroke-width='1.5'/%3E%3C/svg%3E")`,
       dots: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20'%3E%3Ccircle cx='10' cy='10' r='1.5' fill='${c}'/%3E%3C/svg%3E")`,
       hexagons: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='50' height='57'%3E%3Cpolygon points='25,2 48,14 48,43 25,55 2,43 2,14' fill='none' stroke='${c}' stroke-width='1.5'/%3E%3C/svg%3E")`,
@@ -1000,7 +1000,7 @@ function MenuPage() {
       diamonds: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='40'%3E%3Crect x='20' y='2' width='24' height='24' rx='1' fill='none' stroke='${c}' stroke-width='1.5' transform='rotate(45 20 14)'/%3E%3C/svg%3E")`,
       crosses: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='30' height='30'%3E%3Cline x1='15' y1='8' x2='15' y2='22' stroke='${c}' stroke-width='1.5'/%3E%3Cline x1='8' y1='15' x2='22' y2='15' stroke='${c}' stroke-width='1.5'/%3E%3C/svg%3E")`,
     };
-    return patterns[pattern] ? { backgroundImage: patterns[pattern], backgroundSize: "40px 40px" } : {};
+    return patterns[pattern] ? { backgroundImage: patterns[pattern], backgroundSize: pattern === "foods" ? "120px 120px" : "40px 40px" } : {};
   }
 
   const patternStyle = getPatternStyle(bgPattern);
