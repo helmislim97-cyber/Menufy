@@ -969,6 +969,7 @@ function MenuPage() {
   }
 
   useEffect(() => {
+    if (!restaurant) return;
     const root = document.documentElement;
     const color = restaurant.brand_color ?? "#7ab450";
     root.style.setProperty("--primary", color);
@@ -981,7 +982,7 @@ function MenuPage() {
       root.style.removeProperty("--primary-foreground");
       root.style.removeProperty("--color-primary-foreground");
     };
-  }, [restaurant.brand_color]);
+  }, [restaurant?.brand_color]);
 
   const brandStyle = {} as React.CSSProperties;
 
