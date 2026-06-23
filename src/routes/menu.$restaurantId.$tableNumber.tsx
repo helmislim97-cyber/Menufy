@@ -1000,7 +1000,7 @@ function MenuPage() {
       diamonds: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='40'%3E%3Crect x='20' y='2' width='24' height='24' rx='1' fill='none' stroke='${c}' stroke-width='1.5' transform='rotate(45 20 14)'/%3E%3C/svg%3E")`,
       crosses: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='30' height='30'%3E%3Cline x1='15' y1='8' x2='15' y2='22' stroke='${c}' stroke-width='1.5'/%3E%3Cline x1='8' y1='15' x2='22' y2='15' stroke='${c}' stroke-width='1.5'/%3E%3C/svg%3E")`,
     };
-    return patterns[pattern] ? { backgroundImage: patterns[pattern], backgroundSize: pattern === "foods" ? "120px 120px" : pattern === "hexagons" ? "80px 80px" : pattern === "bubbles" ? "80px 80px" : { id: "dots", label: "Burger" }, : pattern === "waves" ? "100px 30px" : pattern === "diamonds" ? "60px 60px" : pattern === "crosses" ? "50px 50px" : "40px 40px" } : {};
+    return patterns[pattern] ? { backgroundImage: patterns[pattern], backgroundSize: pattern === "foods" ? "120px 120px" : pattern === "hexagons" ? "80px 80px" : pattern === "bubbles" ? "80px 80px" : pattern === "dots" ? "160px 160px" : pattern === "waves" ? "100px 30px" : pattern === "diamonds" ? "60px 60px" : pattern === "crosses" ? "50px 50px" : "40px 40px" } : {};
   }
 
   const patternStyle = getPatternStyle(bgPattern);
