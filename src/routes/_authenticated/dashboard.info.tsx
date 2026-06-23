@@ -7,6 +7,21 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { DashboardPage } from "@/components/dashboard-page";
 import { toast } from "sonner";
+import { Clock, Plus, Trash2 } from "lucide-react";
+
+const DAYS = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"];
+const DAY_LABELS: Record<string, string> = {
+  monday: "Lundi", tuesday: "Mardi", wednesday: "Mercredi", thursday: "Jeudi",
+  friday: "Vendredi", saturday: "Samedi", sunday: "Dimanche",
+};
+
+interface TimeSlot { open: string; close: string; }
+interface DayHours { isOpen: boolean; slots: TimeSlot[]; }
+type OpeningHours = Record<string, DayHours>;
+
+function defaultHours(): OpeningHours {
+  return Object.fromEntries(DAYS.map((d) => [d, { isOpen: true, slots: [{ open: "09:00", close: "18:00" }] }]));
+}
 
 export const Route = createFileRoute("/_authenticated/dashboard/info")({
   component: InfoPage,
@@ -24,6 +39,7 @@ interface Restaurant {
   twitter_url: string | null;
   description: string | null;
   wifi: string | null;
+  opening_hours: Record<string, { isOpen: boolean; slots: { open: string; close: string }[] }> | null;
 }
 
 function InfoPage() {
@@ -44,12 +60,13 @@ function InfoPage() {
   const [editTwitter, setEditTwitter] = useState("");
   const [editDescription, setEditDescription] = useState("");
   const [editWifi, setEditWifi] = useState("");
+  const [editHours, setEditHours] = useState<OpeningHours>(defaultHours());
 
   useEffect(() => {
     if (!user) return;
     supabase
       .from("restaurants")
-      .select("id, name, address, phone, facebook_url, instagram_url, google_review_url, tiktok_url, twitter_url, description, wifi")
+      .select("id, name, address, phone, facebook_url, instagram_url, google_review_url, tiktok_url, twitter_url, description, wifi, opening_hours")
       .eq("owner_id", user.id)
       .maybeSingle()
       .then(({ data }) => {
@@ -65,6 +82,7 @@ function InfoPage() {
           setEditTwitter(data.twitter_url ?? "");
           setEditDescription(data.description ?? "");
           setEditWifi(data.wifi ?? "");
+          setEditHours((data.opening_hours as OpeningHours) ?? defaultHours());
         }
         setLoading(false);
       });
@@ -84,6 +102,7 @@ function InfoPage() {
       twitter_url: editTwitter.trim() || null,
       description: editDescription.trim() || null,
       wifi: editWifi.trim() || null,
+      opening_hours: editHours,
     };
     const { error } = await supabase.from("restaurants").update(updates).eq("id", restaurant.id);
     setSaving(false);
@@ -140,6 +159,83 @@ function InfoPage() {
             <div>
               <label className="text-xs font-semibold text-muted-foreground">{t("settings.wifi")}</label>
               <Input value={editWifi} onChange={(e) => setEditWifi(e.target.value)} placeholder={t("settings.wifiPlaceholder")} className="mt-1" />
+            </div>
+
+            <div className="rounded-2xl border border-border bg-surface p-4 space-y-4">
+              <div className="flex items-center gap-2">
+                <Clock className="h-4 w-4 text-muted-foreground" />
+                <span className="text-sm font-semibold">{t("settings.openingHours")}</span>
+              </div>
+              {DAYS.map((day) => {
+                const dh = editHours[day] ?? { isOpen: true, slots: [{ open: "09:00", close: "18:00" }] };
+                return (
+                  <div key={day} className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-semibold">{DAY_LABELS[day]}</span>
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs text-muted-foreground">{dh.isOpen ? t("settings.open") : t("settings.closed")}</span>
+                        <button
+                          type="button"
+                          onClick={() => setEditHours((h) => ({ ...h, [day]: { ...dh, isOpen: !dh.isOpen } }))}
+                          className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors ${dh.isOpen ? "bg-primary" : "bg-muted"}`}
+                        >
+                          <span className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow-lg transition-transform ${dh.isOpen ? "translate-x-4" : "translate-x-0"}`} />
+                        </button>
+                      </div>
+                    </div>
+                    {dh.isOpen && (
+                      <div className="space-y-1.5 ps-2">
+                        {dh.slots.map((slot, idx) => (
+                          <div key={idx} className="flex items-center gap-2">
+                            <input
+                              type="time"
+                              value={slot.open}
+                              onChange={(e) => {
+                                const slots = dh.slots.map((s, i) => i === idx ? { ...s, open: e.target.value } : s);
+                                setEditHours((h) => ({ ...h, [day]: { ...dh, slots } }));
+                              }}
+                              className="rounded-lg border border-border bg-background px-2 py-1 text-sm"
+                            />
+                            <span className="text-muted-foreground">—</span>
+                            <input
+                              type="time"
+                              value={slot.close}
+                              onChange={(e) => {
+                                const slots = dh.slots.map((s, i) => i === idx ? { ...s, close: e.target.value } : s);
+                                setEditHours((h) => ({ ...h, [day]: { ...dh, slots } }));
+                              }}
+                              className="rounded-lg border border-border bg-background px-2 py-1 text-sm"
+                            />
+                            {dh.slots.length > 1 && (
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  const slots = dh.slots.filter((_, i) => i !== idx);
+                                  setEditHours((h) => ({ ...h, [day]: { ...dh, slots } }));
+                                }}
+                                className="text-muted-foreground hover:text-destructive"
+                              >
+                                <Trash2 className="h-3.5 w-3.5" />
+                              </button>
+                            )}
+                          </div>
+                        ))}
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const slots = [...dh.slots, { open: "09:00", close: "18:00" }];
+                            setEditHours((h) => ({ ...h, [day]: { ...dh, slots } }));
+                          }}
+                          className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
+                        >
+                          <Plus className="h-3 w-3" />
+                          {t("settings.addSlot")}
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
             </div>
 
             <Button onClick={save} disabled={saving || !editName.trim()} className="w-full sm:w-auto">
