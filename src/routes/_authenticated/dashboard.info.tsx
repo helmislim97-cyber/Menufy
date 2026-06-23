@@ -122,16 +122,16 @@ function InfoPage() {
               <Input value={editInstagram} onChange={(e) => setEditInstagram(e.target.value)} placeholder={t("settings.instagramPlaceholder")} className="mt-1" />
             </div>
             <div>
-              <label className="text-xs font-semibold text-muted-foreground">{t("settings.googleReview")}</label>
-              <Input value={editGoogleReview} onChange={(e) => setEditGoogleReview(e.target.value)} placeholder={t("settings.googleReviewPlaceholder")} className="mt-1" />
-            </div>
-            <div>
               <label className="text-xs font-semibold text-muted-foreground">{t("settings.tiktok")}</label>
               <Input value={editTiktok} onChange={(e) => setEditTiktok(e.target.value)} placeholder={t("settings.tiktokPlaceholder")} className="mt-1" />
             </div>
             <div>
               <label className="text-xs font-semibold text-muted-foreground">{t("settings.twitter")}</label>
               <Input value={editTwitter} onChange={(e) => setEditTwitter(e.target.value)} placeholder={t("settings.twitterPlaceholder")} className="mt-1" />
+            </div>
+            <div>
+              <label className="text-xs font-semibold text-muted-foreground">{t("settings.googleReview")}</label>
+              <Input value={editGoogleReview} onChange={(e) => setEditGoogleReview(e.target.value)} placeholder={t("settings.googleReviewPlaceholder")} className="mt-1" />
             </div>
             <div>
               <label className="text-xs font-semibold text-muted-foreground">{t("settings.description")}</label>
