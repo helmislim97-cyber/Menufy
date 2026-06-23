@@ -33,7 +33,7 @@ function getPatternDataUrl(pattern: string, color: string): string {
   const patterns: Record<string, string> = {
     foods: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cpath d='M20 70 L45 20 L70 70 Z' fill='none' stroke='${c}' stroke-width='2.5'/%3E%3Ccircle cx='45' cy='38' r='6' fill='${c}'/%3E%3Ccircle cx='33' cy='55' r='4' fill='${c}'/%3E%3Ccircle cx='57' cy='55' r='4' fill='${c}'/%3E%3Crect x='75' y='75' width='36' height='6' rx='3' fill='none' stroke='${c}' stroke-width='2.5'/%3E%3Crect x='70' y='85' width='46' height='9' rx='4' fill='none' stroke='${c}' stroke-width='2.5'/%3E%3Crect x='78' y='66' width='30' height='6' rx='3' fill='none' stroke='${c}' stroke-width='2.5'/%3E%3C/svg%3E")`,
     bubbles: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='60'%3E%3Ccircle cx='15' cy='15' r='8' fill='none' stroke='${c}' stroke-width='1.5'/%3E%3Ccircle cx='45' cy='45' r='5' fill='none' stroke='${c}' stroke-width='1.5'/%3E%3Ccircle cx='50' cy='15' r='3' fill='none' stroke='${c}' stroke-width='1.5'/%3E%3Ccircle cx='15' cy='50' r='4' fill='none' stroke='${c}' stroke-width='1.5'/%3E%3C/svg%3E")`,
-    dots: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20'%3E%3Ccircle cx='10' cy='10' r='1.5' fill='${c}'/%3E%3C/svg%3E")`,
+    dots: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Crect x='10' y='52' width='60' height='10' rx='5' fill='none' stroke='${c}' stroke-width='2'/%3E%3Crect x='8' y='65' width='64' height='14' rx='7' fill='none' stroke='${c}' stroke-width='2'/%3E%3Crect x='10' y='82' width='60' height='10' rx='5' fill='none' stroke='${c}' stroke-width='2'/%3E%3Cellipse cx='40' cy='48' rx='32' ry='12' fill='none' stroke='${c}' stroke-width='2'/%3E%3Crect x='90' y='85' width='58' height='9' rx='4' fill='none' stroke='${c}' stroke-width='2'/%3E%3Crect x='86' y='97' width='66' height='13' rx='6' fill='none' stroke='${c}' stroke-width='2'/%3E%3Crect x='90' y='113' width='58' height='9' rx='4' fill='none' stroke='${c}' stroke-width='2'/%3E%3Crect x='86' y='75' width='66' height='9' rx='4' fill='none' stroke='${c}' stroke-width='2'/%3E%3Cline x1='119' y1='20' x2='119' y2='73' stroke='${c}' stroke-width='2'/%3E%3Cline x1='105' y1='30' x2='133' y2='30' stroke='${c}' stroke-width='2'/%3E%3Cpath d='M105 30 Q119 55 133 30' fill='none' stroke='${c}' stroke-width='2'/%3E%3C/svg%3E")`,
     hexagons: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='50' height='57'%3E%3Cpolygon points='25,2 48,14 48,43 25,55 2,43 2,14' fill='none' stroke='${c}' stroke-width='1.5'/%3E%3C/svg%3E")`,
     waves: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='20'%3E%3Cpath d='M0 10 Q10 0 20 10 Q30 20 40 10 Q50 0 60 10 Q70 20 80 10' fill='none' stroke='${c}' stroke-width='1.5'/%3E%3C/svg%3E")`,
     diamonds: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='40'%3E%3Crect x='20' y='2' width='24' height='24' rx='1' fill='none' stroke='${c}' stroke-width='1.5' transform='rotate(45 20 14)'/%3E%3C/svg%3E")`,
@@ -355,7 +355,7 @@ function AppearancePage() {
                   { id: "none", label: "Aucun" },
                   { id: "foods", label: "Foods" },
                   { id: "bubbles", label: "Bubbles" },
-                  { id: "dots", label: "Dots" },
+                  { id: "dots", label: "Burger" },
                   { id: "hexagons", label: "Hexagons" },
                   { id: "waves", label: "Waves" },
                   { id: "diamonds", label: "Diamonds" },
@@ -369,7 +369,7 @@ function AppearancePage() {
                     style={{ backgroundColor: bgColor }}
                   >
                     {p.id !== "none" && (
-                      <div className="absolute inset-0" style={{ backgroundImage: getPatternDataUrl(p.id, "#1c1f1620"), backgroundSize: p.id === "foods" ? "120px 120px" : "40px 40px" }} />
+                      <div className="absolute inset-0" style={{ backgroundImage: getPatternDataUrl(p.id, "#1c1f1620"), backgroundSize: p.id === "foods" ? "120px 120px" : p.id === "dots" ? "160px 160px" : "40px 40px" }} />
                     )}
                     <span className="absolute bottom-1 left-0 right-0 text-center text-[10px] font-semibold text-foreground/70">{p.label}</span>
                   </button>
