@@ -35,6 +35,8 @@ interface Restaurant {
   logo_url: string | null;
   facebook_url: string | null;
   instagram_url: string | null;
+  tiktok_url: string | null;
+  twitter_url: string | null;
   google_review_url: string | null;
   address: string | null;
   phone: string | null;
@@ -473,7 +475,7 @@ function MenuPage() {
     async function load() {
       const { data: rest } = await supabase
         .from("restaurants")
-        .select("id, name, logo_url, facebook_url, instagram_url, google_review_url, address, phone, description, wifi, banner_url, banner_position_x, banner_position_y, banner_zoom, brand_color, bg_color, bg_pattern, product_layout")
+        .select("id, name, logo_url, facebook_url, instagram_url, tiktok_url, twitter_url, google_review_url, address, phone, description, wifi, banner_url, banner_position_x, banner_position_y, banner_zoom, brand_color, bg_color, bg_pattern, product_layout")
         .eq("id", restaurantId)
         .eq("is_active", true)
         .maybeSingle();
@@ -1019,6 +1021,8 @@ function MenuPage() {
         logoUrl={restaurant.logo_url}
         facebookUrl={restaurant.facebook_url}
         instagramUrl={restaurant.instagram_url}
+        tiktokUrl={restaurant.tiktok_url}
+        twitterUrl={restaurant.twitter_url}
         tableNumber={tableNumber}
         leaving={coverLeaving}
         bgColor={bgColor}
@@ -1039,6 +1043,8 @@ function MenuPage() {
         logoUrl={restaurant.logo_url}
         facebookUrl={restaurant.facebook_url}
         instagramUrl={restaurant.instagram_url}
+        tiktokUrl={restaurant.tiktok_url}
+        twitterUrl={restaurant.twitter_url}
         address={restaurant.address}
         phone={restaurant.phone}
         description={restaurant.description}
@@ -1152,7 +1158,7 @@ function MenuPage() {
           )}
         </div>
 
-        {(restaurant?.facebook_url || restaurant?.instagram_url) && (
+        {(restaurant?.facebook_url || restaurant?.instagram_url || restaurant?.tiktok_url || restaurant?.twitter_url) && (
           <div className="mt-6 flex flex-col items-center gap-2">
             <span className="text-xs font-semibold text-[#1c1f16]/50">{t("client.followUs")}</span>
             <div className="flex items-center gap-3">
@@ -1174,6 +1180,16 @@ function MenuPage() {
                   className="grid h-10 w-10 place-items-center rounded-full bg-white text-[#1c1f16] shadow-sm"
                 >
                   <Instagram className="h-4 w-4" />
+                </a>
+              )}
+              {restaurant.tiktok_url && (
+                <a href={restaurant.tiktok_url} target="_blank" rel="noreferrer" className="grid h-10 w-10 place-items-center rounded-full bg-white text-[#1c1f16] shadow-sm">
+                  <svg className="h-4 w-4" viewBox="0 0 24 24" fill="currentColor"><path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-2.88 2.5 2.89 2.89 0 0 1-2.89-2.89 2.89 2.89 0 0 1 2.89-2.89c.28 0 .54.04.79.1V9.01a6.33 6.33 0 0 0-.79-.05 6.34 6.34 0 0 0-6.34 6.34 6.34 6.34 0 0 0 6.34 6.34 6.34 6.34 0 0 0 6.33-6.34V8.69a8.18 8.18 0 0 0 4.78 1.52V6.76a4.85 4.85 0 0 1-1.01-.07z"/></svg>
+                </a>
+              )}
+              {restaurant.twitter_url && (
+                <a href={restaurant.twitter_url} target="_blank" rel="noreferrer" className="grid h-10 w-10 place-items-center rounded-full bg-white text-[#1c1f16] shadow-sm">
+                  <svg className="h-4 w-4" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.744l7.737-8.835L1.254 2.25H8.08l4.253 5.622 5.911-5.622zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
                 </a>
               )}
             </div>

@@ -20,6 +20,8 @@ interface Restaurant {
   facebook_url: string | null;
   instagram_url: string | null;
   google_review_url: string | null;
+  tiktok_url: string | null;
+  twitter_url: string | null;
   description: string | null;
   wifi: string | null;
 }
@@ -38,6 +40,8 @@ function InfoPage() {
   const [editFacebook, setEditFacebook] = useState("");
   const [editInstagram, setEditInstagram] = useState("");
   const [editGoogleReview, setEditGoogleReview] = useState("");
+  const [editTiktok, setEditTiktok] = useState("");
+  const [editTwitter, setEditTwitter] = useState("");
   const [editDescription, setEditDescription] = useState("");
   const [editWifi, setEditWifi] = useState("");
 
@@ -45,7 +49,7 @@ function InfoPage() {
     if (!user) return;
     supabase
       .from("restaurants")
-      .select("id, name, address, phone, facebook_url, instagram_url, google_review_url, description, wifi")
+      .select("id, name, address, phone, facebook_url, instagram_url, google_review_url, tiktok_url, twitter_url, description, wifi")
       .eq("owner_id", user.id)
       .maybeSingle()
       .then(({ data }) => {
@@ -57,6 +61,8 @@ function InfoPage() {
           setEditFacebook(data.facebook_url ?? "");
           setEditInstagram(data.instagram_url ?? "");
           setEditGoogleReview(data.google_review_url ?? "");
+          setEditTiktok(data.tiktok_url ?? "");
+          setEditTwitter(data.twitter_url ?? "");
           setEditDescription(data.description ?? "");
           setEditWifi(data.wifi ?? "");
         }
@@ -74,6 +80,8 @@ function InfoPage() {
       facebook_url: editFacebook.trim() || null,
       instagram_url: editInstagram.trim() || null,
       google_review_url: editGoogleReview.trim() || null,
+      tiktok_url: editTiktok.trim() || null,
+      twitter_url: editTwitter.trim() || null,
       description: editDescription.trim() || null,
       wifi: editWifi.trim() || null,
     };
@@ -116,6 +124,14 @@ function InfoPage() {
             <div>
               <label className="text-xs font-semibold text-muted-foreground">{t("settings.googleReview")}</label>
               <Input value={editGoogleReview} onChange={(e) => setEditGoogleReview(e.target.value)} placeholder={t("settings.googleReviewPlaceholder")} className="mt-1" />
+            </div>
+            <div>
+              <label className="text-xs font-semibold text-muted-foreground">{t("settings.tiktok")}</label>
+              <Input value={editTiktok} onChange={(e) => setEditTiktok(e.target.value)} placeholder={t("settings.tiktokPlaceholder")} className="mt-1" />
+            </div>
+            <div>
+              <label className="text-xs font-semibold text-muted-foreground">{t("settings.twitter")}</label>
+              <Input value={editTwitter} onChange={(e) => setEditTwitter(e.target.value)} placeholder={t("settings.twitterPlaceholder")} className="mt-1" />
             </div>
             <div>
               <label className="text-xs font-semibold text-muted-foreground">{t("settings.description")}</label>

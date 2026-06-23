@@ -1,5 +1,21 @@
 import type { CSSProperties } from "react";
 import { ArrowLeft, Facebook, Instagram, MapPin, Phone, Info, Wifi } from "lucide-react";
+
+function TikTokIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="currentColor">
+      <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-2.88 2.5 2.89 2.89 0 0 1-2.89-2.89 2.89 2.89 0 0 1 2.89-2.89c.28 0 .54.04.79.1V9.01a6.33 6.33 0 0 0-.79-.05 6.34 6.34 0 0 0-6.34 6.34 6.34 6.34 0 0 0 6.34 6.34 6.34 6.34 0 0 0 6.33-6.34V8.69a8.18 8.18 0 0 0 4.78 1.52V6.76a4.85 4.85 0 0 1-1.01-.07z"/>
+    </svg>
+  );
+}
+
+function XIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="currentColor">
+      <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.744l7.737-8.835L1.254 2.25H8.08l4.253 5.622 5.911-5.622zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+    </svg>
+  );
+}
 import { LangSwitch } from "@/components/lang-switch";
 import { useI18n } from "@/lib/i18n";
 
@@ -25,6 +41,8 @@ interface CategoryGridProps {
   logoUrl: string | null;
   facebookUrl: string | null;
   instagramUrl: string | null;
+  tiktokUrl?: string | null;
+  twitterUrl?: string | null;
   address: string | null;
   phone: string | null;
   description: string | null;
@@ -36,14 +54,14 @@ interface CategoryGridProps {
   bgPattern?: string;
 }
 
-export function CategoryGrid({ name, logoUrl, facebookUrl, instagramUrl, address, phone, description, wifi, categories, onSelect, onBack, bgColor, bgPattern }: CategoryGridProps) {
+export function CategoryGrid({ name, logoUrl, facebookUrl, instagramUrl, tiktokUrl, twitterUrl, address, phone, description, wifi, categories, onSelect, onBack, bgColor, bgPattern }: CategoryGridProps) {
   const bg = bgColor ?? "#f3efe4";
   const bgStyle: CSSProperties = {
     backgroundColor: bg,
     ...(bgPattern && bgPattern !== "none" && PATTERN_MAP[bgPattern] ? { backgroundImage: PATTERN_MAP[bgPattern], backgroundSize: bgPattern === "foods" ? "120px 120px" : bgPattern === "hexagons" ? "80px 80px" : bgPattern === "bubbles" ? "80px 80px" : bgPattern === "dots" ? "160px 160px" : bgPattern === "waves" ? "100px 30px" : bgPattern === "diamonds" ? "60px 60px" : bgPattern === "crosses" ? "50px 50px" : "40px 40px" } : {}),
   };
   const { t } = useI18n();
-  const hasSocial = !!(facebookUrl || instagramUrl);
+  const hasSocial = !!(facebookUrl || instagramUrl || tiktokUrl || twitterUrl);
 
   return (
     <div className="min-h-screen animate-fade-in px-2 py-4 text-[#1c1f16] sm:px-6 sm:py-8" style={bgStyle}>
@@ -130,6 +148,8 @@ export function CategoryGrid({ name, logoUrl, facebookUrl, instagramUrl, address
           <div className="flex gap-4">
             {facebookUrl && <a href={facebookUrl} target="_blank" rel="noreferrer" className="grid h-10 w-10 place-items-center rounded-full border border-[#1c1f16]/25" aria-label="Facebook"><Facebook className="h-4 w-4" /></a>}
             {instagramUrl && <a href={instagramUrl} target="_blank" rel="noreferrer" className="grid h-10 w-10 place-items-center rounded-full border border-[#1c1f16]/25" aria-label="Instagram"><Instagram className="h-4 w-4" /></a>}
+            {tiktokUrl && <a href={tiktokUrl} target="_blank" rel="noreferrer" className="grid h-10 w-10 place-items-center rounded-full border border-[#1c1f16]/25" aria-label="TikTok"><TikTokIcon className="h-4 w-4" /></a>}
+            {twitterUrl && <a href={twitterUrl} target="_blank" rel="noreferrer" className="grid h-10 w-10 place-items-center rounded-full border border-[#1c1f16]/25" aria-label="X"><XIcon className="h-4 w-4" /></a>}
           </div>
         </div>
       )}
