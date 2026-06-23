@@ -47,6 +47,7 @@ interface Restaurant {
   brand_color: string | null;
   bg_color: string | null;
   bg_pattern: string | null;
+  product_layout: string | null;
 }
 
 interface Category {
@@ -472,7 +473,7 @@ function MenuPage() {
     async function load() {
       const { data: rest } = await supabase
         .from("restaurants")
-        .select("id, name, logo_url, facebook_url, instagram_url, google_review_url, address, phone, description, wifi, banner_url, banner_position_x, banner_position_y, banner_zoom, brand_color, bg_color, bg_pattern")
+        .select("id, name, logo_url, facebook_url, instagram_url, google_review_url, address, phone, description, wifi, banner_url, banner_position_x, banner_position_y, banner_zoom, brand_color, bg_color, bg_pattern, product_layout")
         .eq("id", restaurantId)
         .eq("is_active", true)
         .maybeSingle();
@@ -987,6 +988,7 @@ function MenuPage() {
   const brandColor = restaurant?.brand_color ?? "#7ab450";
   const bgColor = restaurant?.bg_color ?? "#f3efe4";
   const bgPattern = restaurant?.bg_pattern ?? "none";
+  const productLayout = restaurant?.product_layout ?? "list";
 
   function getPatternStyle(pattern: string): React.CSSProperties {
     if (pattern === "none") return {};
@@ -1323,6 +1325,85 @@ function MenuPage() {
               ))}
             </div>
           )
+          // search always uses list layout for clarity
+        ) : productLayout === "carousel" ? (
+          <div className="space-y-8">
+            {visibleCategories.map((c) => {
+              const prods = productsByCategory[c.id] ?? [];
+              if (prods.length === 0) return null;
+              return (
+                <div
+                  key={c.id}
+                  data-category-id={c.id}
+                  ref={(el) => { sectionRefs.current[c.id] = el; }}
+                  className="scroll-mt-32"
+                >
+                  <h2 className="mb-3 px-2 text-lg font-extrabold uppercase tracking-wide text-[#1c1f16]">{c.name}</h2>
+                  <div
+                    className="flex gap-3 overflow-x-auto pb-3 scrollbar-none px-2"
+                    style={{ touchAction: "pan-x" }}
+                  >
+                    {prods.map((p) => {
+                      const soldOut = !p.is_available;
+                      const qty = cart[makeCartKey(p.id, [])]?.qty ?? 0;
+                      return (
+                        <div
+                          key={p.id}
+                          onClick={() => setDetailProduct(p)}
+                          className={`relative flex-shrink-0 w-40 rounded-2xl bg-white shadow-[0_4px_16px_-4px_rgba(28,31,22,0.2)] cursor-pointer overflow-hidden ${soldOut ? "opacity-60" : ""}`}
+                        >
+                          <div className="h-36 w-full overflow-hidden bg-background">
+                            {p.image_url ? (
+                              <img src={p.image_url} alt={p.name} className="h-full w-full object-cover" />
+                            ) : (
+                              <div className="h-full w-full flex items-center justify-center text-4xl">{p.emoji || "🍽️"}</div>
+                            )}
+                          </div>
+                          {soldOut ? (
+                            <span className="absolute top-0 end-0 rounded-ee-xl rounded-ss-xl bg-[#1c1f16]/70 px-2 py-1 text-[10px] font-bold uppercase text-white">
+                              {t("client.soldOut")}
+                            </span>
+                          ) : p.badge ? (
+                            <span
+                              className="absolute top-0 end-0 rounded-ee-xl rounded-ss-xl px-2 py-1 text-[10px] font-bold uppercase text-white"
+                              style={{ backgroundColor: p.badge_color ?? "#16a34a" }}
+                            >
+                              {p.badge}
+                            </span>
+                          ) : null}
+                          <div className="p-2.5">
+                            <p className="text-sm font-extrabold leading-tight text-[#1c1f16] line-clamp-2">{p.name}</p>
+                            <p className="mt-1 text-sm font-bold text-[#1c1f16]">{Number(p.price).toFixed(2)} DT</p>
+                          </div>
+                          {!soldOut && (
+                            qty === 0 ? (
+                              <button
+                                onClick={(e) => { e.stopPropagation(); setDetailProduct(p); }}
+                                className="absolute bottom-2 end-2 grid h-7 w-7 place-items-center rounded-full shadow-md"
+                                style={primaryStyle}
+                              >
+                                <Plus className="h-3.5 w-3.5" />
+                              </button>
+                            ) : (
+                              <div className="absolute bottom-2 end-2 flex items-center gap-1 rounded-full bg-white px-1 py-0.5 shadow-md">
+                                <button onClick={(e) => { e.stopPropagation(); changeQty(p.id, -1); }} className="grid h-5 w-5 place-items-center rounded-full border border-border text-[#1c1f16]">
+                                  <Minus className="h-2.5 w-2.5" />
+                                </button>
+                                <span className="w-3 text-center text-xs font-bold text-[#1c1f16]">{qty}</span>
+                                <button onClick={(e) => { e.stopPropagation(); changeQty(p.id, 1); }} className="grid h-5 w-5 place-items-center rounded-full" style={primaryStyle}>
+                                  <Plus className="h-2.5 w-2.5" />
+                                </button>
+                              </div>
+                            )
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
         ) : (
           <div className="space-y-6">
             {visibleCategories.map((c) => {

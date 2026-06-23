@@ -23,6 +23,7 @@ interface Restaurant {
   brand_color: string | null;
   bg_color: string | null;
   bg_pattern: string | null;
+  product_layout: string | null;
 }
 
 const BRAND_COLORS = ["#7ab450", "#dc2626", "#ea580c", "#2563eb", "#9333ea", "#0891b2", "#d4a843", "#1c1f16"];
@@ -64,12 +65,13 @@ function AppearancePage() {
   const [brandColor, setBrandColor] = useState("#7ab450");
   const [bgColor, setBgColor] = useState("#f3efe4");
   const [bgPattern, setBgPattern] = useState("none");
+  const [productLayout, setProductLayout] = useState("list");
 
   useEffect(() => {
     if (!user) return;
     supabase
       .from("restaurants")
-      .select("id, logo_url, banner_url, banner_position_x, banner_position_y, banner_zoom, brand_color, bg_color, bg_pattern")
+      .select("id, logo_url, banner_url, banner_position_x, banner_position_y, banner_zoom, brand_color, bg_color, bg_pattern, product_layout")
       .eq("owner_id", user.id)
       .maybeSingle()
       .then(({ data }) => {
@@ -85,6 +87,7 @@ function AppearancePage() {
           setBrandColor(data.brand_color ?? "#7ab450");
           setBgColor(data.bg_color ?? "#f3efe4");
           setBgPattern(data.bg_pattern ?? "none");
+          setProductLayout(data.product_layout ?? "list");
         }
         setLoading(false);
       });
@@ -180,6 +183,7 @@ function AppearancePage() {
       brand_color: brandColor,
       bg_color: bgColor,
       bg_pattern: bgPattern,
+      product_layout: productLayout,
     };
     const { error } = await supabase.from("restaurants").update(updates).eq("id", restaurant.id);
     setSaving(false);
@@ -372,6 +376,45 @@ function AppearancePage() {
                       <div className="absolute inset-0" style={{ backgroundImage: getPatternDataUrl(p.id, "#1c1f1620"), backgroundSize: p.id === "foods" ? "120px 120px" : p.id === "dots" ? "160px 160px" : "40px 40px" }} />
                     )}
                     <span className="absolute bottom-1 left-0 right-0 text-center text-[10px] font-semibold text-foreground/70">{p.label}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div>
+              <label className="text-xs font-semibold text-muted-foreground">{t("settings.productLayout")}</label>
+              <p className="mt-0.5 text-xs text-muted-foreground/70">{t("settings.productLayoutHint")}</p>
+              <div className="mt-2 grid grid-cols-2 gap-3">
+                {[
+                  { id: "list", label: t("settings.layoutList") },
+                  { id: "carousel", label: t("settings.layoutCarousel") },
+                ].map((l) => (
+                  <button
+                    key={l.id}
+                    type="button"
+                    onClick={() => setProductLayout(l.id)}
+                    className={`relative h-24 rounded-xl border-2 overflow-hidden flex flex-col items-center justify-center gap-2 transition-all ${productLayout === l.id ? "border-foreground bg-accent" : "border-border bg-surface"}`}
+                  >
+                    {l.id === "list" ? (
+                      <div className="flex flex-col gap-1 w-16">
+                        {[1,2,3].map((i) => (
+                          <div key={i} className="flex items-center gap-1">
+                            <div className="h-4 w-4 rounded bg-muted-foreground/30 shrink-0" />
+                            <div className="h-2 flex-1 rounded bg-muted-foreground/20" />
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="flex gap-1">
+                        {[1,2,3].map((i) => (
+                          <div key={i} className="flex flex-col gap-1 w-10">
+                            <div className="h-8 w-10 rounded bg-muted-foreground/30" />
+                            <div className="h-2 w-full rounded bg-muted-foreground/20" />
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                    <span className="text-[11px] font-semibold text-foreground/70">{l.label}</span>
                   </button>
                 ))}
               </div>
