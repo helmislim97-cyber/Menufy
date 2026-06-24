@@ -137,10 +137,6 @@ export function RestaurantCover({ name, logoUrl, facebookUrl, instagramUrl, tikt
       </div>
 
       <div className="w-full max-w-md pb-2">
-        <div className="mb-3 flex items-center justify-center gap-1.5 text-xs text-[#1c1f16]/40">
-          <span>{t("client.poweredBy")}</span>
-          <MenufyBrand />
-        </div>
         {wifi?.trim() && (
           <div className="mb-4 flex flex-col items-center gap-1 rounded-2xl bg-white/60 border border-[#1c1f16]/10 px-4 py-3">
             <div className="flex items-center gap-2">
@@ -161,6 +157,11 @@ export function RestaurantCover({ name, logoUrl, facebookUrl, instagramUrl, tikt
         >
           {t("client.orderNow")}
         </button>
+        <div className="mt-3 flex items-center justify-center gap-1.5 text-xs text-[#1c1f16]/40">
+          <span>{t("client.poweredBy")}</span>
+          <MenufyBrand />
+          <span>· © {new Date().getFullYear()} {t("client.allRightsReserved")}</span>
+        </div>
       </div>
     </div>
   );
