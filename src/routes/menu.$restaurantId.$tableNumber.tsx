@@ -17,7 +17,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { RestaurantCover } from "@/components/restaurant-cover";
 import { CategoryGrid } from "@/components/category-grid";
-import { ShoppingCart, Plus, Minus, CheckCircle2, Search, ArrowLeft, MapPin, Flame, Clock, ChefHat, BellRing, ClipboardList, Wallet, XCircle, Star, Facebook, Instagram, ChevronDown } from "lucide-react";
+import { ShoppingCart, Plus, Minus, CheckCircle2, Search, ArrowLeft, MapPin, Flame, Clock, ChefHat, BellRing, ClipboardList, Wallet, XCircle, Star, Facebook, Instagram, ChevronDown, Info, Phone, Wifi } from "lucide-react";
 
 export const Route = createFileRoute("/menu/$restaurantId/$tableNumber")({
   head: () => ({
@@ -1448,14 +1448,85 @@ function MenuPage() {
         )}
       </main>
 
-      <footer className="mx-auto max-w-md px-4 py-6 text-center text-xs text-[#1c1f16]/40">
-        <p>
-          {t("client.poweredBy")}{" "}
-          <a href="https://menufy-tau.vercel.app" target="_blank" rel="noreferrer" className="font-semibold text-[#1c1f16]/60 hover:text-[#1c1f16]">
-            Menufy
-          </a>
-        </p>
-        <p className="mt-0.5">© {new Date().getFullYear()} Menufy. {t("client.allRightsReserved")}</p>
+      <footer className="mx-auto max-w-md px-4 py-6 space-y-3">
+        {restaurant.description && (
+          <div className="flex items-start gap-3 rounded-2xl bg-white/60 px-4 py-4 border border-[#1c1f16]/10">
+            <Info className="mt-0.5 h-5 w-5 shrink-0 text-[#1c1f16]/40" />
+            <div>
+              <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#1c1f16]/40">{t("client.info")}</p>
+              <p className="mt-1 text-sm leading-relaxed text-[#1c1f16]/80" style={{ whiteSpace: "pre-line" }}>{restaurant.description}</p>
+            </div>
+          </div>
+        )}
+        {restaurant.address && (
+          <div className="flex items-start gap-3 rounded-2xl bg-white/60 px-4 py-4 border border-[#1c1f16]/10">
+            <MapPin className="mt-0.5 h-5 w-5 shrink-0 text-[#1c1f16]/40" />
+            <div>
+              <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#1c1f16]/40">{t("client.address")}</p>
+              <p className="mt-1 text-sm text-[#1c1f16]/80">{restaurant.address}</p>
+            </div>
+          </div>
+        )}
+        {restaurant.phone && (
+          <div className="flex items-start gap-3 rounded-2xl bg-white/60 px-4 py-4 border border-[#1c1f16]/10">
+            <Phone className="mt-0.5 h-5 w-5 shrink-0 text-[#1c1f16]/40" />
+            <div>
+              <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#1c1f16]/40">{t("client.reservation")}</p>
+              <a href={`tel:${restaurant.phone}`} className="mt-1 block text-sm text-[#1c1f16]/80">{restaurant.phone}</a>
+            </div>
+          </div>
+        )}
+        {restaurant.wifi && (
+          <div className="flex items-start gap-3 rounded-2xl bg-white/60 px-4 py-4 border border-[#1c1f16]/10">
+            <Wifi className="mt-0.5 h-5 w-5 shrink-0 text-[#1c1f16]/40" />
+            <div>
+              <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#1c1f16]/40">{t("client.wifi")}</p>
+              <p className="mt-1 text-sm font-mono tracking-wide text-[#1c1f16]/80">{restaurant.wifi}</p>
+            </div>
+          </div>
+        )}
+        {restaurant.opening_hours && Object.values(restaurant.opening_hours).some((d) => d.isOpen) && (
+          <div className="rounded-2xl bg-white/60 border border-[#1c1f16]/10 overflow-hidden">
+            <div className="flex items-center gap-2 px-4 py-3 border-b border-[#1c1f16]/10">
+              <Clock className="h-4 w-4 shrink-0" style={{ color: brandColor }} />
+              <p className="text-sm font-bold text-[#1c1f16]">{t("client.openingHours")}</p>
+            </div>
+            <div className="divide-y divide-[#1c1f16]/8">
+              {["monday","tuesday","wednesday","thursday","friday","saturday","sunday"].map((day) => {
+                const dh = restaurant.opening_hours![day];
+                const todayKey = ["sunday","monday","tuesday","wednesday","thursday","friday","saturday"][new Date().getDay()];
+                const isToday = day === todayKey;
+                const labels: Record<string,string> = { monday:"Lundi", tuesday:"Mardi", wednesday:"Mercredi", thursday:"Jeudi", friday:"Vendredi", saturday:"Samedi", sunday:"Dimanche" };
+                return (
+                  <div key={day} className="flex items-center justify-between px-4 py-2.5" style={isToday ? { backgroundColor: `${brandColor}12` } : {}}>
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm" style={{ fontWeight: isToday ? 700 : 400, color: isToday ? brandColor : "#1c1f16" }}>{labels[day]}</span>
+                      {isToday && <span className="rounded-full px-2 py-0.5 text-[10px] font-bold text-white" style={{ backgroundColor: brandColor }}>{t("client.today")}</span>}
+                    </div>
+                    <span className="text-sm" style={{ fontWeight: isToday ? 700 : 400, color: isToday ? brandColor : "#1c1f1699" }}>
+                      {dh?.isOpen && dh.slots.length > 0 ? dh.slots.map((s: {open:string;close:string}) => `${s.open} – ${s.close}`).join(", ") : <span className="text-[#1c1f16]/40">{t("client.closed")}</span>}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+        {(restaurant.facebook_url || restaurant.instagram_url || restaurant.tiktok_url || restaurant.twitter_url) && (
+          <div className="flex flex-col items-center gap-3 pt-2">
+            <p className="text-xs font-bold uppercase tracking-[0.3em] text-[#1c1f16]/50">{t("client.followUs")}</p>
+            <div className="flex gap-3">
+              {restaurant.facebook_url && <a href={restaurant.facebook_url} target="_blank" rel="noreferrer" className="grid h-10 w-10 place-items-center rounded-full bg-white/60 border border-[#1c1f16]/10 text-[#1c1f16]"><Facebook className="h-4 w-4" /></a>}
+              {restaurant.instagram_url && <a href={restaurant.instagram_url} target="_blank" rel="noreferrer" className="grid h-10 w-10 place-items-center rounded-full bg-white/60 border border-[#1c1f16]/10 text-[#1c1f16]"><Instagram className="h-4 w-4" /></a>}
+              {restaurant.tiktok_url && <a href={restaurant.tiktok_url} target="_blank" rel="noreferrer" className="grid h-10 w-10 place-items-center rounded-full bg-white/60 border border-[#1c1f16]/10 text-[#1c1f16]"><svg className="h-4 w-4" viewBox="0 0 24 24" fill="currentColor"><path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-2.88 2.5 2.89 2.89 0 0 1-2.89-2.89 2.89 2.89 0 0 1 2.89-2.89c.28 0 .54.04.79.1V9.01a6.33 6.33 0 0 0-.79-.05 6.34 6.34 0 0 0-6.34 6.34 6.34 6.34 0 0 0 6.34 6.34 6.34 6.34 0 0 0 6.33-6.34V8.69a8.18 8.18 0 0 0 4.78 1.52V6.76a4.85 4.85 0 0 1-1.01-.07z"/></svg></a>}
+              {restaurant.twitter_url && <a href={restaurant.twitter_url} target="_blank" rel="noreferrer" className="grid h-10 w-10 place-items-center rounded-full bg-white/60 border border-[#1c1f16]/10 text-[#1c1f16]"><svg className="h-4 w-4" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.744l7.737-8.835L1.254 2.25H8.08l4.253 5.622 5.911-5.622zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg></a>}
+            </div>
+          </div>
+        )}
+        <div className="pt-2 text-center text-xs text-[#1c1f16]/40">
+          <p>{t("client.poweredBy")} <a href="https://menufy-tau.vercel.app" target="_blank" rel="noreferrer" className="font-semibold text-[#1c1f16]/60 hover:text-[#1c1f16]">Menufy</a></p>
+          <p className="mt-0.5">© {new Date().getFullYear()} Menufy. {t("client.allRightsReserved")}</p>
+        </div>
       </footer>
 
       <div className="fixed inset-x-0 bottom-0 z-50 border-t border-[#1c1f16]/10 p-3 backdrop-blur-xl" style={bgWithPattern}>
