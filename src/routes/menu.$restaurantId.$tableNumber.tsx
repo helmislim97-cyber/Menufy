@@ -441,19 +441,19 @@ function MenuPage() {
 
   const scrollInputIntoView = (e: React.FocusEvent<HTMLInputElement>) => {
     const input = e.target;
-    setTimeout(() => {
-      const scrollable = input.closest(".overflow-y-auto");
-      if (scrollable) {
-        const inputRect = input.getBoundingClientRect();
-        const scrollableRect = scrollable.getBoundingClientRect();
-        const relativeBottom = inputRect.bottom - scrollableRect.top;
-        const visibleHeight = window.visualViewport?.height ?? window.innerHeight;
-        const scrollableVisibleHeight = Math.min(scrollableRect.height, visibleHeight - scrollableRect.top);
-        if (relativeBottom > scrollableVisibleHeight - 20) {
-          scrollable.scrollTop += relativeBottom - scrollableVisibleHeight + 100;
-        }
+    const doScroll = () => {
+      const scrollable = input.closest(".overflow-y-auto") as HTMLElement | null;
+      if (!scrollable) return;
+      const vv = window.visualViewport;
+      const visibleBottom = vv ? vv.offsetTop + vv.height : window.innerHeight;
+      const inputRect = input.getBoundingClientRect();
+      if (inputRect.bottom > visibleBottom - 16) {
+        const extra = inputRect.bottom - visibleBottom + 80;
+        scrollable.scrollBy({ top: extra, behavior: "smooth" });
       }
-    }, 400);
+    };
+    setTimeout(doScroll, 300);
+    setTimeout(doScroll, 600);
   };
 
   useEffect(() => {
