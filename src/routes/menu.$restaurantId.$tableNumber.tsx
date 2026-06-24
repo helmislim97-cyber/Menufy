@@ -439,25 +439,30 @@ function MenuPage() {
   const [assistanceSending, setAssistanceSending] = useState(false);
   const [assistanceSent, setAssistanceSent] = useState(false);
 
-  const scrollInputIntoView = (e: React.FocusEvent<HTMLInputElement>) => {
-    const input = e.target;
-    const doScroll = () => {
-      const vv = window.visualViewport;
-      const kbHeight = vv ? Math.max(0, window.innerHeight - vv.height - vv.offsetTop) : 0;
-      const visibleBottom = (vv?.height ?? window.innerHeight) - 16;
-      const rect = input.getBoundingClientRect();
-      if (rect.bottom > visibleBottom) {
-        const dialog = document.querySelector("[data-radix-dialog-content]") as HTMLElement | null;
-        if (dialog) {
-          dialog.scrollTop += rect.bottom - visibleBottom + 24;
-        }
-      }
-      document.documentElement.style.setProperty("--kb-height", `${kbHeight}px`);
-    };
-    setTimeout(doScroll, 100);
-    setTimeout(doScroll, 350);
-    setTimeout(doScroll, 650);
-  };
+  const inputRef1 = useRef<HTMLInputElement>(null);
+  const inputRef2 = useRef<HTMLInputElement>(null);
+  const inputRef3 = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    const inputs = [inputRef1.current, inputRef2.current, inputRef3.current];
+    const handlers: (() => void)[] = [];
+
+    inputs.forEach((input) => {
+      if (!input) return;
+      const handler = () => {
+        setTimeout(() => {
+          input.scrollIntoView({ behavior: "smooth", block: "center" });
+        }, 300);
+        setTimeout(() => {
+          input.scrollIntoView({ behavior: "smooth", block: "center" });
+        }, 600);
+      };
+      input.addEventListener("focus", handler);
+      handlers.push(() => input.removeEventListener("focus", handler));
+    });
+
+    return () => handlers.forEach((h) => h());
+  }, [cartOpen]);
 
   useEffect(() => {
     const storageKey = `menufy_session_${restaurantId}_${tableNumber}`;
@@ -1843,55 +1848,56 @@ function MenuPage() {
                 </div>
               )}
 
-              <div className="space-y-2 border-t border-[#1c1f16]/10 pt-3">
-                <p className="text-sm font-bold text-[#1c1f16]">{t("client.yourInfo")} <span className="text-destructive">*</span></p>
-                <div className="grid grid-cols-2 gap-2">
-                  <Input
-                    value={customerFirstName}
-                    onChange={(e) => { setCustomerFirstName(e.target.value.replace(/[^\p{L}\s'-]/gu, "")); setInvalidFields((f) => ({ ...f, firstName: false })); }}
-                    placeholder={`${t("client.firstNamePlaceholder")} *`}
-                    className={invalidFields.firstName ? "border-destructive bg-destructive/5" : ""}
-                    onFocus={scrollInputIntoView}
-                  />
-                  <Input
-                    value={customerLastName}
-                    onChange={(e) => { setCustomerLastName(e.target.value.replace(/[^\p{L}\s'-]/gu, "")); setInvalidFields((f) => ({ ...f, lastName: false })); }}
-                    placeholder={`${t("client.lastNamePlaceholder")} *`}
-                    className={invalidFields.lastName ? "border-destructive bg-destructive/5" : ""}
-                    onFocus={scrollInputIntoView}
-                  />
-                </div>
-                <div className="flex gap-2">
-                  <Select value={customerCountryCode} onValueChange={setCustomerCountryCode}>
-                    <SelectTrigger className="w-24 shrink-0">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {COUNTRY_CODES.map((c) => (
-                        <SelectItem key={c.code} value={c.code}>
-                          {c.flag} {c.code}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <Input
-                    type="tel"
-                    inputMode="numeric"
-                    value={customerPhone}
-                    onChange={(e) => { setCustomerPhone(e.target.value.replace(/[^0-9]/g, "")); setInvalidFields((f) => ({ ...f, phone: false })); }}
-                    placeholder={`${t("client.phonePlaceholder")} *`}
-                    className={`flex-1 ${invalidFields.phone ? "border-destructive bg-destructive/5" : ""}`}
-                    onFocus={scrollInputIntoView}
-                  />
-                </div>
-                {showInfoError && (
-                  <p className="text-xs font-medium text-destructive">
-                    {infoErrorType === "empty" ? t("client.missingInfoError") : t("client.invalidInfoError")}
-                  </p>
-                )}
               </div>
-            </div>
           )}
+
+          <div className="space-y-2 border-t border-[#1c1f16]/10 pt-3">
+            <p className="text-sm font-bold text-[#1c1f16]">{t("client.yourInfo")} <span className="text-destructive">*</span></p>
+            <div className="grid grid-cols-2 gap-2">
+              <Input
+                ref={inputRef1}
+                value={customerFirstName}
+                onChange={(e) => { setCustomerFirstName(e.target.value.replace(/[^\p{L}\s'-]/gu, "")); setInvalidFields((f) => ({ ...f, firstName: false })); }}
+                placeholder={`${t("client.firstNamePlaceholder")} *`}
+                className={invalidFields.firstName ? "border-destructive bg-destructive/5" : ""}
+              />
+              <Input
+                ref={inputRef2}
+                value={customerLastName}
+                onChange={(e) => { setCustomerLastName(e.target.value.replace(/[^\p{L}\s'-]/gu, "")); setInvalidFields((f) => ({ ...f, lastName: false })); }}
+                placeholder={`${t("client.lastNamePlaceholder")} *`}
+                className={invalidFields.lastName ? "border-destructive bg-destructive/5" : ""}
+              />
+            </div>
+            <div className="flex gap-2">
+              <Select value={customerCountryCode} onValueChange={setCustomerCountryCode}>
+                <SelectTrigger className="w-24 shrink-0">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {COUNTRY_CODES.map((c) => (
+                    <SelectItem key={c.code} value={c.code}>
+                      {c.flag} {c.code}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Input
+                ref={inputRef3}
+                type="tel"
+                inputMode="numeric"
+                value={customerPhone}
+                onChange={(e) => { setCustomerPhone(e.target.value.replace(/[^0-9]/g, "")); setInvalidFields((f) => ({ ...f, phone: false })); }}
+                placeholder={`${t("client.phonePlaceholder")} *`}
+                className={`flex-1 ${invalidFields.phone ? "border-destructive bg-destructive/5" : ""}`}
+              />
+            </div>
+            {showInfoError && (
+              <p className="text-xs font-medium text-destructive">
+                {infoErrorType === "empty" ? t("client.missingInfoError") : t("client.invalidInfoError")}
+              </p>
+            )}
+          </div>
 
           {cartItems.length > 0 && (
             <DialogFooter>
