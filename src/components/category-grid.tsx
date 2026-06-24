@@ -115,84 +115,70 @@ export function CategoryGrid({ name, logoUrl, facebookUrl, instagramUrl, tiktokU
       </div>
 
       <div className="mt-8 space-y-3">
-        {description && (
-          <div className="flex items-start gap-3 rounded-2xl bg-white/60 px-4 py-4 border border-[#1c1f16]/10">
-            <Info className="mt-0.5 h-5 w-5 shrink-0 text-[#1c1f16]/40" />
-            <div>
-              <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#1c1f16]/40">{t("client.info")}</p>
-              <p className="mt-1 text-sm leading-relaxed text-[#1c1f16]/80">{description}</p>
+        {orderedKeys.map((key) => {
+          if (key === "description" && description?.trim()) return (
+            <div key="description" className="flex items-start gap-3 rounded-2xl bg-white/60 px-4 py-4 border border-[#1c1f16]/10">
+              <Info className="mt-0.5 h-5 w-5 shrink-0 text-[#1c1f16]/40" />
+              <div>
+                <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#1c1f16]/40">{t("client.info")}</p>
+                <p className="mt-1 text-sm leading-relaxed text-[#1c1f16]/80" style={{ whiteSpace: "pre-line" }}>{description}</p>
+              </div>
             </div>
-          </div>
-        )}
-
-        {address && (
-          <div className="flex items-start gap-3 rounded-2xl bg-white/60 px-4 py-4 border border-[#1c1f16]/10">
-            <MapPin className="mt-0.5 h-5 w-5 shrink-0 text-[#1c1f16]/40" />
-            <div>
-              <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#1c1f16]/40">{t("client.address")}</p>
-              <p className="mt-1 text-sm text-[#1c1f16]/80">{address}</p>
+          );
+          if (key === "address" && address?.trim()) return (
+            <div key="address" className="flex items-start gap-3 rounded-2xl bg-white/60 px-4 py-4 border border-[#1c1f16]/10">
+              <MapPin className="mt-0.5 h-5 w-5 shrink-0 text-[#1c1f16]/40" />
+              <div>
+                <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#1c1f16]/40">{t("client.address")}</p>
+                <p className="mt-1 text-sm text-[#1c1f16]/80">{address}</p>
+              </div>
             </div>
-          </div>
-        )}
-
-        {phone && (
-          <div className="flex items-start gap-3 rounded-2xl bg-white/60 px-4 py-4 border border-[#1c1f16]/10">
-            <Phone className="mt-0.5 h-5 w-5 shrink-0 text-[#1c1f16]/40" />
-            <div>
-              <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#1c1f16]/40">{t("client.reservation")}</p>
-              <a href={`tel:${phone}`} className="mt-1 block text-sm text-[#1c1f16]/80">{phone}</a>
+          );
+          if (key === "phone" && phone?.trim()) return (
+            <div key="phone" className="flex items-start gap-3 rounded-2xl bg-white/60 px-4 py-4 border border-[#1c1f16]/10">
+              <Phone className="mt-0.5 h-5 w-5 shrink-0 text-[#1c1f16]/40" />
+              <div>
+                <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#1c1f16]/40">{t("client.reservation")}</p>
+                <a href={`tel:${phone}`} className="mt-1 block text-sm text-[#1c1f16]/80">{phone}</a>
+              </div>
             </div>
-          </div>
-        )}
-
-        {wifi && (
-          <div className="flex items-start gap-3 rounded-2xl bg-white/60 px-4 py-4 border border-[#1c1f16]/10">
-            <Wifi className="mt-0.5 h-5 w-5 shrink-0 text-[#1c1f16]/40" />
-            <div>
-              <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#1c1f16]/40">{t("client.wifi")}</p>
-              <p className="mt-1 text-sm font-mono tracking-wide text-[#1c1f16]/80">{wifi}</p>
+          );
+          if (key === "wifi" && wifi?.trim()) return (
+            <div key="wifi" className="flex items-start gap-3 rounded-2xl bg-white/60 px-4 py-4 border border-[#1c1f16]/10">
+              <Wifi className="mt-0.5 h-5 w-5 shrink-0 text-[#1c1f16]/40" />
+              <div>
+                <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#1c1f16]/40">{t("client.wifi")}</p>
+                <p className="mt-1 text-sm font-mono tracking-wide text-[#1c1f16]/80">{wifi}</p>
+              </div>
             </div>
-          </div>
-        )}
-
-        {openingHours && Object.values(openingHours).some((d) => d.isOpen) && (
-          <div className="rounded-2xl bg-white/60 border border-[#1c1f16]/10 overflow-hidden">
-            <div className="flex items-center gap-2 px-4 py-3 border-b border-[#1c1f16]/10">
-              <Clock className="h-4 w-4 shrink-0" style={{ color: brandColor ?? "#1c1f16" }} />
-              <p className="text-sm font-bold text-[#1c1f16]">{t("client.openingHours")}</p>
-            </div>
-            <div className="divide-y divide-[#1c1f16]/8">
-              {DAYS.map((day) => {
-                const dh = openingHours[day];
-                const isToday = day === TODAY_KEY;
-                return (
-                  <div
-                    key={day}
-                    className="flex items-center justify-between px-4 py-2.5"
-                    style={isToday ? { backgroundColor: `${brandColor ?? "#1c1f16"}12` } : {}}
-                  >
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm" style={{ fontWeight: isToday ? 700 : 400, color: isToday ? (brandColor ?? "#1c1f16") : "#1c1f16" }}>
-                        {DAY_LABELS[day]}
-                      </span>
-                      {isToday && (
-                        <span className="rounded-full px-2 py-0.5 text-[10px] font-bold text-white" style={{ backgroundColor: brandColor ?? "#1c1f16" }}>
-                          {t("client.today")}
-                        </span>
-                      )}
+          );
+          if (key === "hours" && openingHours && Object.values(openingHours).some((d) => d.isOpen)) return (
+            <div key="hours" className="rounded-2xl bg-white/60 border border-[#1c1f16]/10 overflow-hidden">
+              <div className="flex items-center gap-2 px-4 py-3 border-b border-[#1c1f16]/10">
+                <Clock className="h-4 w-4 shrink-0" style={{ color: brandColor ?? "#1c1f16" }} />
+                <p className="text-sm font-bold text-[#1c1f16]">{t("client.openingHours")}</p>
+              </div>
+              <div className="divide-y divide-[#1c1f16]/8">
+                {DAYS.map((day) => {
+                  const dh = openingHours[day];
+                  const isToday = day === TODAY_KEY;
+                  return (
+                    <div key={day} className="flex items-center justify-between px-4 py-2.5" style={isToday ? { backgroundColor: `${brandColor ?? "#1c1f16"}12` } : {}}>
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm" style={{ fontWeight: isToday ? 700 : 400, color: isToday ? (brandColor ?? "#1c1f16") : "#1c1f16" }}>{DAY_LABELS[day]}</span>
+                        {isToday && <span className="rounded-full px-2 py-0.5 text-[10px] font-bold text-white" style={{ backgroundColor: brandColor ?? "#1c1f16" }}>{t("client.today")}</span>}
+                      </div>
+                      <div className="text-sm" style={{ fontWeight: isToday ? 700 : 400, color: isToday ? (brandColor ?? "#1c1f16") : "#1c1f1699" }}>
+                        {dh?.isOpen && dh.slots.length > 0 ? dh.slots.map((s) => `${s.open} – ${s.close}`).join(", ") : <span className="text-[#1c1f16]/40">{t("client.closed")}</span>}
+                      </div>
                     </div>
-                    <div className="text-sm" style={{ fontWeight: isToday ? 700 : 400, color: isToday ? (brandColor ?? "#1c1f16") : "#1c1f1699" }}>
-                      {dh?.isOpen && dh.slots.length > 0
-                        ? dh.slots.map((s) => `${s.open} – ${s.close}`).join(", ")
-                        : <span className="text-[#1c1f16]/40">{t("client.closed")}</span>
-                      }
-                    </div>
-                  </div>
-                );
-              })}
+                  );
+                })}
+              </div>
             </div>
-          </div>
-        )}
+          );
+          return null;
+        })}
       </div>
 
       {hasSocial && (
