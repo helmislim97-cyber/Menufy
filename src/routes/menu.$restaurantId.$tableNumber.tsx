@@ -51,6 +51,7 @@ interface Restaurant {
   bg_pattern: string | null;
   product_layout: string | null;
   opening_hours: Record<string, { isOpen: boolean; slots: { open: string; close: string }[] }> | null;
+  info_order: string[] | null;
 }
 
 interface Category {
@@ -476,7 +477,7 @@ function MenuPage() {
     async function load() {
       const { data: rest } = await supabase
         .from("restaurants")
-        .select("id, name, logo_url, facebook_url, instagram_url, tiktok_url, twitter_url, google_review_url, address, phone, description, wifi, banner_url, banner_position_x, banner_position_y, banner_zoom, brand_color, bg_color, bg_pattern, product_layout, opening_hours")
+        .select("id, name, logo_url, facebook_url, instagram_url, tiktok_url, twitter_url, google_review_url, address, phone, description, wifi, banner_url, banner_position_x, banner_position_y, banner_zoom, brand_color, bg_color, bg_pattern, product_layout, opening_hours, info_order")
         .eq("id", restaurantId)
         .eq("is_active", true)
         .maybeSingle();
@@ -1449,69 +1450,73 @@ function MenuPage() {
       </main>
 
       <footer className="mx-auto max-w-5xl px-4 py-6 space-y-3">
-        {restaurant.description && (
-          <div className="flex items-start gap-3 rounded-2xl bg-white/60 px-4 py-4 border border-[#1c1f16]/10">
-            <Info className="mt-0.5 h-5 w-5 shrink-0 text-[#1c1f16]/40" />
-            <div>
-              <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#1c1f16]/40">{t("client.info")}</p>
-              <p className="mt-1 text-sm leading-relaxed text-[#1c1f16]/80" style={{ whiteSpace: "pre-line" }}>{restaurant.description}</p>
+        {(restaurant.info_order ?? ["description","address","phone","wifi","hours"]).map((key) => {
+          if (key === "description" && restaurant.description?.trim()) return (
+            <div key="description" className="flex items-start gap-3 rounded-2xl bg-white/60 px-4 py-4 border border-[#1c1f16]/10">
+              <Info className="mt-0.5 h-5 w-5 shrink-0 text-[#1c1f16]/40" />
+              <div>
+                <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#1c1f16]/40">{t("client.info")}</p>
+                <p className="mt-1 text-sm leading-relaxed text-[#1c1f16]/80" style={{ whiteSpace: "pre-line" }}>{restaurant.description}</p>
+              </div>
             </div>
-          </div>
-        )}
-        {restaurant.address && (
-          <div className="flex items-start gap-3 rounded-2xl bg-white/60 px-4 py-4 border border-[#1c1f16]/10">
-            <MapPin className="mt-0.5 h-5 w-5 shrink-0 text-[#1c1f16]/40" />
-            <div>
-              <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#1c1f16]/40">{t("client.address")}</p>
-              <p className="mt-1 text-sm text-[#1c1f16]/80">{restaurant.address}</p>
+          );
+          if (key === "address" && restaurant.address?.trim()) return (
+            <div key="address" className="flex items-start gap-3 rounded-2xl bg-white/60 px-4 py-4 border border-[#1c1f16]/10">
+              <MapPin className="mt-0.5 h-5 w-5 shrink-0 text-[#1c1f16]/40" />
+              <div>
+                <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#1c1f16]/40">{t("client.address")}</p>
+                <p className="mt-1 text-sm text-[#1c1f16]/80">{restaurant.address}</p>
+              </div>
             </div>
-          </div>
-        )}
-        {restaurant.phone && (
-          <div className="flex items-start gap-3 rounded-2xl bg-white/60 px-4 py-4 border border-[#1c1f16]/10">
-            <Phone className="mt-0.5 h-5 w-5 shrink-0 text-[#1c1f16]/40" />
-            <div>
-              <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#1c1f16]/40">{t("client.reservation")}</p>
-              <a href={`tel:${restaurant.phone}`} className="mt-1 block text-sm text-[#1c1f16]/80">{restaurant.phone}</a>
+          );
+          if (key === "phone" && restaurant.phone?.trim()) return (
+            <div key="phone" className="flex items-start gap-3 rounded-2xl bg-white/60 px-4 py-4 border border-[#1c1f16]/10">
+              <Phone className="mt-0.5 h-5 w-5 shrink-0 text-[#1c1f16]/40" />
+              <div>
+                <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#1c1f16]/40">{t("client.reservation")}</p>
+                <a href={`tel:${restaurant.phone}`} className="mt-1 block text-sm text-[#1c1f16]/80">{restaurant.phone}</a>
+              </div>
             </div>
-          </div>
-        )}
-        {restaurant.wifi && (
-          <div className="flex items-start gap-3 rounded-2xl bg-white/60 px-4 py-4 border border-[#1c1f16]/10">
-            <Wifi className="mt-0.5 h-5 w-5 shrink-0 text-[#1c1f16]/40" />
-            <div>
-              <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#1c1f16]/40">{t("client.wifi")}</p>
-              <p className="mt-1 text-sm font-mono tracking-wide text-[#1c1f16]/80">{restaurant.wifi}</p>
+          );
+          if (key === "wifi" && restaurant.wifi?.trim()) return (
+            <div key="wifi" className="flex items-start gap-3 rounded-2xl bg-white/60 px-4 py-4 border border-[#1c1f16]/10">
+              <Wifi className="mt-0.5 h-5 w-5 shrink-0 text-[#1c1f16]/40" />
+              <div>
+                <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#1c1f16]/40">{t("client.wifi")}</p>
+                <p className="mt-1 text-sm font-mono tracking-wide text-[#1c1f16]/80">{restaurant.wifi}</p>
+              </div>
             </div>
-          </div>
-        )}
-        {restaurant.opening_hours && Object.values(restaurant.opening_hours).some((d) => d.isOpen) && (
-          <div className="rounded-2xl bg-white/60 border border-[#1c1f16]/10 overflow-hidden">
-            <div className="flex items-center gap-2 px-4 py-3 border-b border-[#1c1f16]/10">
-              <Clock className="h-4 w-4 shrink-0" style={{ color: brandColor }} />
-              <p className="text-sm font-bold text-[#1c1f16]">{t("client.openingHours")}</p>
-            </div>
-            <div className="divide-y divide-[#1c1f16]/8">
-              {["monday","tuesday","wednesday","thursday","friday","saturday","sunday"].map((day) => {
-                const dh = restaurant.opening_hours![day];
-                const todayKey = ["sunday","monday","tuesday","wednesday","thursday","friday","saturday"][new Date().getDay()];
-                const isToday = day === todayKey;
-                const labels: Record<string,string> = { monday:"Lundi", tuesday:"Mardi", wednesday:"Mercredi", thursday:"Jeudi", friday:"Vendredi", saturday:"Samedi", sunday:"Dimanche" };
-                return (
-                  <div key={day} className="flex items-center justify-between px-4 py-2.5" style={isToday ? { backgroundColor: `${brandColor}12` } : {}}>
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm" style={{ fontWeight: isToday ? 700 : 400, color: isToday ? brandColor : "#1c1f16" }}>{labels[day]}</span>
-                      {isToday && <span className="rounded-full px-2 py-0.5 text-[10px] font-bold text-white" style={{ backgroundColor: brandColor }}>{t("client.today")}</span>}
+          );
+          if (key === "hours" && restaurant.opening_hours && Object.values(restaurant.opening_hours).some((d) => d.isOpen)) return (
+            <div key="hours" className="rounded-2xl bg-white/60 border border-[#1c1f16]/10 overflow-hidden">
+              <div className="flex items-center gap-2 px-4 py-3 border-b border-[#1c1f16]/10">
+                <Clock className="h-4 w-4 shrink-0" style={{ color: brandColor }} />
+                <p className="text-sm font-bold text-[#1c1f16]">{t("client.openingHours")}</p>
+              </div>
+              <div className="divide-y divide-[#1c1f16]/8">
+                {["monday","tuesday","wednesday","thursday","friday","saturday","sunday"].map((day) => {
+                  const dh = restaurant.opening_hours![day];
+                  const todayKey = ["sunday","monday","tuesday","wednesday","thursday","friday","saturday"][new Date().getDay()];
+                  const isToday = day === todayKey;
+                  const labels: Record<string,string> = { monday:"Lundi", tuesday:"Mardi", wednesday:"Mercredi", thursday:"Jeudi", friday:"Vendredi", saturday:"Samedi", sunday:"Dimanche" };
+                  return (
+                    <div key={day} className="flex items-center justify-between px-4 py-2.5" style={isToday ? { backgroundColor: `${brandColor}12` } : {}}>
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm" style={{ fontWeight: isToday ? 700 : 400, color: isToday ? brandColor : "#1c1f16" }}>{labels[day]}</span>
+                        {isToday && <span className="rounded-full px-2 py-0.5 text-[10px] font-bold text-white" style={{ backgroundColor: brandColor }}>{t("client.today")}</span>}
+                      </div>
+                      <span className="text-sm" style={{ fontWeight: isToday ? 700 : 400, color: isToday ? brandColor : "#1c1f1699" }}>
+                        {dh?.isOpen && dh.slots.length > 0 ? dh.slots.map((s: {open:string;close:string}) => `${s.open} – ${s.close}`).join(", ") : <span className="text-[#1c1f16]/40">{t("client.closed")}</span>}
+                      </span>
                     </div>
-                    <span className="text-sm" style={{ fontWeight: isToday ? 700 : 400, color: isToday ? brandColor : "#1c1f1699" }}>
-                      {dh?.isOpen && dh.slots.length > 0 ? dh.slots.map((s: {open:string;close:string}) => `${s.open} – ${s.close}`).join(", ") : <span className="text-[#1c1f16]/40">{t("client.closed")}</span>}
-                    </span>
-                  </div>
-                );
-              })}
+                  );
+                })}
+              </div>
             </div>
-          </div>
-        )}
+          );
+          return null;
+        })}
+        
         {(restaurant.facebook_url || restaurant.instagram_url || restaurant.tiktok_url || restaurant.twitter_url) && (
           <div className="flex flex-col items-center gap-3 pt-2">
             <p className="text-xs font-bold uppercase tracking-[0.3em] text-[#1c1f16]/50">{t("client.followUs")}</p>

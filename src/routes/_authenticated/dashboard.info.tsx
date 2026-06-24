@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { DashboardPage } from "@/components/dashboard-page";
 import { toast } from "sonner";
-import { Clock, Plus, Trash2 } from "lucide-react";
+import { Clock, Plus, Trash2, GripVertical } from "lucide-react";
 
 const DAYS = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"];
 const DAY_LABELS: Record<string, string> = {
@@ -40,6 +40,7 @@ interface Restaurant {
   description: string | null;
   wifi: string | null;
   opening_hours: Record<string, { isOpen: boolean; slots: { open: string; close: string }[] }> | null;
+  info_order: string[] | null;
 }
 
 function InfoPage() {
@@ -61,12 +62,14 @@ function InfoPage() {
   const [editDescription, setEditDescription] = useState("");
   const [editWifi, setEditWifi] = useState("");
   const [editHours, setEditHours] = useState<OpeningHours>(defaultHours());
+  const [infoOrder, setInfoOrder] = useState<string[]>(["description","address","phone","wifi","hours"]);
+  const [dragIndex, setDragIndex] = useState<number | null>(null);
 
   useEffect(() => {
     if (!user) return;
     supabase
       .from("restaurants")
-      .select("id, name, address, phone, facebook_url, instagram_url, google_review_url, tiktok_url, twitter_url, description, wifi, opening_hours")
+      .select("id, name, address, phone, facebook_url, instagram_url, google_review_url, tiktok_url, twitter_url, description, wifi, opening_hours, info_order")
       .eq("owner_id", user.id)
       .maybeSingle()
       .then(({ data }) => {
@@ -83,6 +86,7 @@ function InfoPage() {
           setEditDescription(data.description ?? "");
           setEditWifi(data.wifi ?? "");
           setEditHours((data.opening_hours as OpeningHours) ?? defaultHours());
+          setInfoOrder(data.info_order ?? ["description","address","phone","wifi","hours"]);
         }
         setLoading(false);
       });
@@ -103,6 +107,7 @@ function InfoPage() {
       description: editDescription.trim() || null,
       wifi: editWifi.trim() || null,
       opening_hours: editHours,
+      info_order: infoOrder,
     };
     const { error } = await supabase.from("restaurants").update(updates).eq("id", restaurant.id);
     setSaving(false);
@@ -159,6 +164,43 @@ function InfoPage() {
             <div>
               <label className="text-xs font-semibold text-muted-foreground">{t("settings.wifi")}</label>
               <Input value={editWifi} onChange={(e) => setEditWifi(e.target.value)} placeholder={t("settings.wifiPlaceholder")} className="mt-1" />
+            </div>
+
+            <div className="rounded-2xl border border-border bg-surface p-4 space-y-2">
+              <p className="text-xs font-semibold text-muted-foreground">{t("settings.infoOrder")}</p>
+              <p className="text-xs text-muted-foreground/70">{t("settings.infoOrderHint")}</p>
+              <div className="space-y-1 pt-1">
+                {infoOrder.map((key, idx) => {
+                  const labels: Record<string, string> = {
+                    description: t("settings.description"),
+                    address: t("settings.address"),
+                    phone: t("settings.phone"),
+                    wifi: t("settings.wifi"),
+                    hours: t("settings.openingHours"),
+                  };
+                  return (
+                    <div
+                      key={key}
+                      draggable
+                      onDragStart={() => setDragIndex(idx)}
+                      onDragOver={(e) => e.preventDefault()}
+                      onDrop={() => {
+                        if (dragIndex === null || dragIndex === idx) return;
+                        const next = [...infoOrder];
+                        const [moved] = next.splice(dragIndex, 1);
+                        next.splice(idx, 0, moved);
+                        setInfoOrder(next);
+                        setDragIndex(null);
+                      }}
+                      onDragEnd={() => setDragIndex(null)}
+                      className="flex items-center gap-3 rounded-xl border border-border bg-background px-3 py-2.5 cursor-grab active:cursor-grabbing"
+                    >
+                      <GripVertical className="h-4 w-4 text-muted-foreground/50 shrink-0" />
+                      <span className="text-sm font-medium">{labels[key] ?? key}</span>
+                    </div>
+                  );
+                })}
+              </div>
             </div>
 
             <div className="rounded-2xl border border-border bg-surface p-4 space-y-4">

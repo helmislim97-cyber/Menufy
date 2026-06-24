@@ -440,6 +440,8 @@ export const en: Record<string, string> = {
   "orders.customer": "Customer",
   "client.poweredBy": "Powered by",
   "client.allRightsReserved": "All rights reserved.",
+  "settings.infoOrder": "Info order",
+  "settings.infoOrderHint": "Drag to reorder how info appears on your customer menu.",
   "settings.openingHours": "Opening hours",
   "settings.open": "Open",
   "settings.closed": "Closed",
