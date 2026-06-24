@@ -439,35 +439,9 @@ function MenuPage() {
   const [assistanceSending, setAssistanceSending] = useState(false);
   const [assistanceSent, setAssistanceSent] = useState(false);
 
-  const activeInputRef = useRef<HTMLInputElement | null>(null);
-
-  const doScrollActiveInput = () => {
-    const input = activeInputRef.current;
-    if (!input) return;
-    const scrollable = input.closest(".overflow-y-auto") as HTMLElement | null;
-    if (!scrollable) return;
-    const vv = window.visualViewport;
-    const visibleBottom = vv ? vv.offsetTop + vv.height : window.innerHeight;
-    const inputRect = input.getBoundingClientRect();
-    if (inputRect.bottom > visibleBottom - 16) {
-      const extra = inputRect.bottom - visibleBottom + 120;
-      scrollable.scrollBy({ top: extra, behavior: "instant" as ScrollBehavior });
-    }
-  };
-
-  useEffect(() => {
-    const vv = window.visualViewport;
-    if (!vv) return;
-    const handler = () => setTimeout(doScrollActiveInput, 50);
-    vv.addEventListener("resize", handler);
-    return () => vv.removeEventListener("resize", handler);
-  }, []);
-
   const scrollInputIntoView = (e: React.FocusEvent<HTMLInputElement>) => {
-    activeInputRef.current = e.target;
-    setTimeout(doScrollActiveInput, 100);
-    setTimeout(doScrollActiveInput, 300);
-    setTimeout(doScrollActiveInput, 600);
+    const input = e.target;
+    setTimeout(() => input.scrollIntoView({ behavior: "smooth", block: "center" }), 500);
   };
 
   useEffect(() => {
