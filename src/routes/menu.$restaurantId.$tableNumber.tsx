@@ -1331,7 +1331,7 @@ function MenuPage() {
         </div>
       )}
 
-      <main className="mx-auto max-w-md px-2 py-4 pb-[60vh] sm:px-4 sm:max-w-none">
+      <main className="mx-auto max-w-md px-2 py-4 pb-8 sm:px-4 sm:max-w-none">
         {visibleCategories.length === 0 ? (
           <p className="mt-10 text-center text-sm text-muted-foreground">{t("client.empty")}</p>
         ) : searchResults ? (
@@ -1448,7 +1448,7 @@ function MenuPage() {
         )}
       </main>
 
-      <footer className="mx-auto max-w-md px-4 py-6 space-y-3">
+      <footer className="mx-auto max-w-5xl px-4 py-6 space-y-3">
         {restaurant.description && (
           <div className="flex items-start gap-3 rounded-2xl bg-white/60 px-4 py-4 border border-[#1c1f16]/10">
             <Info className="mt-0.5 h-5 w-5 shrink-0 text-[#1c1f16]/40" />
