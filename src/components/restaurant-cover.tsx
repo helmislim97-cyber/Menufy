@@ -137,12 +137,12 @@ export function RestaurantCover({ name, logoUrl, facebookUrl, instagramUrl, tikt
 
       <div className="w-full max-w-md pb-2">
         {wifi?.trim() && (
-          <div className="mb-4 flex items-center gap-3 rounded-2xl bg-white/60 border border-[#1c1f16]/10 px-4 py-3">
-            <Wifi className="h-4 w-4 shrink-0 text-[#1c1f16]/40" />
-            <div>
+          <div className="mb-4 flex flex-col items-center gap-1 rounded-2xl bg-white/60 border border-[#1c1f16]/10 px-4 py-3">
+            <div className="flex items-center gap-2">
+              <Wifi className="h-4 w-4 shrink-0 text-[#1c1f16]/40" />
               <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#1c1f16]/40">{t("client.wifi")}</p>
-              <p className="text-sm font-mono text-[#1c1f16]/80">{wifi}</p>
             </div>
+            <p className="text-sm font-mono text-[#1c1f16]/80">{wifi}</p>
           </div>
         )}
         <p className="mb-2 text-center text-xs font-bold uppercase tracking-[0.3em] text-[#1c1f16]/50">
