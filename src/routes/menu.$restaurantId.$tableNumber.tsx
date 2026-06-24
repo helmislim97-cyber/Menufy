@@ -440,9 +440,24 @@ function MenuPage() {
   const [assistanceSent, setAssistanceSent] = useState(false);
 
   const scrollInputIntoView = (e: React.FocusEvent<HTMLInputElement>) => {
+    const input = e.target;
     setTimeout(() => {
-      e.target.scrollIntoView({ behavior: "smooth", block: "center" });
-    }, 350);
+      input.scrollIntoView({ behavior: "smooth", block: "center" });
+      if (window.visualViewport) {
+        const viewport = window.visualViewport;
+        const inputRect = input.getBoundingClientRect();
+        const viewportBottom = viewport.offsetTop + viewport.height;
+        if (inputRect.bottom > viewportBottom - 20) {
+          const scrollAmount = inputRect.bottom - viewportBottom + 80;
+          const scrollable = input.closest("[data-radix-scroll-area-viewport], .overflow-y-auto");
+          if (scrollable) {
+            scrollable.scrollTop += scrollAmount;
+          } else {
+            window.scrollBy({ top: scrollAmount, behavior: "smooth" });
+          }
+        }
+      }
+    }, 400);
   };
 
   useEffect(() => {
@@ -1691,7 +1706,7 @@ function MenuPage() {
       </Dialog>
 
       <Dialog open={cartOpen} onOpenChange={setCartOpen}>
-        <DialogContent className="max-h-[90vh] overflow-y-auto text-[#1c1f16]" style={{ backgroundColor: bgColor }}>
+        <DialogContent className="max-h-[90vh] overflow-y-auto text-[#1c1f16]" style={{ backgroundColor: bgColor, overscrollBehavior: "contain" }}>
           <DialogHeader>
             <DialogTitle className="text-[#1c1f16]">{t("client.cartTitle")}</DialogTitle>
           </DialogHeader>
