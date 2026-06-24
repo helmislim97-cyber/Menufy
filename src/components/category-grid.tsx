@@ -1,5 +1,12 @@
 import type { CSSProperties } from "react";
-import { ArrowLeft, Facebook, Instagram, MapPin, Phone, Info, Wifi } from "lucide-react";
+import { ArrowLeft, Facebook, Instagram, MapPin, Phone, Info, Wifi, Clock } from "lucide-react";
+
+const DAYS = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"];
+const DAY_LABELS: Record<string, string> = {
+  monday: "Lundi", tuesday: "Mardi", wednesday: "Mercredi", thursday: "Jeudi",
+  friday: "Vendredi", saturday: "Samedi", sunday: "Dimanche",
+};
+const TODAY_KEY = ["sunday","monday","tuesday","wednesday","thursday","friday","saturday"][new Date().getDay()];
 
 function TikTokIcon({ className }: { className?: string }) {
   return (
@@ -36,6 +43,9 @@ interface CategoryCard {
   imageUrl: string | null;
 }
 
+interface DayHours { isOpen: boolean; slots: { open: string; close: string }[]; }
+type OpeningHours = Record<string, DayHours>;
+
 interface CategoryGridProps {
   name: string;
   logoUrl: string | null;
@@ -47,6 +57,8 @@ interface CategoryGridProps {
   phone: string | null;
   description: string | null;
   wifi: string | null;
+  openingHours?: OpeningHours | null;
+  brandColor?: string;
   categories: CategoryCard[];
   onSelect: (id: string) => void;
   onBack: () => void;
@@ -54,7 +66,7 @@ interface CategoryGridProps {
   bgPattern?: string;
 }
 
-export function CategoryGrid({ name, logoUrl, facebookUrl, instagramUrl, tiktokUrl, twitterUrl, address, phone, description, wifi, categories, onSelect, onBack, bgColor, bgPattern }: CategoryGridProps) {
+export function CategoryGrid({ name, logoUrl, facebookUrl, instagramUrl, tiktokUrl, twitterUrl, address, phone, description, wifi, openingHours, brandColor, categories, onSelect, onBack, bgColor, bgPattern }: CategoryGridProps) {
   const bg = bgColor ?? "#f3efe4";
   const bgStyle: CSSProperties = {
     backgroundColor: bg,
@@ -137,6 +149,45 @@ export function CategoryGrid({ name, logoUrl, facebookUrl, instagramUrl, tiktokU
             <div>
               <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#1c1f16]/40">{t("client.wifi")}</p>
               <p className="mt-1 text-sm font-mono tracking-wide text-[#1c1f16]/80">{wifi}</p>
+            </div>
+          </div>
+        )}
+
+        {openingHours && Object.values(openingHours).some((d) => d.isOpen) && (
+          <div className="rounded-2xl bg-white/60 border border-[#1c1f16]/10 overflow-hidden">
+            <div className="flex items-center gap-2 px-4 py-3 border-b border-[#1c1f16]/10">
+              <Clock className="h-4 w-4 shrink-0" style={{ color: brandColor ?? "#1c1f16" }} />
+              <p className="text-sm font-bold text-[#1c1f16]">{t("client.openingHours")}</p>
+            </div>
+            <div className="divide-y divide-[#1c1f16]/8">
+              {DAYS.map((day) => {
+                const dh = openingHours[day];
+                const isToday = day === TODAY_KEY;
+                return (
+                  <div
+                    key={day}
+                    className="flex items-center justify-between px-4 py-2.5"
+                    style={isToday ? { backgroundColor: `${brandColor ?? "#1c1f16"}12` } : {}}
+                  >
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm" style={{ fontWeight: isToday ? 700 : 400, color: isToday ? (brandColor ?? "#1c1f16") : "#1c1f16" }}>
+                        {DAY_LABELS[day]}
+                      </span>
+                      {isToday && (
+                        <span className="rounded-full px-2 py-0.5 text-[10px] font-bold text-white" style={{ backgroundColor: brandColor ?? "#1c1f16" }}>
+                          {t("client.today")}
+                        </span>
+                      )}
+                    </div>
+                    <div className="text-sm" style={{ fontWeight: isToday ? 700 : 400, color: isToday ? (brandColor ?? "#1c1f16") : "#1c1f1699" }}>
+                      {dh?.isOpen && dh.slots.length > 0
+                        ? dh.slots.map((s) => `${s.open} – ${s.close}`).join(", ")
+                        : <span className="text-[#1c1f16]/40">{t("client.closed")}</span>
+                      }
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           </div>
         )}
