@@ -1048,6 +1048,7 @@ function MenuPage() {
         tiktokUrl={restaurant.tiktok_url}
         twitterUrl={restaurant.twitter_url}
         openingHours={restaurant.opening_hours}
+        infoOrder={restaurant.info_order}
         brandColor={brandColor}
         address={restaurant.address}
         phone={restaurant.phone}

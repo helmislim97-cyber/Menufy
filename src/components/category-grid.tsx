@@ -58,6 +58,7 @@ interface CategoryGridProps {
   description: string | null;
   wifi: string | null;
   openingHours?: OpeningHours | null;
+  infoOrder?: string[] | null;
   brandColor?: string;
   categories: CategoryCard[];
   onSelect: (id: string) => void;
@@ -66,8 +67,9 @@ interface CategoryGridProps {
   bgPattern?: string;
 }
 
-export function CategoryGrid({ name, logoUrl, facebookUrl, instagramUrl, tiktokUrl, twitterUrl, address, phone, description, wifi, openingHours, brandColor, categories, onSelect, onBack, bgColor, bgPattern }: CategoryGridProps) {
+export function CategoryGrid({ name, logoUrl, facebookUrl, instagramUrl, tiktokUrl, twitterUrl, address, phone, description, wifi, openingHours, infoOrder, brandColor, categories, onSelect, onBack, bgColor, bgPattern }: CategoryGridProps) {
   const bg = bgColor ?? "#f3efe4";
+  const orderedKeys = infoOrder ?? ["description","address","phone","wifi","hours"];
   const bgStyle: CSSProperties = {
     backgroundColor: bg,
     ...(bgPattern && bgPattern !== "none" && PATTERN_MAP[bgPattern] ? { backgroundImage: PATTERN_MAP[bgPattern], backgroundSize: bgPattern === "foods" ? "120px 120px" : bgPattern === "hexagons" ? "80px 80px" : bgPattern === "bubbles" ? "80px 80px" : bgPattern === "dots" ? "160px 160px" : bgPattern === "waves" ? "100px 30px" : bgPattern === "diamonds" ? "60px 60px" : bgPattern === "crosses" ? "50px 50px" : "40px 40px" } : {}),
