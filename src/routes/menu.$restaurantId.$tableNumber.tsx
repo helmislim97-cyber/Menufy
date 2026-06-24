@@ -441,7 +441,21 @@ function MenuPage() {
 
   const scrollInputIntoView = (e: React.FocusEvent<HTMLInputElement>) => {
     const input = e.target;
-    setTimeout(() => input.scrollIntoView({ behavior: "smooth", block: "center" }), 500);
+    const tryScroll = () => {
+      const vv = window.visualViewport;
+      if (!vv) return;
+      const rect = input.getBoundingClientRect();
+      const visibleBottom = vv.height;
+      if (rect.bottom > visibleBottom - 20) {
+        const dialog = document.querySelector("[role='dialog']");
+        if (dialog) {
+          dialog.scrollTop += rect.bottom - visibleBottom + 120;
+        }
+      }
+    };
+    setTimeout(tryScroll, 300);
+    setTimeout(tryScroll, 600);
+    setTimeout(tryScroll, 900);
   };
 
   useEffect(() => {
