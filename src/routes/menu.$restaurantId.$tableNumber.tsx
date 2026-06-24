@@ -50,6 +50,7 @@ interface Restaurant {
   bg_color: string | null;
   bg_pattern: string | null;
   product_layout: string | null;
+  opening_hours: Record<string, { isOpen: boolean; slots: { open: string; close: string }[] }> | null;
 }
 
 interface Category {
@@ -475,7 +476,7 @@ function MenuPage() {
     async function load() {
       const { data: rest } = await supabase
         .from("restaurants")
-        .select("id, name, logo_url, facebook_url, instagram_url, tiktok_url, twitter_url, google_review_url, address, phone, description, wifi, banner_url, banner_position_x, banner_position_y, banner_zoom, brand_color, bg_color, bg_pattern, product_layout")
+        .select("id, name, logo_url, facebook_url, instagram_url, tiktok_url, twitter_url, google_review_url, address, phone, description, wifi, banner_url, banner_position_x, banner_position_y, banner_zoom, brand_color, bg_color, bg_pattern, product_layout, opening_hours")
         .eq("id", restaurantId)
         .eq("is_active", true)
         .maybeSingle();
@@ -1045,6 +1046,8 @@ function MenuPage() {
         instagramUrl={restaurant.instagram_url}
         tiktokUrl={restaurant.tiktok_url}
         twitterUrl={restaurant.twitter_url}
+        openingHours={restaurant.opening_hours}
+        brandColor={brandColor}
         address={restaurant.address}
         phone={restaurant.phone}
         description={restaurant.description}
