@@ -443,32 +443,39 @@ function MenuPage() {
   const inputRef2 = useRef<HTMLInputElement>(null);
   const inputRef3 = useRef<HTMLInputElement>(null);
 
+  const scrollFocusedInput = (input: HTMLElement) => {
+    const attempt = () => {
+      const vv = window.visualViewport;
+      const dialog = document.querySelector("[data-radix-dialog-content]") as HTMLElement | null;
+      if (!dialog || !vv) return;
+      const kbHeight = Math.max(0, window.innerHeight - vv.height - vv.offsetTop);
+      if (kbHeight < 100) return;
+      const dialogRect = dialog.getBoundingClientRect();
+      const inputRect = input.getBoundingClientRect();
+      const visibleHeight = vv.height - dialogRect.top - 24;
+      const inputBottomRelative = inputRect.bottom - dialogRect.top + dialog.scrollTop;
+      if (inputBottomRelative > dialog.scrollTop + visibleHeight) {
+        dialog.scrollTop = inputBottomRelative - visibleHeight + 24;
+      }
+    };
+    setTimeout(attempt, 350);
+    setTimeout(attempt, 600);
+  };
+
   useEffect(() => {
-    const inputs = [inputRef1.current, inputRef2.current, inputRef3.current];
-    const handlers: (() => void)[] = [];
-
-    inputs.forEach((input) => {
-      if (!input) return;
-      const handler = () => {
-        setTimeout(() => {
-          const vv = window.visualViewport;
-          const dialog = document.querySelector("[data-radix-dialog-content]") as HTMLElement | null;
-          if (!dialog || !vv) return;
-          const dialogRect = dialog.getBoundingClientRect();
-          const inputRect = input.getBoundingClientRect();
-          const kbHeight = Math.max(0, window.innerHeight - vv.height - vv.offsetTop);
-          const visibleHeight = vv.height - dialogRect.top - 24;
-          const inputBottomRelative = inputRect.bottom - dialogRect.top + dialog.scrollTop;
-          if (kbHeight > 0 && inputBottomRelative > dialog.scrollTop + visibleHeight) {
-            dialog.scrollTop = inputBottomRelative - visibleHeight + 24;
-          }
-        }, 400);
-      };
-      input.addEventListener("focus", handler);
-      handlers.push(() => input.removeEventListener("focus", handler));
-    });
-
-    return () => handlers.forEach((h) => h());
+    if (!cartOpen) return;
+    const timeoutId = setTimeout(() => {
+      const inputs = [inputRef1.current, inputRef2.current, inputRef3.current];
+      const cleanups: (() => void)[] = [];
+      inputs.forEach((input) => {
+        if (!input) return;
+        const handler = () => scrollFocusedInput(input);
+        input.addEventListener("focus", handler);
+        cleanups.push(() => input.removeEventListener("focus", handler));
+      });
+      return () => cleanups.forEach((c) => c());
+    }, 100);
+    return () => clearTimeout(timeoutId);
   }, [cartOpen]);
 
   useEffect(() => {
