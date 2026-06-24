@@ -439,6 +439,12 @@ function MenuPage() {
   const [assistanceSending, setAssistanceSending] = useState(false);
   const [assistanceSent, setAssistanceSent] = useState(false);
 
+  const scrollInputIntoView = (e: React.FocusEvent<HTMLInputElement>) => {
+    setTimeout(() => {
+      e.target.scrollIntoView({ behavior: "smooth", block: "center" });
+    }, 350);
+  };
+
   useEffect(() => {
     const storageKey = `menufy_session_${restaurantId}_${tableNumber}`;
     const SESSION_DURATION_MS = 2 * 60 * 60 * 1000; // 2 hours
@@ -1808,12 +1814,14 @@ function MenuPage() {
                     onChange={(e) => { setCustomerFirstName(e.target.value.replace(/[^\p{L}\s'-]/gu, "")); setInvalidFields((f) => ({ ...f, firstName: false })); }}
                     placeholder={`${t("client.firstNamePlaceholder")} *`}
                     className={invalidFields.firstName ? "border-destructive bg-destructive/5" : ""}
+                    onFocus={scrollInputIntoView}
                   />
                   <Input
                     value={customerLastName}
                     onChange={(e) => { setCustomerLastName(e.target.value.replace(/[^\p{L}\s'-]/gu, "")); setInvalidFields((f) => ({ ...f, lastName: false })); }}
                     placeholder={`${t("client.lastNamePlaceholder")} *`}
                     className={invalidFields.lastName ? "border-destructive bg-destructive/5" : ""}
+                    onFocus={scrollInputIntoView}
                   />
                 </div>
                 <div className="flex gap-2">
@@ -1836,6 +1844,7 @@ function MenuPage() {
                     onChange={(e) => { setCustomerPhone(e.target.value.replace(/[^0-9]/g, "")); setInvalidFields((f) => ({ ...f, phone: false })); }}
                     placeholder={`${t("client.phonePlaceholder")} *`}
                     className={`flex-1 ${invalidFields.phone ? "border-destructive bg-destructive/5" : ""}`}
+                    onFocus={scrollInputIntoView}
                   />
                 </div>
                 {showInfoError && (
