@@ -1733,7 +1733,7 @@ function MenuPage() {
 
       <Dialog open={cartOpen} onOpenChange={setCartOpen}>
         <DialogContent className="max-h-[90vh] overflow-y-auto text-[#1c1f16]" style={{ backgroundColor: bgColor }}>
-          <div id="cart-inner" style={{ paddingBottom: "var(--kb-height, 0px)", transition: "padding-bottom 0.15s" }}>
+          <div id="cart-inner" style={{ paddingBottom: "40vh" }}>
           <DialogHeader>
             <DialogTitle className="text-[#1c1f16]">{t("client.cartTitle")}</DialogTitle>
           </DialogHeader>
@@ -1851,7 +1851,7 @@ function MenuPage() {
               </div>
           )}
 
-          <div className="space-y-2 border-t border-[#1c1f16]/10 pt-3">
+          <div className="space-y-2 border-t border-[#1c1f16]/10 pt-4 mt-2">
             <p className="text-sm font-bold text-[#1c1f16]">{t("client.yourInfo")} <span className="text-destructive">*</span></p>
             <div className="grid grid-cols-2 gap-2">
               <Input
@@ -1900,7 +1900,7 @@ function MenuPage() {
           </div>
 
           {cartItems.length > 0 && (
-            <DialogFooter>
+            <DialogFooter className="pt-4">
               <button
                 onClick={placeOrder}
                 disabled={placing}
