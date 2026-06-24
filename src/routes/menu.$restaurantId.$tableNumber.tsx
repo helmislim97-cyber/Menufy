@@ -441,21 +441,22 @@ function MenuPage() {
 
   const scrollInputIntoView = (e: React.FocusEvent<HTMLInputElement>) => {
     const input = e.target;
-    const tryScroll = () => {
+    const doScroll = () => {
       const vv = window.visualViewport;
-      if (!vv) return;
+      const kbHeight = vv ? Math.max(0, window.innerHeight - vv.height - vv.offsetTop) : 0;
+      const visibleBottom = (vv?.height ?? window.innerHeight) - 16;
       const rect = input.getBoundingClientRect();
-      const visibleBottom = vv.height;
-      if (rect.bottom > visibleBottom - 20) {
-        const dialog = document.querySelector("[role='dialog']");
+      if (rect.bottom > visibleBottom) {
+        const dialog = document.querySelector("[data-radix-dialog-content]") as HTMLElement | null;
         if (dialog) {
-          dialog.scrollTop += rect.bottom - visibleBottom + 120;
+          dialog.scrollTop += rect.bottom - visibleBottom + 24;
         }
       }
+      document.documentElement.style.setProperty("--kb-height", `${kbHeight}px`);
     };
-    setTimeout(tryScroll, 300);
-    setTimeout(tryScroll, 600);
-    setTimeout(tryScroll, 900);
+    setTimeout(doScroll, 100);
+    setTimeout(doScroll, 350);
+    setTimeout(doScroll, 650);
   };
 
   useEffect(() => {
@@ -938,6 +939,28 @@ function MenuPage() {
       document.documentElement.style.backgroundColor = "";
     };
   }, [restaurant?.bg_color]);
+
+  useEffect(() => {
+    const vv = window.visualViewport;
+    if (!vv) return;
+    const handler = () => {
+      const kbHeight = Math.max(0, window.innerHeight - vv.height - vv.offsetTop);
+      document.documentElement.style.setProperty("--kb-height", `${kbHeight}px`);
+      setTimeout(() => {
+        const focused = document.activeElement as HTMLElement | null;
+        if (!focused) return;
+        const dialogContent = document.querySelector("[data-radix-dialog-content]") as HTMLElement | null;
+        if (!dialogContent) return;
+        const rect = focused.getBoundingClientRect();
+        const visibleBottom = vv.height - 16;
+        if (rect.bottom > visibleBottom) {
+          dialogContent.scrollTop += rect.bottom - visibleBottom + 24;
+        }
+      }, 100);
+    };
+    vv.addEventListener("resize", handler);
+    return () => vv.removeEventListener("resize", handler);
+  }, []);
 
   const openOrderDetails = async () => {
     if (!placedOrder) return;
@@ -1705,6 +1728,7 @@ function MenuPage() {
 
       <Dialog open={cartOpen} onOpenChange={setCartOpen}>
         <DialogContent className="max-h-[90vh] overflow-y-auto text-[#1c1f16]" style={{ backgroundColor: bgColor }}>
+          <div id="cart-inner" style={{ paddingBottom: "var(--kb-height, 0px)", transition: "padding-bottom 0.15s" }}>
           <DialogHeader>
             <DialogTitle className="text-[#1c1f16]">{t("client.cartTitle")}</DialogTitle>
           </DialogHeader>
@@ -1881,6 +1905,7 @@ function MenuPage() {
               </button>
             </DialogFooter>
           )}
+          </div>
         </DialogContent>
       </Dialog>
 
