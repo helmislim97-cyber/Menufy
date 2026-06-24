@@ -450,8 +450,8 @@ function MenuPage() {
     const visibleBottom = vv ? vv.offsetTop + vv.height : window.innerHeight;
     const inputRect = input.getBoundingClientRect();
     if (inputRect.bottom > visibleBottom - 16) {
-      const extra = inputRect.bottom - visibleBottom + 80;
-      scrollable.scrollBy({ top: extra, behavior: "smooth" });
+      const extra = inputRect.bottom - visibleBottom + 120;
+      scrollable.scrollBy({ top: extra, behavior: "instant" as ScrollBehavior });
     }
   };
 
@@ -465,6 +465,7 @@ function MenuPage() {
 
   const scrollInputIntoView = (e: React.FocusEvent<HTMLInputElement>) => {
     activeInputRef.current = e.target;
+    setTimeout(doScrollActiveInput, 100);
     setTimeout(doScrollActiveInput, 300);
     setTimeout(doScrollActiveInput, 600);
   };
