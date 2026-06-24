@@ -439,28 +439,21 @@ function MenuPage() {
   const [assistanceSending, setAssistanceSending] = useState(false);
   const [assistanceSent, setAssistanceSent] = useState(false);
 
-  const [keyboardHeight, setKeyboardHeight] = useState(0);
-
-  useEffect(() => {
-    const vv = window.visualViewport;
-    if (!vv) return;
-    const handler = () => {
-      const kbHeight = window.innerHeight - vv.height - vv.offsetTop;
-      setKeyboardHeight(Math.max(0, kbHeight));
-    };
-    vv.addEventListener("resize", handler);
-    vv.addEventListener("scroll", handler);
-    return () => {
-      vv.removeEventListener("resize", handler);
-      vv.removeEventListener("scroll", handler);
-    };
-  }, []);
-
   const scrollInputIntoView = (e: React.FocusEvent<HTMLInputElement>) => {
     const input = e.target;
     setTimeout(() => {
-      input.scrollIntoView({ behavior: "smooth", block: "center" });
-    }, 350);
+      const scrollable = input.closest(".overflow-y-auto");
+      if (scrollable) {
+        const inputRect = input.getBoundingClientRect();
+        const scrollableRect = scrollable.getBoundingClientRect();
+        const relativeBottom = inputRect.bottom - scrollableRect.top;
+        const visibleHeight = window.visualViewport?.height ?? window.innerHeight;
+        const scrollableVisibleHeight = Math.min(scrollableRect.height, visibleHeight - scrollableRect.top);
+        if (relativeBottom > scrollableVisibleHeight - 20) {
+          scrollable.scrollTop += relativeBottom - scrollableVisibleHeight + 100;
+        }
+      }
+    }, 400);
   };
 
   useEffect(() => {
@@ -1709,7 +1702,7 @@ function MenuPage() {
       </Dialog>
 
       <Dialog open={cartOpen} onOpenChange={setCartOpen}>
-        <DialogContent className="overflow-y-auto text-[#1c1f16]" style={{ backgroundColor: bgColor, overscrollBehavior: "contain", maxHeight: keyboardHeight > 0 ? `calc(100vh - ${keyboardHeight}px - 40px)` : "90vh", transition: "max-height 0.2s ease" }}>
+        <DialogContent className="max-h-[90vh] overflow-y-auto text-[#1c1f16]" style={{ backgroundColor: bgColor }}>
           <DialogHeader>
             <DialogTitle className="text-[#1c1f16]">{t("client.cartTitle")}</DialogTitle>
           </DialogHeader>
