@@ -451,11 +451,18 @@ function MenuPage() {
       if (!input) return;
       const handler = () => {
         setTimeout(() => {
-          input.scrollIntoView({ behavior: "smooth", block: "center" });
-        }, 300);
-        setTimeout(() => {
-          input.scrollIntoView({ behavior: "smooth", block: "center" });
-        }, 600);
+          const vv = window.visualViewport;
+          const dialog = document.querySelector("[data-radix-dialog-content]") as HTMLElement | null;
+          if (!dialog || !vv) return;
+          const dialogRect = dialog.getBoundingClientRect();
+          const inputRect = input.getBoundingClientRect();
+          const kbHeight = Math.max(0, window.innerHeight - vv.height - vv.offsetTop);
+          const visibleHeight = vv.height - dialogRect.top - 24;
+          const inputBottomRelative = inputRect.bottom - dialogRect.top + dialog.scrollTop;
+          if (kbHeight > 0 && inputBottomRelative > dialog.scrollTop + visibleHeight) {
+            dialog.scrollTop = inputBottomRelative - visibleHeight + 24;
+          }
+        }, 400);
       };
       input.addEventListener("focus", handler);
       handlers.push(() => input.removeEventListener("focus", handler));
@@ -948,21 +955,30 @@ function MenuPage() {
   useEffect(() => {
     const vv = window.visualViewport;
     if (!vv) return;
+
     const handler = () => {
       const kbHeight = Math.max(0, window.innerHeight - vv.height - vv.offsetTop);
       document.documentElement.style.setProperty("--kb-height", `${kbHeight}px`);
-      setTimeout(() => {
-        const focused = document.activeElement as HTMLElement | null;
-        if (!focused) return;
-        const dialogContent = document.querySelector("[data-radix-dialog-content]") as HTMLElement | null;
-        if (!dialogContent) return;
-        const rect = focused.getBoundingClientRect();
-        const visibleBottom = vv.height - 16;
-        if (rect.bottom > visibleBottom) {
-          dialogContent.scrollTop += rect.bottom - visibleBottom + 24;
-        }
-      }, 100);
+
+      if (kbHeight > 0) {
+        setTimeout(() => {
+          const focused = document.activeElement as HTMLElement | null;
+          if (!focused || (focused.tagName !== "INPUT" && focused.tagName !== "TEXTAREA")) return;
+          const dialog = document.querySelector("[data-radix-dialog-content]") as HTMLElement | null;
+          if (!dialog) return;
+          const dialogRect = dialog.getBoundingClientRect();
+          const inputRect = focused.getBoundingClientRect();
+          const inputBottomRelative = inputRect.bottom - dialogRect.top + dialog.scrollTop;
+          const visibleHeight = vv.height - dialogRect.top - 24;
+          if (inputBottomRelative > dialog.scrollTop + visibleHeight) {
+            dialog.scrollTop = inputBottomRelative - visibleHeight + 24;
+          }
+        }, 50);
+      } else {
+        document.documentElement.style.setProperty("--kb-height", "0px");
+      }
     };
+
     vv.addEventListener("resize", handler);
     return () => vv.removeEventListener("resize", handler);
   }, []);
@@ -1733,7 +1749,7 @@ function MenuPage() {
 
       <Dialog open={cartOpen} onOpenChange={setCartOpen}>
         <DialogContent className="max-h-[90vh] overflow-y-auto text-[#1c1f16]" style={{ backgroundColor: bgColor }}>
-          <div id="cart-inner" style={{ paddingBottom: "50vh" }}>
+          <div id="cart-inner" style={{ paddingBottom: "var(--kb-height, 0px)" }}>
           <DialogHeader className="pb-2">
             <DialogTitle className="text-[#1c1f16]">{t("client.cartTitle")}</DialogTitle>
           </DialogHeader>
