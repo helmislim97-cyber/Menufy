@@ -157,10 +157,12 @@ export function RestaurantCover({ name, logoUrl, facebookUrl, instagramUrl, tikt
         >
           {t("client.orderNow")}
         </button>
-        <div className="mt-3 flex items-center justify-center gap-1.5 text-xs text-[#1c1f16]/40">
-          <span>{t("client.poweredBy")}</span>
-          <MenufyBrand />
-          <span>· © {new Date().getFullYear()} {t("client.allRightsReserved")}</span>
+        <div className="mt-3 text-center text-xs text-[#1c1f16]/40">
+          <div className="flex items-center justify-center gap-1.5">
+            <span>{t("client.poweredBy")}</span>
+            <MenufyBrand />
+          </div>
+          <p className="mt-0.5">© {new Date().getFullYear()} Menufy. {t("client.allRightsReserved")}</p>
         </div>
       </div>
     </div>
