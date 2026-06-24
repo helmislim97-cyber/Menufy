@@ -1,5 +1,32 @@
 import type { CSSProperties } from "react";
-import { Facebook, Instagram } from "lucide-react";
+import { Facebook, Instagram, Wifi } from "lucide-react";
+
+type OpeningHours = Record<string, { isOpen: boolean; slots: { open: string; close: string }[] }>;
+
+function getOpenStatus(openingHours: OpeningHours | null | undefined, brandColor: string): { label: string; isOpen: boolean; color: string } | null {
+  if (!openingHours) return null;
+  const todayKey = ["sunday","monday","tuesday","wednesday","thursday","friday","saturday"][new Date().getDay()];
+  const dh = openingHours[todayKey];
+  if (!dh) return null;
+  if (!dh.isOpen || dh.slots.length === 0) return { label: "Fermé aujourd'hui", isOpen: false, color: "#1c1f1660" };
+  const now = new Date();
+  const nowMin = now.getHours() * 60 + now.getMinutes();
+  for (const slot of dh.slots) {
+    const [oh, om] = slot.open.split(":").map(Number);
+    const [ch, cm] = slot.close.split(":").map(Number);
+    const openMin = oh * 60 + om;
+    const closeMin = ch * 60 + cm;
+    if (nowMin >= openMin && nowMin < closeMin) {
+      return { label: `Ouvert · ferme à ${slot.close}`, isOpen: true, color: brandColor };
+    }
+  }
+  const nextSlot = dh.slots.find(s => {
+    const [oh, om] = s.open.split(":").map(Number);
+    return oh * 60 + om > nowMin;
+  });
+  if (nextSlot) return { label: `Ouvre à ${nextSlot.open}`, isOpen: false, color: "#1c1f1660" };
+  return { label: "Fermé", isOpen: false, color: "#1c1f1660" };
+}
 
 function TikTokIcon({ className }: { className?: string }) {
   return (
@@ -41,12 +68,17 @@ interface RestaurantCoverProps {
   onOrder: () => void;
   bgColor?: string;
   bgPattern?: string;
+  brandColor?: string;
+  openingHours?: OpeningHours | null;
+  wifi?: string | null;
 }
 
-export function RestaurantCover({ name, logoUrl, facebookUrl, instagramUrl, tiktokUrl, twitterUrl, tableNumber, leaving, onOrder, bgColor, bgPattern }: RestaurantCoverProps) {
+export function RestaurantCover({ name, logoUrl, facebookUrl, instagramUrl, tiktokUrl, twitterUrl, tableNumber, leaving, onOrder, bgColor, bgPattern, brandColor, openingHours, wifi }: RestaurantCoverProps) {
   const { t } = useI18n();
   const bg = bgColor ?? "#f3efe4";
+  const brand = brandColor ?? "#7ab450";
   const hasSocial = !!(facebookUrl || instagramUrl || tiktokUrl || twitterUrl);
+  const openStatus = getOpenStatus(openingHours, brand);
   const bgStyle: CSSProperties = {
     backgroundColor: bg,
     ...(bgPattern && bgPattern !== "none" && PATTERN_MAP[bgPattern] ? { backgroundImage: PATTERN_MAP[bgPattern], backgroundSize: bgPattern === "foods" ? "120px 120px" : bgPattern === "hexagons" ? "80px 80px" : bgPattern === "bubbles" ? "80px 80px" : bgPattern === "dots" ? "160px 160px" : bgPattern === "waves" ? "100px 30px" : bgPattern === "diamonds" ? "60px 60px" : bgPattern === "crosses" ? "50px 50px" : "40px 40px" } : {}),
@@ -70,8 +102,15 @@ export function RestaurantCover({ name, logoUrl, facebookUrl, instagramUrl, tikt
           )}
         </div>
 
+        {openStatus && (
+          <div className="mt-4 flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold" style={{ backgroundColor: `${openStatus.color}18`, color: openStatus.color, border: `1px solid ${openStatus.color}30` }}>
+            <span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: openStatus.color }} />
+            {openStatus.label}
+          </div>
+        )}
+
         {hasSocial && (
-          <div className="mt-5 flex gap-4">
+          <div className="mt-4 flex gap-4">
             {facebookUrl && (
               <a href={facebookUrl} target="_blank" rel="noreferrer" className="grid h-10 w-10 place-items-center rounded-full border border-[#1c1f16]/25 transition-colors hover:bg-[#1c1f16]/5" aria-label="Facebook">
                 <Facebook className="h-4 w-4" />
@@ -97,6 +136,15 @@ export function RestaurantCover({ name, logoUrl, facebookUrl, instagramUrl, tikt
       </div>
 
       <div className="w-full max-w-md pb-2">
+        {wifi?.trim() && (
+          <div className="mb-4 flex items-center gap-3 rounded-2xl bg-white/60 border border-[#1c1f16]/10 px-4 py-3">
+            <Wifi className="h-4 w-4 shrink-0 text-[#1c1f16]/40" />
+            <div>
+              <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#1c1f16]/40">{t("client.wifi")}</p>
+              <p className="text-sm font-mono text-[#1c1f16]/80">{wifi}</p>
+            </div>
+          </div>
+        )}
         <p className="mb-2 text-center text-xs font-bold uppercase tracking-[0.3em] text-[#1c1f16]/50">
           {t("client.table")} {tableNumber}
         </p>

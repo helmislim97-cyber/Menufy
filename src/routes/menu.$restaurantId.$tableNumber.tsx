@@ -1029,6 +1029,9 @@ function MenuPage() {
         leaving={coverLeaving}
         bgColor={bgColor}
         bgPattern={bgPattern}
+        brandColor={brandColor}
+        openingHours={restaurant.opening_hours}
+        wifi={restaurant.wifi}
         onOrder={() => {
           setCoverLeaving(true);
           window.history.pushState({ view: "categories" }, "");
