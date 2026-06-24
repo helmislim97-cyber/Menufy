@@ -3,33 +3,6 @@ import { Facebook, Instagram, Wifi } from "lucide-react";
 
 type OpeningHours = Record<string, { isOpen: boolean; slots: { open: string; close: string }[] }>;
 
-function parseTimeToMinutes(time: string): number {
-  const upper = time.toUpperCase();
-  const isPM = upper.includes("PM");
-  const isAM = upper.includes("AM");
-  const clean = upper.replace("AM", "").replace("PM", "").trim();
-  const [hStr, mStr] = clean.split(":");
-  let h = parseInt(hStr, 10);
-  const m = parseInt(mStr, 10) || 0;
-  if (isPM && h !== 12) h += 12;
-  if (isAM && h === 12) h = 0;
-  return h * 60 + m;
-}
-
-function formatTime(time: string): string {
-  const upper = time.toUpperCase();
-  const isPM = upper.includes("PM");
-  const isAM = upper.includes("AM");
-  if (!isPM && !isAM) return time;
-  const clean = upper.replace("AM", "").replace("PM", "").trim();
-  const [hStr, mStr] = clean.split(":");
-  let h = parseInt(hStr, 10);
-  const m = parseInt(mStr, 10) || 0;
-  if (isPM && h !== 12) h += 12;
-  if (isAM && h === 12) h = 0;
-  return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
-}
-
 function getOpenStatus(openingHours: OpeningHours | null | undefined, brandColor: string): { label: string; isOpen: boolean; color: string } | null {
   if (!openingHours) return null;
   const todayKey = ["sunday","monday","tuesday","wednesday","thursday","friday","saturday"][new Date().getDay()];
@@ -39,14 +12,19 @@ function getOpenStatus(openingHours: OpeningHours | null | undefined, brandColor
   const now = new Date();
   const nowMin = now.getHours() * 60 + now.getMinutes();
   for (const slot of dh.slots) {
-    const openMin = parseTimeToMinutes(slot.open);
-    const closeMin = parseTimeToMinutes(slot.close);
+    const [oh, om] = slot.open.split(":").map(Number);
+    const [ch, cm] = slot.close.split(":").map(Number);
+    const openMin = oh * 60 + om;
+    const closeMin = ch * 60 + cm;
     if (nowMin >= openMin && nowMin < closeMin) {
-      return { label: `Ouvert · ferme à ${formatTime(slot.close)}`, isOpen: true, color: brandColor };
+      return { label: `Ouvert · ferme à ${slot.close}`, isOpen: true, color: brandColor };
     }
   }
-  const nextSlot = dh.slots.find(s => parseTimeToMinutes(s.open) > nowMin);
-  if (nextSlot) return { label: `Ouvre à ${formatTime(nextSlot.open)}`, isOpen: false, color: "#1c1f1660" };
+  const nextSlot = dh.slots.find(s => {
+    const [oh, om] = s.open.split(":").map(Number);
+    return oh * 60 + om > nowMin;
+  });
+  if (nextSlot) return { label: `Ouvre à ${nextSlot.open}`, isOpen: false, color: "#1c1f1660" };
   return { label: "Fermé", isOpen: false, color: "#1c1f1660" };
 }
 
