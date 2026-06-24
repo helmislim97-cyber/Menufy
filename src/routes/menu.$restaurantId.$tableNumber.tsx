@@ -1733,8 +1733,8 @@ function MenuPage() {
 
       <Dialog open={cartOpen} onOpenChange={setCartOpen}>
         <DialogContent className="max-h-[90vh] overflow-y-auto text-[#1c1f16]" style={{ backgroundColor: bgColor }}>
-          <div id="cart-inner" style={{ paddingBottom: "40vh" }}>
-          <DialogHeader>
+          <div id="cart-inner" style={{ paddingBottom: "50vh" }}>
+          <DialogHeader className="pb-2">
             <DialogTitle className="text-[#1c1f16]">{t("client.cartTitle")}</DialogTitle>
           </DialogHeader>
 
