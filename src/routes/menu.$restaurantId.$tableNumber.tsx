@@ -439,25 +439,28 @@ function MenuPage() {
   const [assistanceSending, setAssistanceSending] = useState(false);
   const [assistanceSent, setAssistanceSent] = useState(false);
 
+  const [keyboardHeight, setKeyboardHeight] = useState(0);
+
+  useEffect(() => {
+    const vv = window.visualViewport;
+    if (!vv) return;
+    const handler = () => {
+      const kbHeight = window.innerHeight - vv.height - vv.offsetTop;
+      setKeyboardHeight(Math.max(0, kbHeight));
+    };
+    vv.addEventListener("resize", handler);
+    vv.addEventListener("scroll", handler);
+    return () => {
+      vv.removeEventListener("resize", handler);
+      vv.removeEventListener("scroll", handler);
+    };
+  }, []);
+
   const scrollInputIntoView = (e: React.FocusEvent<HTMLInputElement>) => {
     const input = e.target;
     setTimeout(() => {
       input.scrollIntoView({ behavior: "smooth", block: "center" });
-      if (window.visualViewport) {
-        const viewport = window.visualViewport;
-        const inputRect = input.getBoundingClientRect();
-        const viewportBottom = viewport.offsetTop + viewport.height;
-        if (inputRect.bottom > viewportBottom - 20) {
-          const scrollAmount = inputRect.bottom - viewportBottom + 80;
-          const scrollable = input.closest("[data-radix-scroll-area-viewport], .overflow-y-auto");
-          if (scrollable) {
-            scrollable.scrollTop += scrollAmount;
-          } else {
-            window.scrollBy({ top: scrollAmount, behavior: "smooth" });
-          }
-        }
-      }
-    }, 400);
+    }, 350);
   };
 
   useEffect(() => {
@@ -1706,7 +1709,7 @@ function MenuPage() {
       </Dialog>
 
       <Dialog open={cartOpen} onOpenChange={setCartOpen}>
-        <DialogContent className="max-h-[90vh] overflow-y-auto text-[#1c1f16]" style={{ backgroundColor: bgColor, overscrollBehavior: "contain" }}>
+        <DialogContent className="overflow-y-auto text-[#1c1f16]" style={{ backgroundColor: bgColor, overscrollBehavior: "contain", maxHeight: keyboardHeight > 0 ? `calc(100vh - ${keyboardHeight}px - 40px)` : "90vh", transition: "max-height 0.2s ease" }}>
           <DialogHeader>
             <DialogTitle className="text-[#1c1f16]">{t("client.cartTitle")}</DialogTitle>
           </DialogHeader>
