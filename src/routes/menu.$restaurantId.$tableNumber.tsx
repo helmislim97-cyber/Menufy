@@ -17,6 +17,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { RestaurantCover } from "@/components/restaurant-cover";
 import { CategoryGrid } from "@/components/category-grid";
+import { MenufyBrand } from "@/components/logo";
 import { ShoppingCart, Plus, Minus, CheckCircle2, Search, ArrowLeft, MapPin, Flame, Clock, ChefHat, BellRing, ClipboardList, Wallet, XCircle, Star, Facebook, Instagram, ChevronDown, Info, Phone, Wifi } from "lucide-react";
 
 export const Route = createFileRoute("/menu/$restaurantId/$tableNumber")({
@@ -1215,12 +1216,10 @@ function MenuPage() {
           {t("client.viewOrderDetails")}
         </button>
 
-        <p className="mt-10 text-xs text-[#1c1f16]/40">
-          {t("client.poweredBy")}{" "}
-          <a href="https://menufy-tau.vercel.app" target="_blank" rel="noreferrer" className="font-semibold text-[#1c1f16]/60 hover:text-[#1c1f16]">
-            Menufy
-          </a>
-        </p>
+        <div className="mt-10 flex items-center justify-center gap-1.5 text-xs text-[#1c1f16]/40">
+          <span>{t("client.poweredBy")}</span>
+          <MenufyBrand />
+        </div>
         <p className="mt-0.5 text-xs text-[#1c1f16]/40">© {new Date().getFullYear()} Menufy. {t("client.allRightsReserved")}</p>
 
         </div>
@@ -1533,7 +1532,10 @@ function MenuPage() {
           </div>
         )}
         <div className="pt-2 text-center text-xs text-[#1c1f16]/40">
-          <p>{t("client.poweredBy")} <a href="https://menufy-tau.vercel.app" target="_blank" rel="noreferrer" className="font-semibold text-[#1c1f16]/60 hover:text-[#1c1f16]">Menufy</a></p>
+          <div className="flex items-center justify-center gap-1.5">
+            <span>{t("client.poweredBy")}</span>
+            <MenufyBrand />
+          </div>
           <p className="mt-0.5">© {new Date().getFullYear()} Menufy. {t("client.allRightsReserved")}</p>
         </div>
       </footer>

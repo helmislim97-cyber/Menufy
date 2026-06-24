@@ -45,6 +45,7 @@ function XIcon({ className }: { className?: string }) {
 }
 import { LangSwitch } from "@/components/lang-switch";
 import { useI18n } from "@/lib/i18n";
+import { MenufyBrand } from "@/components/logo";
 
 const PATTERN_MAP: Record<string, string> = {
   bubbles: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='60'%3E%3Ccircle cx='15' cy='15' r='8' fill='none' stroke='%231c1f1615' stroke-width='1.5'/%3E%3Ccircle cx='45' cy='45' r='5' fill='none' stroke='%231c1f1615' stroke-width='1.5'/%3E%3Ccircle cx='50' cy='15' r='3' fill='none' stroke='%231c1f1615' stroke-width='1.5'/%3E%3C/svg%3E")`,
@@ -136,6 +137,10 @@ export function RestaurantCover({ name, logoUrl, facebookUrl, instagramUrl, tikt
       </div>
 
       <div className="w-full max-w-md pb-2">
+        <div className="mb-3 flex items-center justify-center gap-1.5 text-xs text-[#1c1f16]/40">
+          <span>{t("client.poweredBy")}</span>
+          <MenufyBrand />
+        </div>
         {wifi?.trim() && (
           <div className="mb-4 flex flex-col items-center gap-1 rounded-2xl bg-white/60 border border-[#1c1f16]/10 px-4 py-3">
             <div className="flex items-center gap-2">

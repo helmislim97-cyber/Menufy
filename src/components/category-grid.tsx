@@ -25,6 +25,7 @@ function XIcon({ className }: { className?: string }) {
 }
 import { LangSwitch } from "@/components/lang-switch";
 import { useI18n } from "@/lib/i18n";
+import { MenufyBrand } from "@/components/logo";
 
 const PATTERN_MAP: Record<string, string> = {
   bubbles: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='60'%3E%3Ccircle cx='15' cy='15' r='8' fill='none' stroke='%231c1f1615' stroke-width='1.5'/%3E%3Ccircle cx='45' cy='45' r='5' fill='none' stroke='%231c1f1615' stroke-width='1.5'/%3E%3C/svg%3E")`,
@@ -194,12 +195,10 @@ export function CategoryGrid({ name, logoUrl, facebookUrl, instagramUrl, tiktokU
       )}
 
       <footer className="pb-8 pt-6 text-center text-xs text-[#1c1f16]/40">
-        <p>
-          {t("client.poweredBy")}{" "}
-          <a href="https://menufy-tau.vercel.app" target="_blank" rel="noreferrer" className="font-semibold text-[#1c1f16]/60 hover:text-[#1c1f16]">
-            Menufy
-          </a>
-        </p>
+        <div className="flex items-center justify-center gap-1.5">
+          <span>{t("client.poweredBy")}</span>
+          <MenufyBrand />
+        </div>
         <p className="mt-0.5">© {new Date().getFullYear()} Menufy. {t("client.allRightsReserved")}</p>
       </footer>
       </div>
