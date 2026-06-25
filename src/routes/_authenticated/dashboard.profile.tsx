@@ -113,7 +113,6 @@ function ProfilePage() {
   const fields: { field: keyof Profile; label: string; type?: string }[] = [
     { field: "full_name", label: "Nom légal" },
     { field: "email", label: "Email" },
-    { field: "email", label: "Email" },
     { field: "phone", label: "Numéro de téléphone" },
     { field: "birth_date", label: "Date de naissance", type: "date" },
     { field: "gender", label: "Genre" },
