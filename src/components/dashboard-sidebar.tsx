@@ -104,7 +104,7 @@ const NAV_GROUPS: NavGroup[] = [
   {
     titleKey: "sidebar.group.account",
     items: [
-      { to: "/dashboard/profile", icon: User, labelKey: "sidebar.profile", comingSoon: true },
+      { to: "/dashboard/profile", icon: User, labelKey: "sidebar.profile", href: "/dashboard/profile" },
       { to: "/dashboard/password", icon: Lock, labelKey: "sidebar.password", comingSoon: true },
       { to: "/dashboard/contact", icon: MessageSquare, labelKey: "sidebar.contact", comingSoon: true },
       { to: "/dashboard/help", icon: HelpCircle, labelKey: "sidebar.help", comingSoon: true },
