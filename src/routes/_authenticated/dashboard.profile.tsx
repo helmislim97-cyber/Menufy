@@ -93,6 +93,10 @@ function ProfilePage() {
     if (editing.field === "email") {
       const { error } = await supabase.auth.updateUser({ email: editValue.trim() });
       if (error) { toast.error(error.message); setSaving(false); return; }
+      toast.success("Un email de confirmation a été envoyé à votre nouvelle adresse. Veuillez le confirmer pour finaliser le changement.");
+      setSaving(false);
+      setEditing(null);
+      return;
     } else {
       const metaKey = editing.field;
       const { error } = await supabase.auth.updateUser({
@@ -108,6 +112,7 @@ function ProfilePage() {
 
   const fields: { field: keyof Profile; label: string; type?: string }[] = [
     { field: "full_name", label: "Nom légal" },
+    { field: "email", label: "Email" },
     { field: "email", label: "Email" },
     { field: "phone", label: "Numéro de téléphone" },
     { field: "birth_date", label: "Date de naissance", type: "date" },
