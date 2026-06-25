@@ -1997,7 +1997,7 @@ function MenuPage() {
       </Dialog>
 
       <Dialog open={assistanceOpen} onOpenChange={(open) => { setAssistanceOpen(open); if (!open) { setAssistanceSent(false); setAssistanceMessage(""); } }}>
-        <DialogContent className="text-[#1c1f16]" style={{ backgroundColor: bgColor }}>
+        <DialogContent className="max-h-[90dvh] overflow-y-auto text-[#1c1f16] !top-[5dvh] !translate-y-0 !bottom-[5dvh]" style={{ backgroundColor: bgColor }}>
           <DialogHeader>
             <DialogTitle className="text-[#1c1f16]">{t("client.assistance.title")}</DialogTitle>
           </DialogHeader>
