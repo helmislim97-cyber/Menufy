@@ -1295,7 +1295,7 @@ function MenuPage() {
         </div>
 
         <Dialog open={orderDetailsOpen} onOpenChange={setOrderDetailsOpen}>
-          <DialogContent className="max-h-[80vh] overflow-y-auto text-[#1c1f16]" style={{ backgroundColor: bgColor }}>
+          <DialogContent className="max-h-[90dvh] overflow-y-auto text-[#1c1f16] !top-[5dvh] !translate-y-0 !bottom-[5dvh]" style={{ backgroundColor: bgColor }}>
             <DialogHeader>
               <DialogTitle className="text-[#1c1f16]">{t("client.orderDetailsTitle")}</DialogTitle>
             </DialogHeader>
@@ -1654,7 +1654,7 @@ function MenuPage() {
       </div>
 
       <Dialog open={!!detailProduct} onOpenChange={(open) => !open && setDetailProduct(null)}>
-        <DialogContent className="max-h-[90vh] overflow-y-auto text-[#1c1f16]" style={{ backgroundColor: bgColor }}>
+        <DialogContent className="max-h-[90dvh] overflow-y-auto text-[#1c1f16] !top-[5dvh] !translate-y-0 !bottom-[5dvh]" style={{ backgroundColor: bgColor }}>
           {detailProduct && (
             <div className="flex flex-col items-center text-center">
               <div className="grid h-56 w-56 place-items-center overflow-hidden rounded-2xl bg-background text-6xl">
@@ -1939,7 +1939,7 @@ function MenuPage() {
       </Dialog>
 
       <Dialog open={ordersHistoryOpen} onOpenChange={setOrdersHistoryOpen}>
-        <DialogContent className="max-h-[80vh] overflow-y-auto text-[#1c1f16]" style={{ backgroundColor: bgColor }}>
+        <DialogContent className="max-h-[90dvh] overflow-y-auto text-[#1c1f16] !top-[5dvh] !translate-y-0 !bottom-[5dvh]" style={{ backgroundColor: bgColor }}>
           <DialogHeader>
             <DialogTitle className="text-[#1c1f16]">{t("client.ordersHistoryTitle")}</DialogTitle>
           </DialogHeader>
