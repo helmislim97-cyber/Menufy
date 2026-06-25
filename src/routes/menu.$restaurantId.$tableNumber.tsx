@@ -1768,7 +1768,7 @@ function MenuPage() {
               </div>
               <p className="text-sm text-[#1c1f16]/60">{t("client.cartEmpty")}</p>
             </div>
-          ) : (
+          ) : cartItems.length > 0 ? (
             <div className="space-y-2">
               {cartItems.map(({ cartKey, product, qty, note, supplements, unitPrice }) => (
                 <div key={cartKey} className="flex items-center gap-3 rounded-xl bg-white p-2.5 shadow-sm">
@@ -1872,9 +1872,9 @@ function MenuPage() {
               )}
 
               </div>
-          )}
+          ) : null}
 
-          <div className="space-y-2 border-t border-[#1c1f16]/10 pt-4 mt-2">
+          {cartItems.length > 0 && <div className="space-y-2 border-t border-[#1c1f16]/10 pt-4 mt-2">
             <p className="text-sm font-bold text-[#1c1f16]">{t("client.yourInfo")} <span className="text-destructive">*</span></p>
             <div className="grid grid-cols-2 gap-2">
               <Input
@@ -1920,7 +1920,7 @@ function MenuPage() {
                 {infoErrorType === "empty" ? t("client.missingInfoError") : t("client.invalidInfoError")}
               </p>
             )}
-          </div>
+          </div>}
 
           {cartItems.length > 0 && (
             <DialogFooter className="pt-4">
