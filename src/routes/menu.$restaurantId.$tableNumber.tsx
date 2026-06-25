@@ -1944,7 +1944,7 @@ function MenuPage() {
             <DialogTitle className="text-[#1c1f16]">{t("client.ordersHistoryTitle")}</DialogTitle>
           </DialogHeader>
           {sessionOrders.length === 0 ? (
-            <div className="flex flex-col items-center gap-3 pt-8 pb-10">
+            <div className="flex flex-col items-center gap-3 pt-24 pb-10">
               <div className="grid h-16 w-16 place-items-center rounded-full bg-[#1c1f16]/5 text-[#1c1f16]/30">
                 <ClipboardList className="h-8 w-8" />
               </div>
