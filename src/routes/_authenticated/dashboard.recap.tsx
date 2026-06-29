@@ -3,7 +3,7 @@ import { useEffect, useState, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { DashboardPage } from "@/components/dashboard-page";
-import { TrendingUp, TrendingDown, ShoppingBag, Star, BellRing, Clock, Users, RefreshCw } from "lucide-react";
+import { TrendingUp, TrendingDown, ShoppingBag, Star, BellRing, Clock, RefreshCw } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
 import { format, subDays, startOfDay, endOfDay } from "date-fns";
 
@@ -47,7 +47,7 @@ function RecapPage() {
   const [yesterdayRevenue, setYesterdayRevenue] = useState(0);
   const [yesterdayOrders, setYesterdayOrders] = useState(0);
   const [lastWeekRevenue, setLastWeekRevenue] = useState(0);
-  const [uniqueCustomers, setUniqueCustomers] = useState(0);
+  const [peakHour, setPeakHour] = useState<string | null>(null);
   const [hourlyData, setHourlyData] = useState<{ hour: string; revenue: number }[]>([]);
   const [topProducts, setTopProducts] = useState<{ name: string; qty: number; revenue: number }[]>([]);
   const [topCategory, setTopCategory] = useState<string | null>(null);
@@ -106,7 +106,11 @@ function RecapPage() {
     setCancelRate((todayData ?? []).length > 0 ? (cancelled.length / (todayData ?? []).length) * 100 : 0);
     setAssistanceCount((assistance ?? []).length);
     setRecentOrders((todayData ?? []).slice(0, 5));
-    setUniqueCustomers(new Set((todayData ?? []).map((o: any) => o.customer_name?.toLowerCase().trim()).filter(Boolean)).size);
+    const hourCount: Record<number, number> = {};
+    for (let i = 0; i < 24; i++) hourCount[i] = 0;
+    completed.forEach((o: any) => { hourCount[new Date(o.created_at).getHours()] += 1; });
+    const peak = Object.entries(hourCount).sort((a, b) => b[1] - a[1])[0];
+    setPeakHour(peak && peak[1] > 0 ? `${peak[0]}h (${peak[1]} cmd)` : null);
 
     const ratings = (reviews ?? []).map((r: any) => r.rating);
     setAvgRating(ratings.length > 0 ? ratings.reduce((s: number, r: number) => s + r, 0) / ratings.length : 0);
@@ -215,11 +219,11 @@ function RecapPage() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             <div className="rounded-2xl border border-border bg-background p-5 flex items-center gap-4">
               <div className="grid h-12 w-12 shrink-0 place-items-center rounded-full bg-primary/10">
-                <Users className="h-5 w-5 text-primary" />
+                <Clock className="h-5 w-5 text-primary" />
               </div>
               <div>
-                <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Clients servis aujourd'hui</p>
-                <p className="text-2xl font-extrabold">{uniqueCustomers}</p>
+                <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Heure de pointe</p>
+                <p className="text-2xl font-extrabold">{peakHour ?? "—"}</p>
               </div>
             </div>
             <div className="rounded-2xl border border-border bg-background p-5 flex items-center gap-4">
@@ -290,13 +294,7 @@ function RecapPage() {
                   </div>
                   <span className={`text-sm font-bold ${(doneStatusSummary["cancelled"] ?? 0) > 0 ? "text-destructive" : ""}`}>{doneStatusSummary["cancelled"] ?? 0}</span>
                 </div>
-                <div className="flex items-center justify-between rounded-xl bg-muted/40 px-3 py-2">
-                  <div className="flex items-center gap-2 text-sm">
-                    <Users className="h-4 w-4 text-muted-foreground" />
-                    Clients uniques
-                  </div>
-                  <span className="text-sm font-bold">{uniqueCustomers}</span>
-                </div>
+                
                 <div className="flex items-center justify-between rounded-xl bg-muted/40 px-3 py-2">
                   <div className="flex items-center gap-2 text-sm">
                     <Clock className="h-4 w-4 text-muted-foreground" />
