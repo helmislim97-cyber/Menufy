@@ -3,7 +3,7 @@ import { useEffect, useState, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { DashboardPage } from "@/components/dashboard-page";
-import { TrendingUp, TrendingDown, ShoppingBag, Star, BellRing, Clock } from "lucide-react";
+import { TrendingUp, TrendingDown, ShoppingBag, Star, BellRing, Clock, Users, RefreshCw } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
 import { format, subDays, startOfDay, endOfDay } from "date-fns";
 
@@ -32,11 +32,13 @@ function KpiCard({ title, value, sub, icon: Icon, trend }: { title: string; valu
 
 const STATUS_LABELS: Record<string, string> = { pending: "En attente", preparing: "En préparation", ready: "Prêt", paid: "Payé", cancelled: "Annulé" };
 const STATUS_COLORS: Record<string, string> = { pending: "bg-yellow-400", preparing: "bg-blue-400", ready: "bg-green-500", paid: "bg-primary", cancelled: "bg-destructive" };
+const ACTIVE_STATUSES = ["pending", "preparing", "ready"];
 
 function RecapPage() {
   const { user } = useAuth();
   const [restaurantId, setRestaurantId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
   const [todayRevenue, setTodayRevenue] = useState(0);
   const [todayOrders, setTodayOrders] = useState(0);
   const [avgOrder, setAvgOrder] = useState(0);
@@ -45,13 +47,14 @@ function RecapPage() {
   const [yesterdayRevenue, setYesterdayRevenue] = useState(0);
   const [yesterdayOrders, setYesterdayOrders] = useState(0);
   const [lastWeekRevenue, setLastWeekRevenue] = useState(0);
+  const [uniqueCustomers, setUniqueCustomers] = useState(0);
   const [hourlyData, setHourlyData] = useState<{ hour: string; revenue: number }[]>([]);
   const [topProducts, setTopProducts] = useState<{ name: string; qty: number; revenue: number }[]>([]);
   const [topCategory, setTopCategory] = useState<string | null>(null);
-  const [statusSummary, setStatusSummary] = useState<Record<string, number>>({});
-  const [recentOrders, setRecentOrders] = useState<{ id: string; customer_name: string; total: number; status: string; created_at: string }[]>([]);
+  const [activeStatusSummary, setActiveStatusSummary] = useState<Record<string, number>>({});
+  const [doneStatusSummary, setDoneStatusSummary] = useState<Record<string, number>>({});
+  const [recentOrders, setRecentOrders] = useState<any[]>([]);
   const [assistanceCount, setAssistanceCount] = useState(0);
-  
   const restaurantIdRef = useRef<string | null>(null);
 
   useEffect(() => {
@@ -70,7 +73,7 @@ function RecapPage() {
     const wStart = startOfDay(subDays(now, 7)).toISOString();
     const wEnd = endOfDay(subDays(now, 7)).toISOString();
 
-    const [{ data: todayData }, { data: yData }, { data: wData }, { data: reviews }, { data: assistance }, { data: categories }] = await Promise.all([
+    const [{ data: todayData }, { data: yData }, { data: wData }, { data: reviews }, { data: assistance }, { data: cats }] = await Promise.all([
       supabase.from("orders").select("id, total, status, created_at, customer_name, table_number").eq("restaurant_id", rid).gte("created_at", todayStart).lte("created_at", todayEnd).order("created_at", { ascending: false }),
       supabase.from("orders").select("total, status").eq("restaurant_id", rid).gte("created_at", yStart).lte("created_at", yEnd),
       supabase.from("orders").select("total, status").eq("restaurant_id", rid).gte("created_at", wStart).lte("created_at", wEnd),
@@ -84,8 +87,8 @@ function RecapPage() {
       ? await supabase.from("order_items").select("product_name, product_price, quantity, order_id").in("order_id", todayIds)
       : { data: [] };
 
-    const { data: products } = todayIds.length > 0
-      ? await supabase.from("order_items").select("product_name, order_id").in("order_id", todayIds)
+    const { data: prodRows } = todayIds.length > 0
+      ? await supabase.from("products").select("id, name, category_id").eq("restaurant_id", rid)
       : { data: [] };
 
     const completed = (todayData ?? []).filter((o: any) => o.status !== "cancelled");
@@ -103,14 +106,20 @@ function RecapPage() {
     setCancelRate((todayData ?? []).length > 0 ? (cancelled.length / (todayData ?? []).length) * 100 : 0);
     setAssistanceCount((assistance ?? []).length);
     setRecentOrders((todayData ?? []).slice(0, 5));
+    setUniqueCustomers(new Set((todayData ?? []).map((o: any) => o.customer_name?.toLowerCase().trim()).filter(Boolean)).size);
 
     const ratings = (reviews ?? []).map((r: any) => r.rating);
     setAvgRating(ratings.length > 0 ? ratings.reduce((s: number, r: number) => s + r, 0) / ratings.length : 0);
 
-    // Status summary
-    const sm: Record<string, number> = {};
-    (todayData ?? []).forEach((o: any) => { sm[o.status] = (sm[o.status] ?? 0) + 1; });
-    setStatusSummary(sm);
+    // Active vs done status
+    const active: Record<string, number> = {};
+    const done: Record<string, number> = {};
+    (todayData ?? []).forEach((o: any) => {
+      if (ACTIVE_STATUSES.includes(o.status)) active[o.status] = (active[o.status] ?? 0) + 1;
+      else done[o.status] = (done[o.status] ?? 0) + 1;
+    });
+    setActiveStatusSummary(active);
+    setDoneStatusSummary(done);
 
     // Hourly
     const hourly: Record<number, number> = {};
@@ -128,8 +137,22 @@ function RecapPage() {
     });
     setTopProducts(Object.entries(prodMap).map(([name, v]) => ({ name, ...v })).sort((a, b) => b.qty - a.qty).slice(0, 5));
 
-    // Top category - simplified
-    setTopCategory(null);
+    // Top category
+    const catRevMap: Record<string, number> = {};
+    (items ?? []).forEach((item: any) => {
+      const cleanName = item.product_name.split(" +")[0].split(" (")[0];
+      const prod = (prodRows ?? []).find((p: any) => p.name === cleanName);
+      if (prod?.category_id) {
+        const cat = (cats ?? []).find((c: any) => c.id === prod.category_id);
+        if (cat) {
+          catRevMap[cat.name] = (catRevMap[cat.name] ?? 0) + item.quantity * Number(item.product_price);
+        }
+      }
+    });
+    const topCat = Object.entries(catRevMap).sort((a, b) => b[1] - a[1])[0];
+    setTopCategory(topCat ? `${topCat[0]} (${topCat[1].toFixed(2)} DT)` : null);
+
+    setLastUpdated(new Date());
     setLoading(false);
   };
 
@@ -137,12 +160,10 @@ function RecapPage() {
     if (!restaurantId) return;
     loadData(restaurantId);
 
-    // Auto-refresh every 30 seconds
     const interval = setInterval(() => {
       if (restaurantIdRef.current) loadData(restaurantIdRef.current);
     }, 30000);
 
-    // Real-time subscription
     const channel = supabase
       .channel("recap-realtime")
       .on("postgres_changes", { event: "*", schema: "public", table: "orders", filter: `restaurant_id=eq.${restaurantId}` }, () => {
@@ -153,26 +174,27 @@ function RecapPage() {
       })
       .subscribe();
 
-    return () => {
-      clearInterval(interval);
-      supabase.removeChannel(channel);
-    };
+    return () => { clearInterval(interval); supabase.removeChannel(channel); };
   }, [restaurantId]);
-
-  
 
   const revTrend = yesterdayRevenue > 0 ? ((todayRevenue - yesterdayRevenue) / yesterdayRevenue) * 100 : 0;
   const orderTrend = yesterdayOrders > 0 ? ((todayOrders - yesterdayOrders) / yesterdayOrders) * 100 : 0;
   const weekTrend = lastWeekRevenue > 0 ? ((todayRevenue - lastWeekRevenue) / lastWeekRevenue) * 100 : 0;
-  
+  const totalActive = Object.values(activeStatusSummary).reduce((s, v) => s + v, 0);
 
   return (
     <DashboardPage>
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div>
           <h1 className="text-2xl font-extrabold">Récapitulatif</h1>
-          <p className="mt-1 text-sm text-muted-foreground">{format(new Date(), "EEEE d MMMM yyyy")} · Mise à jour automatique</p>
+          <p className="mt-1 text-sm text-muted-foreground">{format(new Date(), "EEEE d MMMM yyyy")}</p>
         </div>
+        {lastUpdated && (
+          <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+            <RefreshCw className="h-3 w-3" />
+            Mis à jour à {format(lastUpdated, "HH:mm:ss")}
+          </div>
+        )}
       </div>
 
       {loading ? (
@@ -181,31 +203,70 @@ function RecapPage() {
         <div className="mt-6 space-y-6">
 
           {/* KPI Cards */}
-          <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+          <div className="grid grid-cols-2 gap-4 lg:grid-cols-5">
             <KpiCard title="Chiffre d'affaires" value={`${todayRevenue.toFixed(2)} DT`} icon={TrendingUp} trend={revTrend} />
             <KpiCard title="Commandes" value={`${todayOrders}`} icon={ShoppingBag} trend={orderTrend} />
-            <KpiCard title="Panier moyen" value={`${avgOrder.toFixed(2)} DT`} icon={TrendingUp} sub={`vs sem. dernière: ${weekTrend >= 0 ? "+" : ""}${weekTrend.toFixed(1)}%`} />
+            <KpiCard title="Panier moyen" value={`${avgOrder.toFixed(2)} DT`} icon={TrendingUp} sub="par commande" />
             <KpiCard title="Note moyenne" value={avgRating > 0 ? `${avgRating.toFixed(1)} ⭐` : "—"} icon={Star} sub={`Annulations: ${cancelRate.toFixed(0)}%`} />
+            <KpiCard title="Même jour sem. dern." value={`${lastWeekRevenue.toFixed(2)} DT`} icon={TrendingUp} trend={weekTrend} />
           </div>
 
-          {/* Live status + assistance */}
+          {/* Clients + Category */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <div className="rounded-2xl border border-border bg-background p-5 flex items-center gap-4">
+              <div className="grid h-12 w-12 shrink-0 place-items-center rounded-full bg-primary/10">
+                <Users className="h-5 w-5 text-primary" />
+              </div>
+              <div>
+                <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Clients servis aujourd'hui</p>
+                <p className="text-2xl font-extrabold">{uniqueCustomers}</p>
+              </div>
+            </div>
+            <div className="rounded-2xl border border-border bg-background p-5 flex items-center gap-4">
+              <div className="grid h-12 w-12 shrink-0 place-items-center rounded-full bg-primary/10">
+                <Star className="h-5 w-5 text-primary" />
+              </div>
+              <div>
+                <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Meilleure catégorie</p>
+                <p className="text-lg font-extrabold">{topCategory ?? "—"}</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Active orders + Indicators */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <div className="rounded-2xl border border-border bg-background p-5">
-              <p className="text-sm font-bold mb-4 flex items-center gap-2">
+              <p className="text-sm font-bold mb-1 flex items-center gap-2">
                 <span className="h-2 w-2 rounded-full bg-green-500 animate-pulse" />
-                Statut des commandes (aujourd'hui)
+                Commandes actives
+                {totalActive > 0 && <span className="ml-auto rounded-full bg-primary px-2 py-0.5 text-xs font-bold text-white">{totalActive}</span>}
               </p>
-              {Object.keys(statusSummary).length === 0 ? (
-                <p className="text-sm text-muted-foreground">Aucune commande aujourd'hui</p>
+              <p className="text-xs text-muted-foreground mb-4">En attente · En préparation · Prêt</p>
+              {Object.keys(activeStatusSummary).length === 0 ? (
+                <p className="text-sm text-muted-foreground">Aucune commande active</p>
               ) : (
                 <div className="space-y-2">
-                  {Object.entries(statusSummary).map(([status, count]) => (
-                    <div key={status} className="flex items-center justify-between">
+                  {ACTIVE_STATUSES.filter(s => activeStatusSummary[s]).map((status) => (
+                    <div key={status} className="flex items-center justify-between rounded-xl bg-muted/40 px-3 py-2">
+                      <div className="flex items-center gap-2">
+                        <span className={`h-2.5 w-2.5 rounded-full ${STATUS_COLORS[status]}`} />
+                        <span className="text-sm font-medium">{STATUS_LABELS[status]}</span>
+                      </div>
+                      <span className="text-sm font-bold">{activeStatusSummary[status]}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+              {Object.keys(doneStatusSummary).length > 0 && (
+                <div className="mt-4 pt-4 border-t border-border space-y-1.5">
+                  <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-2">Terminées</p>
+                  {Object.entries(doneStatusSummary).map(([status, count]) => (
+                    <div key={status} className="flex items-center justify-between text-sm">
                       <div className="flex items-center gap-2">
                         <span className={`h-2 w-2 rounded-full ${STATUS_COLORS[status] ?? "bg-muted"}`} />
-                        <span className="text-sm">{STATUS_LABELS[status] ?? status}</span>
+                        <span className="text-muted-foreground">{STATUS_LABELS[status] ?? status}</span>
                       </div>
-                      <span className="text-sm font-bold">{count}</span>
+                      <span className="font-semibold">{count}</span>
                     </div>
                   ))}
                 </div>
@@ -215,32 +276,37 @@ function RecapPage() {
             <div className="rounded-2xl border border-border bg-background p-5">
               <p className="text-sm font-bold mb-4">Autres indicateurs</p>
               <div className="space-y-3">
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between rounded-xl bg-muted/40 px-3 py-2">
                   <div className="flex items-center gap-2 text-sm">
                     <BellRing className="h-4 w-4 text-muted-foreground" />
                     Demandes d'assistance
                   </div>
                   <span className={`text-sm font-bold ${assistanceCount > 0 ? "text-yellow-500" : ""}`}>{assistanceCount}</span>
                 </div>
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between rounded-xl bg-muted/40 px-3 py-2">
                   <div className="flex items-center gap-2 text-sm">
                     <ShoppingBag className="h-4 w-4 text-muted-foreground" />
                     Commandes annulées
                   </div>
-                  <span className="text-sm font-bold text-destructive">{statusSummary["cancelled"] ?? 0}</span>
+                  <span className={`text-sm font-bold ${(doneStatusSummary["cancelled"] ?? 0) > 0 ? "text-destructive" : ""}`}>{doneStatusSummary["cancelled"] ?? 0}</span>
                 </div>
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between rounded-xl bg-muted/40 px-3 py-2">
+                  <div className="flex items-center gap-2 text-sm">
+                    <Users className="h-4 w-4 text-muted-foreground" />
+                    Clients uniques
+                  </div>
+                  <span className="text-sm font-bold">{uniqueCustomers}</span>
+                </div>
+                <div className="flex items-center justify-between rounded-xl bg-muted/40 px-3 py-2">
                   <div className="flex items-center gap-2 text-sm">
                     <Clock className="h-4 w-4 text-muted-foreground" />
-                    Même jour sem. dernière
+                    Taux d'annulation
                   </div>
-                  <span className="text-sm font-bold">{lastWeekRevenue.toFixed(2)} DT</span>
+                  <span className={`text-sm font-bold ${cancelRate > 10 ? "text-destructive" : ""}`}>{cancelRate.toFixed(0)}%</span>
                 </div>
               </div>
             </div>
           </div>
-
-          
 
           {/* Recent orders */}
           {recentOrders.length > 0 && (
@@ -250,11 +316,11 @@ function RecapPage() {
                 <p className="text-sm font-bold">5 dernières commandes</p>
               </div>
               <div className="divide-y divide-border">
-                {recentOrders.map((o) => (
+                {recentOrders.map((o: any) => (
                   <div key={o.id} className="flex items-center justify-between px-5 py-3">
                     <div>
                       <p className="text-sm font-semibold">{o.customer_name}</p>
-                      <p className="text-xs text-muted-foreground">{format(new Date(o.created_at), "HH:mm")}</p>
+                      <p className="text-xs text-muted-foreground">{format(new Date(o.created_at), "HH:mm")} · Table {o.table_number ?? "—"}</p>
                     </div>
                     <div className="flex items-center gap-3">
                       <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${
