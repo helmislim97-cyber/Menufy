@@ -110,7 +110,7 @@ function RecapPage() {
     for (let i = 0; i < 24; i++) hourCount[i] = 0;
     completed.forEach((o: any) => { hourCount[new Date(o.created_at).getHours()] += 1; });
     const peak = Object.entries(hourCount).sort((a, b) => b[1] - a[1])[0];
-    setPeakHour(peak && peak[1] > 0 ? `${peak[0]}h (${peak[1]} cmd)` : null);
+    setPeakHour(peak && peak[1] > 0 ? `${peak[0]}h (${peak[1]} commandes)` : null);
 
     const ratings = (reviews ?? []).map((r: any) => r.rating);
     setAvgRating(ratings.length > 0 ? ratings.reduce((s: number, r: number) => s + r, 0) / ratings.length : 0);
