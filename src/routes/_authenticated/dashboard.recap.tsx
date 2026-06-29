@@ -3,11 +3,9 @@ import { useEffect, useState, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { DashboardPage } from "@/components/dashboard-page";
-import { TrendingUp, TrendingDown, ShoppingBag, Star, BellRing, CheckCircle2, ChefHat, Clock, Target } from "lucide-react";
+import { TrendingUp, TrendingDown, ShoppingBag, Star, BellRing, Clock } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
 import { format, subDays, startOfDay, endOfDay } from "date-fns";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/_authenticated/dashboard/recap")({
   component: RecapPage,
@@ -53,9 +51,7 @@ function RecapPage() {
   const [statusSummary, setStatusSummary] = useState<Record<string, number>>({});
   const [recentOrders, setRecentOrders] = useState<{ id: string; customer_name: string; total: number; status: string; created_at: string }[]>([]);
   const [assistanceCount, setAssistanceCount] = useState(0);
-  const [dailyGoal, setDailyGoal] = useState<number>(() => Number(localStorage.getItem("menufy_daily_goal") ?? 0));
-  const [goalInput, setGoalInput] = useState("");
-  const [editingGoal, setEditingGoal] = useState(false);
+  
   const restaurantIdRef = useRef<string | null>(null);
 
   useEffect(() => {
@@ -163,20 +159,12 @@ function RecapPage() {
     };
   }, [restaurantId]);
 
-  const saveGoal = () => {
-    const g = Number(goalInput);
-    if (g > 0) {
-      setDailyGoal(g);
-      localStorage.setItem("menufy_daily_goal", String(g));
-    }
-    setEditingGoal(false);
-    setGoalInput("");
-  };
+  
 
   const revTrend = yesterdayRevenue > 0 ? ((todayRevenue - yesterdayRevenue) / yesterdayRevenue) * 100 : 0;
   const orderTrend = yesterdayOrders > 0 ? ((todayOrders - yesterdayOrders) / yesterdayOrders) * 100 : 0;
   const weekTrend = lastWeekRevenue > 0 ? ((todayRevenue - lastWeekRevenue) / lastWeekRevenue) * 100 : 0;
-  const goalProgress = dailyGoal > 0 ? Math.min((todayRevenue / dailyGoal) * 100, 100) : 0;
+  
 
   return (
     <DashboardPage>
@@ -252,33 +240,7 @@ function RecapPage() {
             </div>
           </div>
 
-          {/* Daily goal */}
-          <div className="rounded-2xl border border-border bg-background p-5">
-            <div className="flex items-center justify-between mb-3">
-              <p className="text-sm font-bold flex items-center gap-2"><Target className="h-4 w-4" /> Objectif journalier</p>
-              <button onClick={() => setEditingGoal(true)} className="text-xs text-primary font-semibold">Modifier</button>
-            </div>
-            {editingGoal ? (
-              <div className="flex gap-2">
-                <Input type="number" value={goalInput} onChange={(e) => setGoalInput(e.target.value)} placeholder="Ex: 500" className="max-w-[160px]" autoFocus />
-                <Button size="sm" onClick={saveGoal}>Enregistrer</Button>
-                <Button size="sm" variant="outline" onClick={() => setEditingGoal(false)}>Annuler</Button>
-              </div>
-            ) : dailyGoal === 0 ? (
-              <p className="text-sm text-muted-foreground">Aucun objectif défini. <button onClick={() => setEditingGoal(true)} className="text-primary underline">En définir un</button></p>
-            ) : (
-              <div className="space-y-2">
-                <div className="flex items-center justify-between text-sm">
-                  <span className="text-muted-foreground">{todayRevenue.toFixed(2)} DT / {dailyGoal.toFixed(2)} DT</span>
-                  <span className={`font-bold ${goalProgress >= 100 ? "text-green-600" : ""}`}>{goalProgress.toFixed(0)}%</span>
-                </div>
-                <div className="h-3 rounded-full bg-muted overflow-hidden">
-                  <div className={`h-full rounded-full transition-all ${goalProgress >= 100 ? "bg-green-500" : "bg-primary"}`} style={{ width: `${goalProgress}%` }} />
-                </div>
-                {goalProgress >= 100 && <p className="text-xs font-bold text-green-600">🎉 Objectif atteint !</p>}
-              </div>
-            )}
-          </div>
+          
 
           {/* Recent orders */}
           {recentOrders.length > 0 && (
