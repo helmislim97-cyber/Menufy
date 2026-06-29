@@ -1,11 +1,13 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { DashboardPage } from "@/components/dashboard-page";
-import { TrendingUp, TrendingDown, ShoppingBag, Star } from "lucide-react";
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from "recharts";
+import { TrendingUp, TrendingDown, ShoppingBag, Star, BellRing, CheckCircle2, ChefHat, Clock, Target } from "lucide-react";
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
 import { format, subDays, startOfDay, endOfDay } from "date-fns";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/_authenticated/dashboard/recap")({
   component: RecapPage,
@@ -30,6 +32,9 @@ function KpiCard({ title, value, sub, icon: Icon, trend }: { title: string; valu
   );
 }
 
+const STATUS_LABELS: Record<string, string> = { pending: "En attente", preparing: "En préparation", ready: "Prêt", paid: "Payé", cancelled: "Annulé" };
+const STATUS_COLORS: Record<string, string> = { pending: "bg-yellow-400", preparing: "bg-blue-400", ready: "bg-green-500", paid: "bg-primary", cancelled: "bg-destructive" };
+
 function RecapPage() {
   const { user } = useAuth();
   const [restaurantId, setRestaurantId] = useState<string | null>(null);
@@ -41,123 +46,274 @@ function RecapPage() {
   const [cancelRate, setCancelRate] = useState(0);
   const [yesterdayRevenue, setYesterdayRevenue] = useState(0);
   const [yesterdayOrders, setYesterdayOrders] = useState(0);
-  const [hourlyData, setHourlyData] = useState<{ hour: string; revenue: number; orders: number }[]>([]);
+  const [lastWeekRevenue, setLastWeekRevenue] = useState(0);
+  const [hourlyData, setHourlyData] = useState<{ hour: string; revenue: number }[]>([]);
   const [topProducts, setTopProducts] = useState<{ name: string; qty: number; revenue: number }[]>([]);
+  const [topCategory, setTopCategory] = useState<string | null>(null);
+  const [statusSummary, setStatusSummary] = useState<Record<string, number>>({});
+  const [recentOrders, setRecentOrders] = useState<{ id: string; customer_name: string; total: number; status: string; created_at: string }[]>([]);
+  const [assistanceCount, setAssistanceCount] = useState(0);
+  const [dailyGoal, setDailyGoal] = useState<number>(() => Number(localStorage.getItem("menufy_daily_goal") ?? 0));
+  const [goalInput, setGoalInput] = useState("");
+  const [editingGoal, setEditingGoal] = useState(false);
+  const restaurantIdRef = useRef<string | null>(null);
 
   useEffect(() => {
     if (!user) return;
     supabase.from("restaurants").select("id").eq("owner_id", user.id).maybeSingle().then(({ data }) => {
-      if (data) setRestaurantId(data.id);
+      if (data) { setRestaurantId(data.id); restaurantIdRef.current = data.id; }
     });
   }, [user]);
 
+  const loadData = async (rid: string) => {
+    const now = new Date();
+    const todayStart = startOfDay(now).toISOString();
+    const todayEnd = endOfDay(now).toISOString();
+    const yStart = startOfDay(subDays(now, 1)).toISOString();
+    const yEnd = endOfDay(subDays(now, 1)).toISOString();
+    const wStart = startOfDay(subDays(now, 7)).toISOString();
+    const wEnd = endOfDay(subDays(now, 7)).toISOString();
+
+    const [{ data: todayData }, { data: yData }, { data: wData }, { data: reviews }, { data: assistance }, { data: categories }] = await Promise.all([
+      supabase.from("orders").select("id, total, status, created_at, customer_name, table_number").eq("restaurant_id", rid).gte("created_at", todayStart).lte("created_at", todayEnd).order("created_at", { ascending: false }),
+      supabase.from("orders").select("total, status").eq("restaurant_id", rid).gte("created_at", yStart).lte("created_at", yEnd),
+      supabase.from("orders").select("total, status").eq("restaurant_id", rid).gte("created_at", wStart).lte("created_at", wEnd),
+      supabase.from("reviews").select("rating").eq("restaurant_id", rid).gte("created_at", todayStart),
+      supabase.from("assistance_requests").select("id").eq("restaurant_id", rid).gte("created_at", todayStart),
+      supabase.from("categories").select("id, name").eq("restaurant_id", rid),
+    ]);
+
+    const todayIds = (todayData ?? []).map((o: any) => o.id);
+    const { data: items } = todayIds.length > 0
+      ? await supabase.from("order_items").select("product_name, product_price, quantity, order_id").in("order_id", todayIds)
+      : { data: [] };
+
+    const { data: products } = todayIds.length > 0
+      ? await supabase.from("order_items").select("product_name, order_id").in("order_id", todayIds)
+      : { data: [] };
+
+    const completed = (todayData ?? []).filter((o: any) => o.status !== "cancelled");
+    const cancelled = (todayData ?? []).filter((o: any) => o.status === "cancelled");
+    const rev = completed.reduce((s: number, o: any) => s + Number(o.total), 0);
+    const yRev = (yData ?? []).filter((o: any) => o.status !== "cancelled").reduce((s: number, o: any) => s + Number(o.total), 0);
+    const wRev = (wData ?? []).filter((o: any) => o.status !== "cancelled").reduce((s: number, o: any) => s + Number(o.total), 0);
+
+    setTodayRevenue(rev);
+    setTodayOrders(completed.length);
+    setAvgOrder(completed.length > 0 ? rev / completed.length : 0);
+    setYesterdayRevenue(yRev);
+    setYesterdayOrders((yData ?? []).filter((o: any) => o.status !== "cancelled").length);
+    setLastWeekRevenue(wRev);
+    setCancelRate((todayData ?? []).length > 0 ? (cancelled.length / (todayData ?? []).length) * 100 : 0);
+    setAssistanceCount((assistance ?? []).length);
+    setRecentOrders((todayData ?? []).slice(0, 5));
+
+    const ratings = (reviews ?? []).map((r: any) => r.rating);
+    setAvgRating(ratings.length > 0 ? ratings.reduce((s: number, r: number) => s + r, 0) / ratings.length : 0);
+
+    // Status summary
+    const sm: Record<string, number> = {};
+    (todayData ?? []).forEach((o: any) => { sm[o.status] = (sm[o.status] ?? 0) + 1; });
+    setStatusSummary(sm);
+
+    // Hourly
+    const hourly: Record<number, number> = {};
+    for (let i = 0; i < 24; i++) hourly[i] = 0;
+    completed.forEach((o: any) => { hourly[new Date(o.created_at).getHours()] += Number(o.total); });
+    setHourlyData(Object.entries(hourly).filter(([, v]) => v > 0).map(([h, v]) => ({ hour: `${h}h`, revenue: v })));
+
+    // Top products
+    const prodMap: Record<string, { qty: number; revenue: number }> = {};
+    (items ?? []).forEach((item: any) => {
+      const key = item.product_name.split(" +")[0].split(" (")[0];
+      if (!prodMap[key]) prodMap[key] = { qty: 0, revenue: 0 };
+      prodMap[key].qty += item.quantity;
+      prodMap[key].revenue += item.quantity * Number(item.product_price);
+    });
+    setTopProducts(Object.entries(prodMap).map(([name, v]) => ({ name, ...v })).sort((a, b) => b.qty - a.qty).slice(0, 5));
+
+    // Top category - simplified
+    setTopCategory(null);
+    setLoading(false);
+  };
+
   useEffect(() => {
     if (!restaurantId) return;
-    const load = async () => {
-      setLoading(true);
-      const now = new Date();
-      const todayStart = startOfDay(now).toISOString();
-      const todayEnd = endOfDay(now).toISOString();
-      const yStart = startOfDay(subDays(now, 1)).toISOString();
-      const yEnd = endOfDay(subDays(now, 1)).toISOString();
+    loadData(restaurantId);
 
-      const { data: todayOrdersData } = await supabase
-        .from("orders")
-        .select("id, total, status, created_at")
-        .eq("restaurant_id", restaurantId)
-        .gte("created_at", todayStart)
-        .lte("created_at", todayEnd);
+    // Auto-refresh every 30 seconds
+    const interval = setInterval(() => {
+      if (restaurantIdRef.current) loadData(restaurantIdRef.current);
+    }, 30000);
 
-      const { data: yesterdayOrdersData } = await supabase
-        .from("orders")
-        .select("id, total, status")
-        .eq("restaurant_id", restaurantId)
-        .gte("created_at", yStart)
-        .lte("created_at", yEnd);
+    // Real-time subscription
+    const channel = supabase
+      .channel("recap-realtime")
+      .on("postgres_changes", { event: "*", schema: "public", table: "orders", filter: `restaurant_id=eq.${restaurantId}` }, () => {
+        if (restaurantIdRef.current) loadData(restaurantIdRef.current);
+      })
+      .on("postgres_changes", { event: "*", schema: "public", table: "assistance_requests", filter: `restaurant_id=eq.${restaurantId}` }, () => {
+        if (restaurantIdRef.current) loadData(restaurantIdRef.current);
+      })
+      .subscribe();
 
-      const { data: reviewsData } = await supabase
-        .from("reviews")
-        .select("rating")
-        .eq("restaurant_id", restaurantId)
-        .gte("created_at", todayStart);
-
-      const todayIds = (todayOrdersData ?? []).map((o: any) => o.id);
-      const { data: itemsData } = todayIds.length > 0
-        ? await supabase.from("order_items").select("product_name, product_price, quantity, order_id").in("order_id", todayIds)
-        : { data: [] };
-
-      const completed = (todayOrdersData ?? []).filter((o: any) => o.status !== "cancelled");
-      const cancelled = (todayOrdersData ?? []).filter((o: any) => o.status === "cancelled");
-      const rev = completed.reduce((s: number, o: any) => s + Number(o.total), 0);
-      const yCompleted = (yesterdayOrdersData ?? []).filter((o: any) => o.status !== "cancelled");
-      const yRev = yCompleted.reduce((s: number, o: any) => s + Number(o.total), 0);
-
-      setTodayRevenue(rev);
-      setTodayOrders(completed.length);
-      setAvgOrder(completed.length > 0 ? rev / completed.length : 0);
-      setYesterdayRevenue(yRev);
-      setYesterdayOrders(yCompleted.length);
-      setCancelRate((todayOrdersData ?? []).length > 0 ? (cancelled.length / (todayOrdersData ?? []).length) * 100 : 0);
-
-      const ratings = (reviewsData ?? []).map((r: any) => r.rating);
-      setAvgRating(ratings.length > 0 ? ratings.reduce((s: number, r: number) => s + r, 0) / ratings.length : 0);
-
-      const hourly: Record<number, { revenue: number; orders: number }> = {};
-      for (let i = 0; i < 24; i++) hourly[i] = { revenue: 0, orders: 0 };
-      completed.forEach((o: any) => {
-        const h = new Date(o.created_at).getHours();
-        hourly[h].revenue += Number(o.total);
-        hourly[h].orders += 1;
-      });
-      setHourlyData(
-        Object.entries(hourly)
-          .filter(([, v]) => v.orders > 0)
-          .map(([h, v]) => ({ hour: `${h}h`, ...v }))
-      );
-
-      const prodMap: Record<string, { qty: number; revenue: number }> = {};
-      (itemsData ?? []).forEach((item: any) => {
-        const key = item.product_name.split(" +")[0].split(" (")[0];
-        if (!prodMap[key]) prodMap[key] = { qty: 0, revenue: 0 };
-        prodMap[key].qty += item.quantity;
-        prodMap[key].revenue += item.quantity * Number(item.product_price);
-      });
-      setTopProducts(
-        Object.entries(prodMap)
-          .map(([name, v]) => ({ name, ...v }))
-          .sort((a, b) => b.qty - a.qty)
-          .slice(0, 5)
-      );
-
-      setLoading(false);
+    return () => {
+      clearInterval(interval);
+      supabase.removeChannel(channel);
     };
-    load();
   }, [restaurantId]);
+
+  const saveGoal = () => {
+    const g = Number(goalInput);
+    if (g > 0) {
+      setDailyGoal(g);
+      localStorage.setItem("menufy_daily_goal", String(g));
+    }
+    setEditingGoal(false);
+    setGoalInput("");
+  };
 
   const revTrend = yesterdayRevenue > 0 ? ((todayRevenue - yesterdayRevenue) / yesterdayRevenue) * 100 : 0;
   const orderTrend = yesterdayOrders > 0 ? ((todayOrders - yesterdayOrders) / yesterdayOrders) * 100 : 0;
+  const weekTrend = lastWeekRevenue > 0 ? ((todayRevenue - lastWeekRevenue) / lastWeekRevenue) * 100 : 0;
+  const goalProgress = dailyGoal > 0 ? Math.min((todayRevenue / dailyGoal) * 100, 100) : 0;
 
   return (
     <DashboardPage>
-      <div>
-        <h1 className="text-2xl font-extrabold">Récapitulatif</h1>
-        <p className="mt-1 text-sm text-muted-foreground">{format(new Date(), "EEEE d MMMM yyyy")}</p>
+      <div className="flex items-center justify-between flex-wrap gap-3">
+        <div>
+          <h1 className="text-2xl font-extrabold">Récapitulatif</h1>
+          <p className="mt-1 text-sm text-muted-foreground">{format(new Date(), "EEEE d MMMM yyyy")} · Mise à jour automatique</p>
+        </div>
       </div>
 
       {loading ? (
         <p className="mt-10 text-center text-sm text-muted-foreground">Chargement...</p>
       ) : (
         <div className="mt-6 space-y-6">
+
+          {/* KPI Cards */}
           <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
             <KpiCard title="Chiffre d'affaires" value={`${todayRevenue.toFixed(2)} DT`} icon={TrendingUp} trend={revTrend} />
             <KpiCard title="Commandes" value={`${todayOrders}`} icon={ShoppingBag} trend={orderTrend} />
-            <KpiCard title="Panier moyen" value={`${avgOrder.toFixed(2)} DT`} icon={TrendingUp} sub="par commande" />
+            <KpiCard title="Panier moyen" value={`${avgOrder.toFixed(2)} DT`} icon={TrendingUp} sub={`vs sem. dernière: ${weekTrend >= 0 ? "+" : ""}${weekTrend.toFixed(1)}%`} />
             <KpiCard title="Note moyenne" value={avgRating > 0 ? `${avgRating.toFixed(1)} ⭐` : "—"} icon={Star} sub={`Annulations: ${cancelRate.toFixed(0)}%`} />
           </div>
 
+          {/* Live status + assistance */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="rounded-2xl border border-border bg-background p-5">
+              <p className="text-sm font-bold mb-4 flex items-center gap-2">
+                <span className="h-2 w-2 rounded-full bg-green-500 animate-pulse" />
+                Statut des commandes (aujourd'hui)
+              </p>
+              {Object.keys(statusSummary).length === 0 ? (
+                <p className="text-sm text-muted-foreground">Aucune commande aujourd'hui</p>
+              ) : (
+                <div className="space-y-2">
+                  {Object.entries(statusSummary).map(([status, count]) => (
+                    <div key={status} className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <span className={`h-2 w-2 rounded-full ${STATUS_COLORS[status] ?? "bg-muted"}`} />
+                        <span className="text-sm">{STATUS_LABELS[status] ?? status}</span>
+                      </div>
+                      <span className="text-sm font-bold">{count}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <div className="rounded-2xl border border-border bg-background p-5">
+              <p className="text-sm font-bold mb-4">Autres indicateurs</p>
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2 text-sm">
+                    <BellRing className="h-4 w-4 text-muted-foreground" />
+                    Demandes d'assistance
+                  </div>
+                  <span className={`text-sm font-bold ${assistanceCount > 0 ? "text-yellow-500" : ""}`}>{assistanceCount}</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2 text-sm">
+                    <ShoppingBag className="h-4 w-4 text-muted-foreground" />
+                    Commandes annulées
+                  </div>
+                  <span className="text-sm font-bold text-destructive">{statusSummary["cancelled"] ?? 0}</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2 text-sm">
+                    <Clock className="h-4 w-4 text-muted-foreground" />
+                    Même jour sem. dernière
+                  </div>
+                  <span className="text-sm font-bold">{lastWeekRevenue.toFixed(2)} DT</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Daily goal */}
+          <div className="rounded-2xl border border-border bg-background p-5">
+            <div className="flex items-center justify-between mb-3">
+              <p className="text-sm font-bold flex items-center gap-2"><Target className="h-4 w-4" /> Objectif journalier</p>
+              <button onClick={() => setEditingGoal(true)} className="text-xs text-primary font-semibold">Modifier</button>
+            </div>
+            {editingGoal ? (
+              <div className="flex gap-2">
+                <Input type="number" value={goalInput} onChange={(e) => setGoalInput(e.target.value)} placeholder="Ex: 500" className="max-w-[160px]" autoFocus />
+                <Button size="sm" onClick={saveGoal}>Enregistrer</Button>
+                <Button size="sm" variant="outline" onClick={() => setEditingGoal(false)}>Annuler</Button>
+              </div>
+            ) : dailyGoal === 0 ? (
+              <p className="text-sm text-muted-foreground">Aucun objectif défini. <button onClick={() => setEditingGoal(true)} className="text-primary underline">En définir un</button></p>
+            ) : (
+              <div className="space-y-2">
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-muted-foreground">{todayRevenue.toFixed(2)} DT / {dailyGoal.toFixed(2)} DT</span>
+                  <span className={`font-bold ${goalProgress >= 100 ? "text-green-600" : ""}`}>{goalProgress.toFixed(0)}%</span>
+                </div>
+                <div className="h-3 rounded-full bg-muted overflow-hidden">
+                  <div className={`h-full rounded-full transition-all ${goalProgress >= 100 ? "bg-green-500" : "bg-primary"}`} style={{ width: `${goalProgress}%` }} />
+                </div>
+                {goalProgress >= 100 && <p className="text-xs font-bold text-green-600">🎉 Objectif atteint !</p>}
+              </div>
+            )}
+          </div>
+
+          {/* Recent orders */}
+          {recentOrders.length > 0 && (
+            <div className="rounded-2xl border border-border bg-background overflow-hidden">
+              <div className="px-5 py-3 border-b border-border flex items-center gap-2">
+                <span className="h-2 w-2 rounded-full bg-green-500 animate-pulse" />
+                <p className="text-sm font-bold">5 dernières commandes</p>
+              </div>
+              <div className="divide-y divide-border">
+                {recentOrders.map((o) => (
+                  <div key={o.id} className="flex items-center justify-between px-5 py-3">
+                    <div>
+                      <p className="text-sm font-semibold">{o.customer_name}</p>
+                      <p className="text-xs text-muted-foreground">{format(new Date(o.created_at), "HH:mm")}</p>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${
+                        o.status === "paid" ? "bg-primary/10 text-primary" :
+                        o.status === "ready" ? "bg-green-100 text-green-700" :
+                        o.status === "preparing" ? "bg-blue-100 text-blue-700" :
+                        o.status === "cancelled" ? "bg-red-100 text-red-700" :
+                        "bg-yellow-100 text-yellow-700"
+                      }`}>{STATUS_LABELS[o.status] ?? o.status}</span>
+                      <span className="text-sm font-bold">{Number(o.total).toFixed(2)} DT</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Hourly chart */}
           {hourlyData.length > 0 && (
             <div className="rounded-2xl border border-border bg-background p-5">
-              <p className="text-sm font-bold mb-4">Revenus par heure aujourd'hui</p>
+              <p className="text-sm font-bold mb-4">Revenus par heure</p>
               <ResponsiveContainer width="100%" height={200}>
                 <BarChart data={hourlyData}>
                   <XAxis dataKey="hour" tick={{ fontSize: 11 }} />
@@ -169,6 +325,7 @@ function RecapPage() {
             </div>
           )}
 
+          {/* Top products */}
           {topProducts.length > 0 && (
             <div className="rounded-2xl border border-border bg-background p-5">
               <p className="text-sm font-bold mb-4">Top produits aujourd'hui</p>
@@ -191,7 +348,7 @@ function RecapPage() {
             </div>
           )}
 
-          {hourlyData.length === 0 && topProducts.length === 0 && (
+          {recentOrders.length === 0 && (
             <div className="rounded-2xl border border-border bg-background p-10 text-center">
               <p className="text-muted-foreground text-sm">Aucune commande aujourd'hui pour le moment.</p>
             </div>
