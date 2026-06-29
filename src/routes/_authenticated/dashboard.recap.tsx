@@ -3,9 +3,9 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { DashboardPage } from "@/components/dashboard-page";
-import { TrendingUp, TrendingDown, ShoppingBag, Star, Clock, Ban } from "lucide-react";
+import { TrendingUp, TrendingDown, ShoppingBag, Star } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from "recharts";
-import { format, startOfDay, endOfDay, startOfYesterday, endOfYesterday } from "date-fns";
+import { format, subDays, startOfDay, endOfDay } from "date-fns";
 
 export const Route = createFileRoute("/_authenticated/dashboard/recap")({
   component: RecapPage,
@@ -22,7 +22,7 @@ function KpiCard({ title, value, sub, icon: Icon, trend }: { title: string; valu
       {trend !== undefined && (
         <div className={`flex items-center gap-1 text-xs font-semibold ${trend >= 0 ? "text-green-600" : "text-destructive"}`}>
           {trend >= 0 ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
-          {Math.abs(trend).toFixed(1)}% vs yesterday
+          {Math.abs(trend).toFixed(1)}% vs hier
         </div>
       )}
       {sub && <p className="text-xs text-muted-foreground">{sub}</p>}
@@ -55,34 +55,53 @@ function RecapPage() {
     if (!restaurantId) return;
     const load = async () => {
       setLoading(true);
-      const todayStart = startOfDay(new Date()).toISOString();
-      const todayEnd = endOfDay(new Date()).toISOString();
-      const yStart = startOfDay(subDays(new Date(), 1)).toISOString();
-      const yEnd = endOfDay(subDays(new Date(), 1)).toISOString();
+      const now = new Date();
+      const todayStart = startOfDay(now).toISOString();
+      const todayEnd = endOfDay(now).toISOString();
+      const yStart = startOfDay(subDays(now, 1)).toISOString();
+      const yEnd = endOfDay(subDays(now, 1)).toISOString();
 
-      const [{ data: todayOrdersData }, { data: yesterdayOrdersData }, { data: reviewsData }, { data: itemsData }] = await Promise.all([
-        supabase.from("orders").select("id, total, status, created_at").eq("restaurant_id", restaurantId).gte("created_at", todayStart).lte("created_at", todayEnd),
-        supabase.from("orders").select("id, total, status").eq("restaurant_id", restaurantId).gte("created_at", yStart).lte("created_at", yEnd),
-        supabase.from("reviews").select("rating").eq("restaurant_id", restaurantId).gte("created_at", todayStart),
-        supabase.from("order_items").select("product_name, product_price, quantity, order_id").in("order_id", (todayOrdersData ?? []).map((o: any) => o.id)),
-      ]);
+      const { data: todayOrdersData } = await supabase
+        .from("orders")
+        .select("id, total, status, created_at")
+        .eq("restaurant_id", restaurantId)
+        .gte("created_at", todayStart)
+        .lte("created_at", todayEnd);
+
+      const { data: yesterdayOrdersData } = await supabase
+        .from("orders")
+        .select("id, total, status")
+        .eq("restaurant_id", restaurantId)
+        .gte("created_at", yStart)
+        .lte("created_at", yEnd);
+
+      const { data: reviewsData } = await supabase
+        .from("reviews")
+        .select("rating")
+        .eq("restaurant_id", restaurantId)
+        .gte("created_at", todayStart);
+
+      const todayIds = (todayOrdersData ?? []).map((o: any) => o.id);
+      const { data: itemsData } = todayIds.length > 0
+        ? await supabase.from("order_items").select("product_name, product_price, quantity, order_id").in("order_id", todayIds)
+        : { data: [] };
 
       const completed = (todayOrdersData ?? []).filter((o: any) => o.status !== "cancelled");
       const cancelled = (todayOrdersData ?? []).filter((o: any) => o.status === "cancelled");
       const rev = completed.reduce((s: number, o: any) => s + Number(o.total), 0);
-      const yRev = (yesterdayOrdersData ?? []).filter((o: any) => o.status !== "cancelled").reduce((s: number, o: any) => s + Number(o.total), 0);
+      const yCompleted = (yesterdayOrdersData ?? []).filter((o: any) => o.status !== "cancelled");
+      const yRev = yCompleted.reduce((s: number, o: any) => s + Number(o.total), 0);
 
       setTodayRevenue(rev);
       setTodayOrders(completed.length);
       setAvgOrder(completed.length > 0 ? rev / completed.length : 0);
       setYesterdayRevenue(yRev);
-      setYesterdayOrders((yesterdayOrdersData ?? []).filter((o: any) => o.status !== "cancelled").length);
+      setYesterdayOrders(yCompleted.length);
       setCancelRate((todayOrdersData ?? []).length > 0 ? (cancelled.length / (todayOrdersData ?? []).length) * 100 : 0);
 
       const ratings = (reviewsData ?? []).map((r: any) => r.rating);
       setAvgRating(ratings.length > 0 ? ratings.reduce((s: number, r: number) => s + r, 0) / ratings.length : 0);
 
-      // Hourly data
       const hourly: Record<number, { revenue: number; orders: number }> = {};
       for (let i = 0; i < 24; i++) hourly[i] = { revenue: 0, orders: 0 };
       completed.forEach((o: any) => {
@@ -90,9 +109,12 @@ function RecapPage() {
         hourly[h].revenue += Number(o.total);
         hourly[h].orders += 1;
       });
-      setHourlyData(Object.entries(hourly).filter(([, v]) => v.orders > 0).map(([h, v]) => ({ hour: `${h}h`, ...v })));
+      setHourlyData(
+        Object.entries(hourly)
+          .filter(([, v]) => v.orders > 0)
+          .map(([h, v]) => ({ hour: `${h}h`, ...v }))
+      );
 
-      // Top products
       const prodMap: Record<string, { qty: number; revenue: number }> = {};
       (itemsData ?? []).forEach((item: any) => {
         const key = item.product_name.split(" +")[0].split(" (")[0];
@@ -100,7 +122,12 @@ function RecapPage() {
         prodMap[key].qty += item.quantity;
         prodMap[key].revenue += item.quantity * Number(item.product_price);
       });
-      setTopProducts(Object.entries(prodMap).map(([name, v]) => ({ name, ...v })).sort((a, b) => b.qty - a.qty).slice(0, 5));
+      setTopProducts(
+        Object.entries(prodMap)
+          .map(([name, v]) => ({ name, ...v }))
+          .sort((a, b) => b.qty - a.qty)
+          .slice(0, 5)
+      );
 
       setLoading(false);
     };
@@ -112,20 +139,20 @@ function RecapPage() {
 
   return (
     <DashboardPage>
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-extrabold">Récapitulatif</h1>
-          <p className="mt-1 text-sm text-muted-foreground">{format(new Date(), "EEEE d MMMM yyyy")}</p>
-        </div>
+      <div>
+        <h1 className="text-2xl font-extrabold">Récapitulatif</h1>
+        <p className="mt-1 text-sm text-muted-foreground">{format(new Date(), "EEEE d MMMM yyyy")}</p>
       </div>
 
-      {loading ? <p className="mt-10 text-center text-sm text-muted-foreground">Chargement...</p> : (
+      {loading ? (
+        <p className="mt-10 text-center text-sm text-muted-foreground">Chargement...</p>
+      ) : (
         <div className="mt-6 space-y-6">
           <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
             <KpiCard title="Chiffre d'affaires" value={`${todayRevenue.toFixed(2)} DT`} icon={TrendingUp} trend={revTrend} />
             <KpiCard title="Commandes" value={`${todayOrders}`} icon={ShoppingBag} trend={orderTrend} />
             <KpiCard title="Panier moyen" value={`${avgOrder.toFixed(2)} DT`} icon={TrendingUp} sub="par commande" />
-            <KpiCard title="Note moyenne" value={avgRating > 0 ? `${avgRating.toFixed(1)} ⭐` : "—"} icon={Star} sub={`Taux annulation: ${cancelRate.toFixed(0)}%`} />
+            <KpiCard title="Note moyenne" value={avgRating > 0 ? `${avgRating.toFixed(1)} ⭐` : "—"} icon={Star} sub={`Annulations: ${cancelRate.toFixed(0)}%`} />
           </div>
 
           {hourlyData.length > 0 && (
@@ -161,6 +188,12 @@ function RecapPage() {
                   </div>
                 ))}
               </div>
+            </div>
+          )}
+
+          {hourlyData.length === 0 && topProducts.length === 0 && (
+            <div className="rounded-2xl border border-border bg-background p-10 text-center">
+              <p className="text-muted-foreground text-sm">Aucune commande aujourd'hui pour le moment.</p>
             </div>
           )}
         </div>
