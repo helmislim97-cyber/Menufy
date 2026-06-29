@@ -57,8 +57,8 @@ function RecapPage() {
       setLoading(true);
       const todayStart = startOfDay(new Date()).toISOString();
       const todayEnd = endOfDay(new Date()).toISOString();
-      const yStart = startOfYesterday().toISOString();
-      const yEnd = endOfYesterday().toISOString();
+      const yStart = startOfDay(subDays(new Date(), 1)).toISOString();
+      const yEnd = endOfDay(subDays(new Date(), 1)).toISOString();
 
       const [{ data: todayOrdersData }, { data: yesterdayOrdersData }, { data: reviewsData }, { data: itemsData }] = await Promise.all([
         supabase.from("orders").select("id, total, status, created_at").eq("restaurant_id", restaurantId).gte("created_at", todayStart).lte("created_at", todayEnd),
