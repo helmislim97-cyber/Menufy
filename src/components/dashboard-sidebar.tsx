@@ -1,5 +1,5 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import {
   ChevronRight,
@@ -138,8 +138,21 @@ function NavLinks({
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const [openSubmenu, setOpenSubmenu] = useState<string | null>(null);
 
+  const navRef = useRef<HTMLElement>(null);
+  const scrollPos = useRef(0);
+
+  useEffect(() => {
+    const el = navRef.current;
+    if (!el) return;
+    el.scrollTop = scrollPos.current;
+  }, [pathname]);
+
   return (
-    <nav className="flex-1 overflow-y-auto overflow-x-hidden px-2 pb-3">
+    <nav
+      ref={navRef}
+      onScroll={(e) => { scrollPos.current = (e.target as HTMLElement).scrollTop; }}
+      className="flex-1 overflow-y-auto overflow-x-hidden px-2 pb-3"
+    >
       {NAV_GROUPS.map((group) => (
         <div key={group.titleKey} className="mt-4 first:mt-0">
           {expanded && (
