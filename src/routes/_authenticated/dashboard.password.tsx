@@ -92,7 +92,7 @@ function PasswordPage() {
       <h1 className="text-2xl font-extrabold">{t("sidebar.password")}</h1>
       <p className="mt-1 text-sm text-muted-foreground">Modifiez votre mot de passe de connexion</p>
 
-      <div className="mt-6 rounded-2xl border border-border bg-background p-6 space-y-5 max-w-lg">
+      <div className="mt-6 rounded-2xl border border-border bg-background p-6 space-y-5">
         <div className="rounded-xl bg-muted/50 p-4 space-y-1.5">
           <p className="text-sm font-semibold">Critères requis</p>
           <ul className="space-y-1">
