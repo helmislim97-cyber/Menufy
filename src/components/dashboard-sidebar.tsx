@@ -127,6 +127,8 @@ const MOBILE_QUICK_ITEMS: NavItem[] = [
   { to: "/dashboard/assistance", icon: BellRing, labelKey: "sidebar.assistance" },
 ];
 
+let savedNavScroll = 0;
+
 function NavLinks({
   expanded,
   onNavigate,
@@ -137,20 +139,18 @@ function NavLinks({
   const { t } = useI18n();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const [openSubmenu, setOpenSubmenu] = useState<string | null>(null);
-
   const navRef = useRef<HTMLElement>(null);
-  const scrollPos = useRef(0);
 
   useEffect(() => {
     const el = navRef.current;
     if (!el) return;
-    el.scrollTop = scrollPos.current;
+    el.scrollTop = savedNavScroll;
   }, [pathname]);
 
   return (
     <nav
       ref={navRef}
-      onScroll={(e) => { scrollPos.current = (e.target as HTMLElement).scrollTop; }}
+      onScroll={(e) => { savedNavScroll = (e.target as HTMLElement).scrollTop; }}
       className="flex-1 overflow-y-auto overflow-x-hidden px-2 pb-3"
     >
       {NAV_GROUPS.map((group) => (
