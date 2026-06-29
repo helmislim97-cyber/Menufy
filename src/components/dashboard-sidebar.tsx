@@ -95,10 +95,10 @@ const NAV_GROUPS: NavGroup[] = [
   {
     titleKey: "sidebar.group.stats",
     items: [
-      { to: "/dashboard/recap", icon: Clock, labelKey: "sidebar.recap", comingSoon: true },
-      { to: "/dashboard/daily-report", icon: FileDown, labelKey: "sidebar.dailyReport", comingSoon: true },
-      { to: "/dashboard/orders-stats", icon: PieChart, labelKey: "sidebar.ordersStats", comingSoon: true },
-      { to: "/dashboard/sales", icon: TrendingUp, labelKey: "sidebar.sales", comingSoon: true },
+      { to: "/dashboard/recap", icon: Clock, labelKey: "sidebar.recap" },
+      { to: "/dashboard/daily-report", icon: FileDown, labelKey: "sidebar.dailyReport" },
+      { to: "/dashboard/orders-stats", icon: PieChart, labelKey: "sidebar.ordersStats" },
+      { to: "/dashboard/sales", icon: TrendingUp, labelKey: "sidebar.sales" },
     ],
   },
   {
