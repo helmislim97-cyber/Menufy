@@ -18,7 +18,7 @@ function KpiCard({ title, value, sub, icon: Icon, trend }: { title: string; valu
         <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">{title}</p>
         <Icon className="h-4 w-4 text-muted-foreground" />
       </div>
-      <p className="text-3xl font-extrabold mt-2 mb-2">{value}</p>
+      <p className="text-3xl font-extrabold mt-2 mb-2 leading-tight min-h-[2.5rem]">{value}</p>
       <div className="mt-auto">
         {trend !== undefined && (
           <div className={`flex items-center gap-1 text-xs font-semibold ${trend >= 0 ? "text-green-600" : "text-destructive"}`}>
