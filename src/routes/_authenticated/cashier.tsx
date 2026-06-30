@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
+import { useRestaurantAccess } from "@/hooks/use-restaurant-access";
 import { playOrderSound, unlockAudio, setSoundEnabled, isSoundEnabled } from "@/lib/notif-sound";
 import { useI18n } from "@/lib/i18n";
 import { LangSwitch } from "@/components/lang-switch";
@@ -33,6 +34,7 @@ interface Order {
 function CashierPage() {
   const { user } = useAuth();
   const { t } = useI18n();
+  const access = useRestaurantAccess();
   const [restaurantId, setRestaurantId] = useState<string | null>(null);
   const [orders, setOrders] = useState<Order[]>([]);
   const knownAssistIds = useRef<Set<string>>(new Set());
@@ -49,20 +51,13 @@ function CashierPage() {
   };
 
   useEffect(() => {
-    if (!user) return;
-    supabase
-      .from("restaurants")
-      .select("id, notification_prefs")
-      .eq("owner_id", user.id)
-      .maybeSingle()
-      .then(({ data }) => {
-        if (data) {
-          setRestaurantId(data.id);
-          setSoundEnabled(data.notification_prefs?.soundAlerts ?? true);
-          loadOrders(data.id);
-        }
-      });
-  }, [user]);
+    if (access.loading || !access.restaurantId) return;
+    setRestaurantId(access.restaurantId);
+    supabase.from("restaurants").select("notification_prefs").eq("id", access.restaurantId).maybeSingle().then(({ data }) => {
+      setSoundEnabled(data?.notification_prefs?.soundAlerts ?? true);
+    });
+    loadOrders(access.restaurantId);
+  }, [access.loading, access.restaurantId]);
 
   // Unlock audio on first interaction + keep warm
   useEffect(() => {
