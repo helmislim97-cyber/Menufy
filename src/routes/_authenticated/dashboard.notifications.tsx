@@ -30,12 +30,6 @@ function getCtx(): AudioContext | null {
   } catch { return null; }
 }
 
-// Unlock audio on first user interaction (required by browsers)
-function unlockAudio() {
-  const ctx = getCtx();
-  if (ctx && ctx.state === "suspended") ctx.resume();
-}
-
 async function playOrderSound() {
   const ctx = getCtx();
   if (!ctx) return;
@@ -106,34 +100,8 @@ function NotificationsPage() {
   const [filter, setFilter] = useState<FilterType>("all");
   const [seenIds, setSeenIds] = useState<Set<string>>(() => loadSeenIds());
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const prefsRef = useRef<Prefs>(DEFAULT_PREFS);
-  const knownIds = useRef<Set<string>>(new Set());
-  const firstLoad = useRef(true);
 
-  useEffect(() => { prefsRef.current = prefs; }, [prefs]);
-
-  // Unlock + keep audio context alive
-  useEffect(() => {
-    const unlock = () => unlockAudio();
-    window.addEventListener("click", unlock);
-    window.addEventListener("keydown", unlock);
-    window.addEventListener("touchstart", unlock);
-    // Resume when tab becomes visible again
-    const onVisible = () => { if (document.visibilityState === "visible") unlockAudio(); };
-    document.addEventListener("visibilitychange", onVisible);
-    // Keep it warm
-    const keepWarm = setInterval(() => {
-      const ctx = getCtx();
-      if (ctx && ctx.state === "suspended") ctx.resume();
-    }, 5000);
-    return () => {
-      window.removeEventListener("click", unlock);
-      window.removeEventListener("keydown", unlock);
-      window.removeEventListener("touchstart", unlock);
-      document.removeEventListener("visibilitychange", onVisible);
-      clearInterval(keepWarm);
-    };
-  }, []);
+  
 
   useEffect(() => {
     if (!user) return;
@@ -165,14 +133,6 @@ function NotificationsPage() {
 
       items.sort((a, b) => new Date(b.time).getTime() - new Date(a.time).getTime());
       const trimmed = items.slice(0, 40);
-
-      // Detect genuinely new orders/assistance for sound (skip first load)
-      if (!firstLoad.current && prefsRef.current.soundAlerts) {
-        const hasNew = trimmed.some(it => (it.type === "order" || it.type === "assistance") && !knownIds.current.has(it.id));
-        if (hasNew) playOrderSound();
-      }
-      trimmed.forEach(it => knownIds.current.add(it.id));
-      firstLoad.current = false;
 
       setFeed(trimmed);
     };
