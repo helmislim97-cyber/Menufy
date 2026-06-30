@@ -187,7 +187,6 @@ function NavLinks({
   const { t } = useI18n();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const [openSubmenu, setOpenSubmenu] = useState<string | null>(null);
-  const notifUnread = useNotifUnread();
   const navRef = useRef<HTMLElement>(null);
 
   useEffect(() => {
@@ -241,10 +240,7 @@ function NavLinks({
                       )}
                     >
                       <item.icon className={expanded ? "h-[18px] w-[18px] shrink-0 sm:h-6 sm:w-6" : "h-5 w-5 shrink-0 sm:h-6 sm:w-6"} />
-                      {expanded && <span className="flex-1">{t(item.labelKey)}</span>}
-                      {item.showNotifBadge && notifUnread > 0 && (
-                        <span className={`grid place-items-center rounded-full bg-destructive text-white text-[10px] font-bold ${expanded ? "h-5 min-w-5 px-1" : "absolute top-1 right-1 h-4 min-w-4 px-0.5"}`}>{notifUnread > 99 ? "99+" : notifUnread}</span>
-                      )}
+                      {expanded && t(item.labelKey)}
                     </Link>
                     {expanded && hasChildren && (
                       <button
