@@ -12,6 +12,9 @@ export default defineConfig({
     server: {
       allowedHosts: true,
     },
+    esbuild: {
+      logOverride: { "duplicate-object-key": "silent" },
+    },
     plugins: [
       nitro({
         preset: "vercel",
