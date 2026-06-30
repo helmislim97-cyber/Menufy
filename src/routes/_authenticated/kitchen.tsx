@@ -157,6 +157,7 @@ function KitchenPage() {
           <p className="text-sm text-muted-foreground">{t("kitchen.subtitle")}</p>
         </div>
         <div className="flex items-center gap-2">
+          <Button variant="outline" size="sm" onClick={() => playOrderSound()}>🔊 Test</Button>
           <LangSwitch />
           <Link to="/dashboard/orders">
             <Button variant="outline" className="gap-1.5">
