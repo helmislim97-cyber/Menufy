@@ -133,7 +133,7 @@ function RolesPage() {
     }
 
     // 2. Create the login account via Edge Function
-    const { data: fnData, error: fnError } = await supabase.functions.invoke("create-staff", {
+    const { data: fnData, error: fnError } = await supabase.functions.invoke("smooth-action", {
       body: {
         fullName: fullName.trim(),
         email: email.trim(),
