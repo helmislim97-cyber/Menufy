@@ -3,10 +3,13 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { DashboardPage } from "@/components/dashboard-page";
-import { Download, TrendingUp, TrendingDown, Calendar, BarChart3, Award } from "lucide-react";
+import { Download, TrendingUp, TrendingDown, Calendar as CalendarIcon, BarChart3, Award } from "lucide-react";
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, BarChart, Bar, Cell, AreaChart, Area } from "recharts";
-import { format, subDays, startOfDay } from "date-fns";
+import { format, subDays, startOfDay, endOfDay, differenceInDays } from "date-fns";
+import { fr } from "date-fns/locale";
 import { Button } from "@/components/ui/button";
+import { DayPicker } from "react-day-picker";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
 export const Route = createFileRoute("/_authenticated/dashboard/daily-report")({
   component: DailyReportPage,
@@ -41,7 +44,10 @@ function DailyReportPage() {
   const { user } = useAuth();
   const [restaurantId, setRestaurantId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
-  const [days, setDays] = useState(30);
+  const [range, setRange] = useState<{ from: Date; to: Date }>({ from: startOfDay(subDays(new Date(), 29)), to: new Date() });
+  const [calendarOpen, setCalendarOpen] = useState(false);
+  const days = differenceInDays(range.to, range.from) + 1;
+  const setPreset = (n: number) => setRange({ from: startOfDay(subDays(new Date(), n - 1)), to: new Date() });
   const [dailyData, setDailyData] = useState<{ date: string; revenue: number; orders: number; avgOrder: number }[]>([]);
   const [cumulativeData, setCumulativeData] = useState<{ date: string; cumulative: number }[]>([]);
   const [dowData, setDowData] = useState<{ day: string; revenue: number; orders: number }[]>([]);
@@ -63,19 +69,19 @@ function DailyReportPage() {
     if (!restaurantId) return;
     const load = async () => {
       setLoading(true);
-      const now = new Date();
-      const start = startOfDay(subDays(now, days - 1)).toISOString();
-      const prevStart = startOfDay(subDays(now, days * 2 - 1)).toISOString();
-      const prevEnd = startOfDay(subDays(now, days)).toISOString();
+      const start = startOfDay(range.from).toISOString();
+      const end = endOfDay(range.to).toISOString();
+      const prevStart = startOfDay(subDays(range.from, days)).toISOString();
+      const prevEnd = startOfDay(range.from).toISOString();
 
       const [{ data: orders }, { data: prevOrders }] = await Promise.all([
-        supabase.from("orders").select("total, status, created_at").eq("restaurant_id", restaurantId).gte("created_at", start).neq("status", "cancelled"),
+        supabase.from("orders").select("total, status, created_at").eq("restaurant_id", restaurantId).gte("created_at", start).lte("created_at", end).neq("status", "cancelled"),
         supabase.from("orders").select("total, status").eq("restaurant_id", restaurantId).gte("created_at", prevStart).lt("created_at", prevEnd).neq("status", "cancelled"),
       ]);
 
       const map: Record<string, { revenue: number; orders: number }> = {};
       for (let i = days - 1; i >= 0; i--) {
-        const d = format(subDays(now, i), "dd/MM");
+        const d = format(subDays(range.to, i), "dd/MM");
         map[d] = { revenue: 0, orders: 0 };
       }
       (orders ?? []).forEach((o: any) => {
@@ -118,7 +124,7 @@ function DailyReportPage() {
       setLoading(false);
     };
     load();
-  }, [restaurantId, days]);
+  }, [restaurantId, range.from, range.to]);
 
   const exportCSV = () => {
     const csv = ["Date,Revenus (DT),Commandes,Panier moyen (DT)", ...dailyData.map(d => `${d.date},${d.revenue.toFixed(2)},${d.orders},${d.avgOrder.toFixed(2)}`)].join("\n");
@@ -175,8 +181,31 @@ function DailyReportPage() {
         </div>
         <div className="flex items-center gap-2 flex-wrap">
           {[7, 30, 90].map(d => (
-            <button key={d} onClick={() => setDays(d)} className={`rounded-full px-3 py-1.5 text-xs font-semibold border transition-colors ${days === d ? "bg-primary text-white border-primary" : "border-border text-muted-foreground hover:bg-accent"}`}>{d}j</button>
+            <button key={d} onClick={() => setPreset(d)} className={`rounded-full px-3 py-1.5 text-xs font-semibold border transition-colors ${days === d ? "bg-primary text-white border-primary" : "border-border text-muted-foreground hover:bg-accent"}`}>{d}j</button>
           ))}
+          <Popover open={calendarOpen} onOpenChange={setCalendarOpen}>
+            <PopoverTrigger asChild>
+              <button className="rounded-full px-3 py-1.5 text-xs font-semibold border border-border text-muted-foreground hover:bg-accent flex items-center gap-1.5">
+                <CalendarIcon className="h-3.5 w-3.5" />
+                {format(range.from, "dd/MM")} – {format(range.to, "dd/MM")}
+              </button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="end">
+              <DayPicker
+                mode="range"
+                locale={fr}
+                selected={{ from: range.from, to: range.to }}
+                disabled={{ before: subDays(new Date(), 365), after: new Date() }}
+                onSelect={(r: any) => {
+                  if (r?.from && r?.to) {
+                    setRange({ from: r.from, to: r.to });
+                    setCalendarOpen(false);
+                  }
+                }}
+                numberOfMonths={1}
+              />
+            </PopoverContent>
+          </Popover>
           <Button size="sm" variant="outline" onClick={exportCSV} className="gap-1.5">
             <Download className="h-3.5 w-3.5" /> CSV
           </Button>
@@ -195,7 +224,7 @@ function DailyReportPage() {
           <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
             <StatCard label="Total revenus" value={`${totalRevenue.toFixed(2)} DT`} icon={TrendingUp} trend={growth} />
             <StatCard label="Total commandes" value={`${totalOrders}`} icon={BarChart3} sub={`sur ${days} jours`} />
-            <StatCard label="Revenu moyen / jour" value={`${avgDaily.toFixed(2)} DT`} icon={Calendar} sub="moyenne période" />
+            <StatCard label="Revenu moyen / jour" value={`${avgDaily.toFixed(2)} DT`} icon={CalendarIcon} sub="moyenne période" />
             <StatCard label="Meilleur jour semaine" value={bestDow?.day ?? "—"} icon={Award} sub={bestDow ? `${bestDow.revenue.toFixed(2)} DT au total` : undefined} />
           </div>
 
