@@ -18,11 +18,17 @@ import { Route as AuthenticatedCashierRouteImport } from './routes/_authenticate
 import { Route as AuthenticatedDashboardIndexRouteImport } from './routes/_authenticated/dashboard.index'
 import { Route as MenuRestaurantIdTableNumberRouteImport } from './routes/menu.$restaurantId.$tableNumber'
 import { Route as AuthenticatedDashboardTablesRouteImport } from './routes/_authenticated/dashboard.tables'
+import { Route as AuthenticatedDashboardSalesRouteImport } from './routes/_authenticated/dashboard.sales'
+import { Route as AuthenticatedDashboardRolesRouteImport } from './routes/_authenticated/dashboard.roles'
+import { Route as AuthenticatedDashboardRecapRouteImport } from './routes/_authenticated/dashboard.recap'
 import { Route as AuthenticatedDashboardProfileRouteImport } from './routes/_authenticated/dashboard.profile'
 import { Route as AuthenticatedDashboardPasswordRouteImport } from './routes/_authenticated/dashboard.password'
+import { Route as AuthenticatedDashboardOrdersStatsRouteImport } from './routes/_authenticated/dashboard.orders-stats'
 import { Route as AuthenticatedDashboardOrdersRouteImport } from './routes/_authenticated/dashboard.orders'
+import { Route as AuthenticatedDashboardNotificationsRouteImport } from './routes/_authenticated/dashboard.notifications'
 import { Route as AuthenticatedDashboardMenuRouteImport } from './routes/_authenticated/dashboard.menu'
 import { Route as AuthenticatedDashboardInfoRouteImport } from './routes/_authenticated/dashboard.info'
+import { Route as AuthenticatedDashboardDailyReportRouteImport } from './routes/_authenticated/dashboard.daily-report'
 import { Route as AuthenticatedDashboardAssistanceRouteImport } from './routes/_authenticated/dashboard.assistance'
 import { Route as AuthenticatedDashboardAppearanceRouteImport } from './routes/_authenticated/dashboard.appearance'
 
@@ -73,6 +79,24 @@ const AuthenticatedDashboardTablesRoute =
     path: '/tables',
     getParentRoute: () => AuthenticatedDashboardRoute,
   } as any)
+const AuthenticatedDashboardSalesRoute =
+  AuthenticatedDashboardSalesRouteImport.update({
+    id: '/sales',
+    path: '/sales',
+    getParentRoute: () => AuthenticatedDashboardRoute,
+  } as any)
+const AuthenticatedDashboardRolesRoute =
+  AuthenticatedDashboardRolesRouteImport.update({
+    id: '/roles',
+    path: '/roles',
+    getParentRoute: () => AuthenticatedDashboardRoute,
+  } as any)
+const AuthenticatedDashboardRecapRoute =
+  AuthenticatedDashboardRecapRouteImport.update({
+    id: '/recap',
+    path: '/recap',
+    getParentRoute: () => AuthenticatedDashboardRoute,
+  } as any)
 const AuthenticatedDashboardProfileRoute =
   AuthenticatedDashboardProfileRouteImport.update({
     id: '/profile',
@@ -85,10 +109,22 @@ const AuthenticatedDashboardPasswordRoute =
     path: '/password',
     getParentRoute: () => AuthenticatedDashboardRoute,
   } as any)
+const AuthenticatedDashboardOrdersStatsRoute =
+  AuthenticatedDashboardOrdersStatsRouteImport.update({
+    id: '/orders-stats',
+    path: '/orders-stats',
+    getParentRoute: () => AuthenticatedDashboardRoute,
+  } as any)
 const AuthenticatedDashboardOrdersRoute =
   AuthenticatedDashboardOrdersRouteImport.update({
     id: '/orders',
     path: '/orders',
+    getParentRoute: () => AuthenticatedDashboardRoute,
+  } as any)
+const AuthenticatedDashboardNotificationsRoute =
+  AuthenticatedDashboardNotificationsRouteImport.update({
+    id: '/notifications',
+    path: '/notifications',
     getParentRoute: () => AuthenticatedDashboardRoute,
   } as any)
 const AuthenticatedDashboardMenuRoute =
@@ -101,6 +137,12 @@ const AuthenticatedDashboardInfoRoute =
   AuthenticatedDashboardInfoRouteImport.update({
     id: '/info',
     path: '/info',
+    getParentRoute: () => AuthenticatedDashboardRoute,
+  } as any)
+const AuthenticatedDashboardDailyReportRoute =
+  AuthenticatedDashboardDailyReportRouteImport.update({
+    id: '/daily-report',
+    path: '/daily-report',
     getParentRoute: () => AuthenticatedDashboardRoute,
   } as any)
 const AuthenticatedDashboardAssistanceRoute =
@@ -124,11 +166,17 @@ export interface FileRoutesByFullPath {
   '/kitchen': typeof AuthenticatedKitchenRoute
   '/dashboard/appearance': typeof AuthenticatedDashboardAppearanceRoute
   '/dashboard/assistance': typeof AuthenticatedDashboardAssistanceRoute
+  '/dashboard/daily-report': typeof AuthenticatedDashboardDailyReportRoute
   '/dashboard/info': typeof AuthenticatedDashboardInfoRoute
   '/dashboard/menu': typeof AuthenticatedDashboardMenuRoute
+  '/dashboard/notifications': typeof AuthenticatedDashboardNotificationsRoute
   '/dashboard/orders': typeof AuthenticatedDashboardOrdersRoute
+  '/dashboard/orders-stats': typeof AuthenticatedDashboardOrdersStatsRoute
   '/dashboard/password': typeof AuthenticatedDashboardPasswordRoute
   '/dashboard/profile': typeof AuthenticatedDashboardProfileRoute
+  '/dashboard/recap': typeof AuthenticatedDashboardRecapRoute
+  '/dashboard/roles': typeof AuthenticatedDashboardRolesRoute
+  '/dashboard/sales': typeof AuthenticatedDashboardSalesRoute
   '/dashboard/tables': typeof AuthenticatedDashboardTablesRoute
   '/menu/$restaurantId/$tableNumber': typeof MenuRestaurantIdTableNumberRoute
   '/dashboard/': typeof AuthenticatedDashboardIndexRoute
@@ -140,11 +188,17 @@ export interface FileRoutesByTo {
   '/kitchen': typeof AuthenticatedKitchenRoute
   '/dashboard/appearance': typeof AuthenticatedDashboardAppearanceRoute
   '/dashboard/assistance': typeof AuthenticatedDashboardAssistanceRoute
+  '/dashboard/daily-report': typeof AuthenticatedDashboardDailyReportRoute
   '/dashboard/info': typeof AuthenticatedDashboardInfoRoute
   '/dashboard/menu': typeof AuthenticatedDashboardMenuRoute
+  '/dashboard/notifications': typeof AuthenticatedDashboardNotificationsRoute
   '/dashboard/orders': typeof AuthenticatedDashboardOrdersRoute
+  '/dashboard/orders-stats': typeof AuthenticatedDashboardOrdersStatsRoute
   '/dashboard/password': typeof AuthenticatedDashboardPasswordRoute
   '/dashboard/profile': typeof AuthenticatedDashboardProfileRoute
+  '/dashboard/recap': typeof AuthenticatedDashboardRecapRoute
+  '/dashboard/roles': typeof AuthenticatedDashboardRolesRoute
+  '/dashboard/sales': typeof AuthenticatedDashboardSalesRoute
   '/dashboard/tables': typeof AuthenticatedDashboardTablesRoute
   '/menu/$restaurantId/$tableNumber': typeof MenuRestaurantIdTableNumberRoute
   '/dashboard': typeof AuthenticatedDashboardIndexRoute
@@ -159,11 +213,17 @@ export interface FileRoutesById {
   '/_authenticated/kitchen': typeof AuthenticatedKitchenRoute
   '/_authenticated/dashboard/appearance': typeof AuthenticatedDashboardAppearanceRoute
   '/_authenticated/dashboard/assistance': typeof AuthenticatedDashboardAssistanceRoute
+  '/_authenticated/dashboard/daily-report': typeof AuthenticatedDashboardDailyReportRoute
   '/_authenticated/dashboard/info': typeof AuthenticatedDashboardInfoRoute
   '/_authenticated/dashboard/menu': typeof AuthenticatedDashboardMenuRoute
+  '/_authenticated/dashboard/notifications': typeof AuthenticatedDashboardNotificationsRoute
   '/_authenticated/dashboard/orders': typeof AuthenticatedDashboardOrdersRoute
+  '/_authenticated/dashboard/orders-stats': typeof AuthenticatedDashboardOrdersStatsRoute
   '/_authenticated/dashboard/password': typeof AuthenticatedDashboardPasswordRoute
   '/_authenticated/dashboard/profile': typeof AuthenticatedDashboardProfileRoute
+  '/_authenticated/dashboard/recap': typeof AuthenticatedDashboardRecapRoute
+  '/_authenticated/dashboard/roles': typeof AuthenticatedDashboardRolesRoute
+  '/_authenticated/dashboard/sales': typeof AuthenticatedDashboardSalesRoute
   '/_authenticated/dashboard/tables': typeof AuthenticatedDashboardTablesRoute
   '/menu/$restaurantId/$tableNumber': typeof MenuRestaurantIdTableNumberRoute
   '/_authenticated/dashboard/': typeof AuthenticatedDashboardIndexRoute
@@ -178,11 +238,17 @@ export interface FileRouteTypes {
     | '/kitchen'
     | '/dashboard/appearance'
     | '/dashboard/assistance'
+    | '/dashboard/daily-report'
     | '/dashboard/info'
     | '/dashboard/menu'
+    | '/dashboard/notifications'
     | '/dashboard/orders'
+    | '/dashboard/orders-stats'
     | '/dashboard/password'
     | '/dashboard/profile'
+    | '/dashboard/recap'
+    | '/dashboard/roles'
+    | '/dashboard/sales'
     | '/dashboard/tables'
     | '/menu/$restaurantId/$tableNumber'
     | '/dashboard/'
@@ -194,11 +260,17 @@ export interface FileRouteTypes {
     | '/kitchen'
     | '/dashboard/appearance'
     | '/dashboard/assistance'
+    | '/dashboard/daily-report'
     | '/dashboard/info'
     | '/dashboard/menu'
+    | '/dashboard/notifications'
     | '/dashboard/orders'
+    | '/dashboard/orders-stats'
     | '/dashboard/password'
     | '/dashboard/profile'
+    | '/dashboard/recap'
+    | '/dashboard/roles'
+    | '/dashboard/sales'
     | '/dashboard/tables'
     | '/menu/$restaurantId/$tableNumber'
     | '/dashboard'
@@ -212,11 +284,17 @@ export interface FileRouteTypes {
     | '/_authenticated/kitchen'
     | '/_authenticated/dashboard/appearance'
     | '/_authenticated/dashboard/assistance'
+    | '/_authenticated/dashboard/daily-report'
     | '/_authenticated/dashboard/info'
     | '/_authenticated/dashboard/menu'
+    | '/_authenticated/dashboard/notifications'
     | '/_authenticated/dashboard/orders'
+    | '/_authenticated/dashboard/orders-stats'
     | '/_authenticated/dashboard/password'
     | '/_authenticated/dashboard/profile'
+    | '/_authenticated/dashboard/recap'
+    | '/_authenticated/dashboard/roles'
+    | '/_authenticated/dashboard/sales'
     | '/_authenticated/dashboard/tables'
     | '/menu/$restaurantId/$tableNumber'
     | '/_authenticated/dashboard/'
@@ -294,6 +372,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedDashboardTablesRouteImport
       parentRoute: typeof AuthenticatedDashboardRoute
     }
+    '/_authenticated/dashboard/sales': {
+      id: '/_authenticated/dashboard/sales'
+      path: '/sales'
+      fullPath: '/dashboard/sales'
+      preLoaderRoute: typeof AuthenticatedDashboardSalesRouteImport
+      parentRoute: typeof AuthenticatedDashboardRoute
+    }
+    '/_authenticated/dashboard/roles': {
+      id: '/_authenticated/dashboard/roles'
+      path: '/roles'
+      fullPath: '/dashboard/roles'
+      preLoaderRoute: typeof AuthenticatedDashboardRolesRouteImport
+      parentRoute: typeof AuthenticatedDashboardRoute
+    }
+    '/_authenticated/dashboard/recap': {
+      id: '/_authenticated/dashboard/recap'
+      path: '/recap'
+      fullPath: '/dashboard/recap'
+      preLoaderRoute: typeof AuthenticatedDashboardRecapRouteImport
+      parentRoute: typeof AuthenticatedDashboardRoute
+    }
     '/_authenticated/dashboard/profile': {
       id: '/_authenticated/dashboard/profile'
       path: '/profile'
@@ -308,11 +407,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedDashboardPasswordRouteImport
       parentRoute: typeof AuthenticatedDashboardRoute
     }
+    '/_authenticated/dashboard/orders-stats': {
+      id: '/_authenticated/dashboard/orders-stats'
+      path: '/orders-stats'
+      fullPath: '/dashboard/orders-stats'
+      preLoaderRoute: typeof AuthenticatedDashboardOrdersStatsRouteImport
+      parentRoute: typeof AuthenticatedDashboardRoute
+    }
     '/_authenticated/dashboard/orders': {
       id: '/_authenticated/dashboard/orders'
       path: '/orders'
       fullPath: '/dashboard/orders'
       preLoaderRoute: typeof AuthenticatedDashboardOrdersRouteImport
+      parentRoute: typeof AuthenticatedDashboardRoute
+    }
+    '/_authenticated/dashboard/notifications': {
+      id: '/_authenticated/dashboard/notifications'
+      path: '/notifications'
+      fullPath: '/dashboard/notifications'
+      preLoaderRoute: typeof AuthenticatedDashboardNotificationsRouteImport
       parentRoute: typeof AuthenticatedDashboardRoute
     }
     '/_authenticated/dashboard/menu': {
@@ -327,6 +440,13 @@ declare module '@tanstack/react-router' {
       path: '/info'
       fullPath: '/dashboard/info'
       preLoaderRoute: typeof AuthenticatedDashboardInfoRouteImport
+      parentRoute: typeof AuthenticatedDashboardRoute
+    }
+    '/_authenticated/dashboard/daily-report': {
+      id: '/_authenticated/dashboard/daily-report'
+      path: '/daily-report'
+      fullPath: '/dashboard/daily-report'
+      preLoaderRoute: typeof AuthenticatedDashboardDailyReportRouteImport
       parentRoute: typeof AuthenticatedDashboardRoute
     }
     '/_authenticated/dashboard/assistance': {
@@ -349,11 +469,17 @@ declare module '@tanstack/react-router' {
 interface AuthenticatedDashboardRouteChildren {
   AuthenticatedDashboardAppearanceRoute: typeof AuthenticatedDashboardAppearanceRoute
   AuthenticatedDashboardAssistanceRoute: typeof AuthenticatedDashboardAssistanceRoute
+  AuthenticatedDashboardDailyReportRoute: typeof AuthenticatedDashboardDailyReportRoute
   AuthenticatedDashboardInfoRoute: typeof AuthenticatedDashboardInfoRoute
   AuthenticatedDashboardMenuRoute: typeof AuthenticatedDashboardMenuRoute
+  AuthenticatedDashboardNotificationsRoute: typeof AuthenticatedDashboardNotificationsRoute
   AuthenticatedDashboardOrdersRoute: typeof AuthenticatedDashboardOrdersRoute
+  AuthenticatedDashboardOrdersStatsRoute: typeof AuthenticatedDashboardOrdersStatsRoute
   AuthenticatedDashboardPasswordRoute: typeof AuthenticatedDashboardPasswordRoute
   AuthenticatedDashboardProfileRoute: typeof AuthenticatedDashboardProfileRoute
+  AuthenticatedDashboardRecapRoute: typeof AuthenticatedDashboardRecapRoute
+  AuthenticatedDashboardRolesRoute: typeof AuthenticatedDashboardRolesRoute
+  AuthenticatedDashboardSalesRoute: typeof AuthenticatedDashboardSalesRoute
   AuthenticatedDashboardTablesRoute: typeof AuthenticatedDashboardTablesRoute
   AuthenticatedDashboardIndexRoute: typeof AuthenticatedDashboardIndexRoute
 }
@@ -364,11 +490,20 @@ const AuthenticatedDashboardRouteChildren: AuthenticatedDashboardRouteChildren =
       AuthenticatedDashboardAppearanceRoute,
     AuthenticatedDashboardAssistanceRoute:
       AuthenticatedDashboardAssistanceRoute,
+    AuthenticatedDashboardDailyReportRoute:
+      AuthenticatedDashboardDailyReportRoute,
     AuthenticatedDashboardInfoRoute: AuthenticatedDashboardInfoRoute,
     AuthenticatedDashboardMenuRoute: AuthenticatedDashboardMenuRoute,
+    AuthenticatedDashboardNotificationsRoute:
+      AuthenticatedDashboardNotificationsRoute,
     AuthenticatedDashboardOrdersRoute: AuthenticatedDashboardOrdersRoute,
+    AuthenticatedDashboardOrdersStatsRoute:
+      AuthenticatedDashboardOrdersStatsRoute,
     AuthenticatedDashboardPasswordRoute: AuthenticatedDashboardPasswordRoute,
     AuthenticatedDashboardProfileRoute: AuthenticatedDashboardProfileRoute,
+    AuthenticatedDashboardRecapRoute: AuthenticatedDashboardRecapRoute,
+    AuthenticatedDashboardRolesRoute: AuthenticatedDashboardRolesRoute,
+    AuthenticatedDashboardSalesRoute: AuthenticatedDashboardSalesRoute,
     AuthenticatedDashboardTablesRoute: AuthenticatedDashboardTablesRoute,
     AuthenticatedDashboardIndexRoute: AuthenticatedDashboardIndexRoute,
   }

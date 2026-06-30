@@ -137,7 +137,7 @@ const NAV_GROUPS: NavGroup[] = [
       { to: "/dashboard/appearance", icon: Palette, labelKey: "sidebar.appearance" },
       { to: "/dashboard/info", icon: Settings2, labelKey: "sidebar.info" },
       { to: "/dashboard/notifications", icon: Bell, labelKey: "sidebar.notifications", showNotifBadge: true },
-      { to: "/dashboard/roles", icon: Shield, labelKey: "sidebar.roles", comingSoon: true },
+      { to: "/dashboard/roles", icon: Shield, labelKey: "sidebar.roles" },
     ],
   },
   {
