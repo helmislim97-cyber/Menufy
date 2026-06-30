@@ -4,25 +4,61 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { DashboardPage } from "@/components/dashboard-page";
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid } from "recharts";
-import { subDays, startOfDay } from "date-fns";
+import { subDays, startOfDay, endOfDay, differenceInDays, format } from "date-fns";
+import { fr } from "date-fns/locale";
+import { Calendar as CalendarIcon, ShoppingBag, CheckCircle2, Ban, Package } from "lucide-react";
+import { DayPicker } from "react-day-picker";
+import "react-day-picker/style.css";
+import { Button } from "@/components/ui/button";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
 export const Route = createFileRoute("/_authenticated/dashboard/orders-stats")({
   component: OrdersStatsPage,
 });
 
 const COLORS = ["#7ab450", "#f59e0b", "#3b82f6", "#ef4444", "#8b5cf6"];
-const DAYS_OPTIONS = [7, 30, 90];
+const STATUS_LABELS: Record<string, string> = { pending: "En attente", preparing: "En préparation", ready: "Prêt", paid: "Payé", cancelled: "Annulé" };
+const DOW_LABELS = ["Dim", "Lun", "Mar", "Mer", "Jeu", "Ven", "Sam"];
+
+function StatCard({ label, value, sub, icon: Icon }: { label: string; value: string; sub?: string; icon: any }) {
+  return (
+    <div className="rounded-2xl border border-border bg-background p-5 flex flex-col">
+      <div className="flex items-start justify-between gap-2">
+        <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground min-h-[2rem] leading-tight">{label}</p>
+        <Icon className="h-4 w-4 text-muted-foreground shrink-0" />
+      </div>
+      <div className="min-h-[3rem] flex items-center mt-2 mb-2">
+        <p className="text-2xl font-extrabold leading-none whitespace-nowrap">{value}</p>
+      </div>
+      <div className="mt-auto">
+        {sub && <p className="text-xs text-muted-foreground">{sub}</p>}
+      </div>
+    </div>
+  );
+}
 
 function OrdersStatsPage() {
   const { user } = useAuth();
   const [restaurantId, setRestaurantId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
-  const [days, setDays] = useState(30);
+  const [range, setRange] = useState<{ from: Date; to: Date }>({ from: startOfDay(subDays(new Date(), 29)), to: new Date() });
+  const [tempRange, setTempRange] = useState<{ from?: Date; to?: Date }>({ from: range.from, to: range.to });
+  const [calendarOpen, setCalendarOpen] = useState(false);
+
+  const [totalOrders, setTotalOrders] = useState(0);
+  const [completionRate, setCompletionRate] = useState(0);
+  const [cancelRate, setCancelRate] = useState(0);
+  const [avgItems, setAvgItems] = useState(0);
   const [statusData, setStatusData] = useState<{ name: string; value: number }[]>([]);
   const [topProducts, setTopProducts] = useState<{ name: string; qty: number; revenue: number }[]>([]);
+  const [cancelledProducts, setCancelledProducts] = useState<{ name: string; qty: number }[]>([]);
   const [tableData, setTableData] = useState<{ table: string; orders: number; revenue: number }[]>([]);
   const [peakHours, setPeakHours] = useState<{ hour: string; orders: number }[]>([]);
   const [dayOfWeek, setDayOfWeek] = useState<{ day: string; orders: number; revenue: number }[]>([]);
+  const [orderSizeDist, setOrderSizeDist] = useState<{ size: string; count: number }[]>([]);
+
+  const days = differenceInDays(range.to, range.from) + 1;
+  const setPreset = (n: number) => setRange({ from: startOfDay(subDays(new Date(), n - 1)), to: new Date() });
 
   useEffect(() => {
     if (!user) return;
@@ -35,16 +71,42 @@ function OrdersStatsPage() {
     if (!restaurantId) return;
     const load = async () => {
       setLoading(true);
-      const start = startOfDay(subDays(new Date(), days - 1)).toISOString();
-      const { data: orders } = await supabase.from("orders").select("id, total, status, created_at, table_number").eq("restaurant_id", restaurantId).gte("created_at", start);
+      const start = startOfDay(range.from).toISOString();
+      const end = endOfDay(range.to).toISOString();
+
+      const { data: orders } = await supabase.from("orders").select("id, total, status, created_at, table_number").eq("restaurant_id", restaurantId).gte("created_at", start).lte("created_at", end);
       const orderIds = (orders ?? []).map((o: any) => o.id);
-      const { data: items } = orderIds.length > 0 ? await supabase.from("order_items").select("product_name, product_price, quantity, order_id").in("order_id", orderIds) : { data: [] };
+      const { data: items } = orderIds.length > 0
+        ? await supabase.from("order_items").select("product_name, product_price, quantity, order_id").in("order_id", orderIds)
+        : { data: [] };
+
+      const completed = (orders ?? []).filter((o: any) => o.status !== "cancelled");
+      const cancelled = (orders ?? []).filter((o: any) => o.status === "cancelled");
+
+      setTotalOrders((orders ?? []).length);
+      setCompletionRate((orders ?? []).length > 0 ? (completed.length / (orders ?? []).length) * 100 : 0);
+      setCancelRate((orders ?? []).length > 0 ? (cancelled.length / (orders ?? []).length) * 100 : 0);
+
+      // Avg items per order
+      const itemsPerOrder: Record<string, number> = {};
+      (items ?? []).forEach((it: any) => { itemsPerOrder[it.order_id] = (itemsPerOrder[it.order_id] ?? 0) + it.quantity; });
+      const orderSizes = Object.values(itemsPerOrder);
+      setAvgItems(orderSizes.length > 0 ? orderSizes.reduce((s, v) => s + v, 0) / orderSizes.length : 0);
+
+      // Order size distribution
+      const sizeBuckets: Record<string, number> = { "1 article": 0, "2-3 articles": 0, "4-5 articles": 0, "6+ articles": 0 };
+      orderSizes.forEach(s => {
+        if (s === 1) sizeBuckets["1 article"]++;
+        else if (s <= 3) sizeBuckets["2-3 articles"]++;
+        else if (s <= 5) sizeBuckets["4-5 articles"]++;
+        else sizeBuckets["6+ articles"]++;
+      });
+      setOrderSizeDist(Object.entries(sizeBuckets).map(([size, count]) => ({ size, count })));
 
       // Status breakdown
       const statusMap: Record<string, number> = {};
       (orders ?? []).forEach((o: any) => { statusMap[o.status] = (statusMap[o.status] ?? 0) + 1; });
-      const statusLabels: Record<string, string> = { pending: "En attente", preparing: "En préparation", ready: "Prêt", paid: "Payé", cancelled: "Annulé" };
-      setStatusData(Object.entries(statusMap).map(([k, v]) => ({ name: statusLabels[k] ?? k, value: v })));
+      setStatusData(Object.entries(statusMap).map(([k, v]) => ({ name: STATUS_LABELS[k] ?? k, value: v })));
 
       // Top products
       const prodMap: Record<string, { qty: number; revenue: number }> = {};
@@ -56,9 +118,18 @@ function OrdersStatsPage() {
       });
       setTopProducts(Object.entries(prodMap).map(([name, v]) => ({ name, ...v })).sort((a, b) => b.qty - a.qty).slice(0, 10));
 
+      // Cancelled products
+      const cancelledIds = new Set(cancelled.map((o: any) => o.id));
+      const cancelMap: Record<string, number> = {};
+      (items ?? []).filter((it: any) => cancelledIds.has(it.order_id)).forEach((item: any) => {
+        const key = item.product_name.split(" +")[0].split(" (")[0];
+        cancelMap[key] = (cancelMap[key] ?? 0) + item.quantity;
+      });
+      setCancelledProducts(Object.entries(cancelMap).map(([name, qty]) => ({ name, qty })).sort((a, b) => b.qty - a.qty).slice(0, 5));
+
       // Table performance
       const tableMap: Record<string, { orders: number; revenue: number }> = {};
-      (orders ?? []).filter((o: any) => o.status !== "cancelled").forEach((o: any) => {
+      completed.forEach((o: any) => {
         const t = o.table_number ? `Table ${o.table_number}` : "Sans table";
         if (!tableMap[t]) tableMap[t] = { orders: 0, revenue: 0 };
         tableMap[t].orders += 1;
@@ -70,23 +141,26 @@ function OrdersStatsPage() {
       const hourMap: Record<number, number> = {};
       for (let i = 0; i < 24; i++) hourMap[i] = 0;
       (orders ?? []).forEach((o: any) => { hourMap[new Date(o.created_at).getHours()] += 1; });
-      setPeakHours(Object.entries(hourMap).map(([h, v]) => ({ hour: `${h}h`, orders: v })).filter(h => h.orders > 0));
+      setPeakHours(Object.entries(hourMap).map(([h, v]) => ({ hour: `${h}h`, orders: v })));
 
       // Day of week
       const dowMap: Record<number, { orders: number; revenue: number }> = {};
       for (let i = 0; i < 7; i++) dowMap[i] = { orders: 0, revenue: 0 };
-      (orders ?? []).filter((o: any) => o.status !== "cancelled").forEach((o: any) => {
+      completed.forEach((o: any) => {
         const d = new Date(o.created_at).getDay();
         dowMap[d].orders += 1;
         dowMap[d].revenue += Number(o.total);
       });
-      const dowLabels = ["Dim", "Lun", "Mar", "Mer", "Jeu", "Ven", "Sam"];
-      setDayOfWeek(Object.entries(dowMap).map(([d, v]) => ({ day: dowLabels[Number(d)], ...v })));
+      const order = [1, 2, 3, 4, 5, 6, 0];
+      setDayOfWeek(order.map(i => ({ day: DOW_LABELS[i], ...dowMap[i] })));
 
       setLoading(false);
     };
     load();
-  }, [restaurantId, days]);
+  }, [restaurantId, range.from, range.to]);
+
+  const maxPeak = Math.max(...peakHours.map(h => h.orders), 0);
+  const bestDow = [...dayOfWeek].sort((a, b) => b.orders - a.orders)[0];
 
   return (
     <DashboardPage>
@@ -95,15 +169,55 @@ function OrdersStatsPage() {
           <h1 className="text-2xl font-extrabold">Statistiques commandes</h1>
           <p className="mt-1 text-sm text-muted-foreground">Analyse détaillée de vos commandes</p>
         </div>
-        <div className="flex items-center gap-2">
-          {DAYS_OPTIONS.map(d => (
-            <button key={d} onClick={() => setDays(d)} className={`rounded-full px-3 py-1.5 text-xs font-semibold border transition-colors ${days === d ? "bg-primary text-white border-primary" : "border-border text-muted-foreground"}`}>{d}j</button>
+        <div className="flex items-center gap-2 flex-wrap">
+          {[7, 30, 90].map(d => (
+            <button key={d} onClick={() => setPreset(d)} className={`rounded-full px-3 py-1.5 text-xs font-semibold border transition-colors ${days === d ? "bg-primary text-white border-primary" : "border-border text-muted-foreground hover:bg-accent"}`}>{d}j</button>
           ))}
+          <Popover open={calendarOpen} onOpenChange={(open) => { setCalendarOpen(open); if (open) setTempRange({ from: range.from, to: range.to }); }}>
+            <PopoverTrigger asChild>
+              <button className="rounded-full px-3 py-1.5 text-xs font-semibold border border-border text-muted-foreground hover:bg-accent flex items-center gap-1.5">
+                <CalendarIcon className="h-3.5 w-3.5" />
+                {format(range.from, "dd/MM/yy")} – {format(range.to, "dd/MM/yy")}
+              </button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="end">
+              <DayPicker
+                mode="range"
+                locale={fr}
+                selected={tempRange as any}
+                disabled={{ before: subDays(new Date(), 730), after: new Date() }}
+                onSelect={(r: any) => setTempRange(r ?? {})}
+                numberOfMonths={2}
+              />
+              <div className="flex items-center justify-between gap-2 border-t border-border p-3">
+                <p className="text-xs text-muted-foreground">
+                  {tempRange.from && tempRange.to ? `${differenceInDays(tempRange.to, tempRange.from) + 1} jours` : "Sélectionnez une période"}
+                </p>
+                <div className="flex gap-2">
+                  <Button size="sm" variant="outline" onClick={() => setCalendarOpen(false)}>Annuler</Button>
+                  <Button size="sm" disabled={!tempRange.from || !tempRange.to} onClick={() => {
+                    if (tempRange.from && tempRange.to) { setRange({ from: tempRange.from, to: tempRange.to }); setCalendarOpen(false); }
+                  }}>Confirmer</Button>
+                </div>
+              </div>
+            </PopoverContent>
+          </Popover>
         </div>
       </div>
 
-      {loading ? <p className="mt-10 text-center text-sm text-muted-foreground">Chargement...</p> : (
+      {loading ? (
+        <p className="mt-10 text-center text-sm text-muted-foreground">Chargement...</p>
+      ) : (
         <div className="mt-6 space-y-6">
+
+          {/* KPI cards */}
+          <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+            <StatCard label="Total commandes" value={`${totalOrders}`} icon={ShoppingBag} sub={`sur ${days} jours`} />
+            <StatCard label="Taux complétion" value={`${completionRate.toFixed(0)}%`} icon={CheckCircle2} sub="commandes livrées" />
+            <StatCard label="Taux annulation" value={`${cancelRate.toFixed(0)}%`} icon={Ban} sub="commandes annulées" />
+            <StatCard label="Articles / commande" value={avgItems.toFixed(1)} icon={Package} sub="moyenne" />
+          </div>
+
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {statusData.length > 0 && (
               <div className="rounded-2xl border border-border bg-background p-5">
@@ -122,7 +236,7 @@ function OrdersStatsPage() {
                       <div key={s.name} className="flex items-center gap-2 text-sm">
                         <span className="h-2.5 w-2.5 rounded-full shrink-0" style={{ backgroundColor: COLORS[i % COLORS.length] }} />
                         <span className="text-muted-foreground">{s.name}</span>
-                        <span className="font-bold">{s.value}</span>
+                        <span className="font-bold ml-auto">{s.value}</span>
                       </div>
                     ))}
                   </div>
@@ -130,37 +244,59 @@ function OrdersStatsPage() {
               </div>
             )}
 
-            {dayOfWeek.length > 0 && (
+            {orderSizeDist.some(o => o.count > 0) && (
               <div className="rounded-2xl border border-border bg-background p-5">
-                <p className="text-sm font-bold mb-4">Commandes par jour de semaine</p>
+                <p className="text-sm font-bold mb-4">Taille des commandes</p>
                 <ResponsiveContainer width="100%" height={160}>
-                  <BarChart data={dayOfWeek}>
-                    <XAxis dataKey="day" tick={{ fontSize: 11 }} />
+                  <BarChart data={orderSizeDist}>
+                    <XAxis dataKey="size" tick={{ fontSize: 10 }} />
                     <YAxis tick={{ fontSize: 11 }} />
                     <Tooltip />
-                    <Bar dataKey="orders" fill="#7ab450" radius={[4, 4, 0, 0]} />
+                    <Bar dataKey="count" fill="#7ab450" radius={[4, 4, 0, 0]} />
                   </BarChart>
                 </ResponsiveContainer>
               </div>
             )}
           </div>
 
-          {peakHours.length > 0 && (
+          {dayOfWeek.some(d => d.orders > 0) && (
+            <div className="rounded-2xl border border-border bg-background p-5">
+              <p className="text-sm font-bold mb-4">Commandes par jour de semaine</p>
+              <ResponsiveContainer width="100%" height={180}>
+                <BarChart data={dayOfWeek}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
+                  <XAxis dataKey="day" tick={{ fontSize: 11 }} />
+                  <YAxis tick={{ fontSize: 11 }} />
+                  <Tooltip />
+                  <Bar dataKey="orders" radius={[4, 4, 0, 0]}>
+                    {dayOfWeek.map((entry, i) => (
+                      <Cell key={i} fill={bestDow && entry.day === bestDow.day ? "#f59e0b" : "#7ab450"} />
+                    ))}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          )}
+
+          {peakHours.some(h => h.orders > 0) && (
             <div className="rounded-2xl border border-border bg-background p-5">
               <p className="text-sm font-bold mb-4">Heures de pointe</p>
               <ResponsiveContainer width="100%" height={180}>
                 <BarChart data={peakHours}>
                   <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
-                  <XAxis dataKey="hour" tick={{ fontSize: 11 }} />
+                  <XAxis dataKey="hour" tick={{ fontSize: 10 }} interval={1} />
                   <YAxis tick={{ fontSize: 11 }} />
                   <Tooltip />
                   <Bar dataKey="orders" radius={[4, 4, 0, 0]}>
                     {peakHours.map((entry, i) => (
-                      <Cell key={i} fill={entry.orders === Math.max(...peakHours.map(h => h.orders)) ? "#ef4444" : "#7ab450"} />
+                      <Cell key={i} fill={entry.orders === maxPeak && maxPeak > 0 ? "#ef4444" : "#7ab450"} />
                     ))}
                   </Bar>
                 </BarChart>
               </ResponsiveContainer>
+              <p className="text-xs text-muted-foreground mt-2 flex items-center gap-1.5">
+                <span className="h-2 w-2 rounded-full bg-[#ef4444]" /> Heure la plus chargée
+              </p>
             </div>
           )}
 
@@ -189,6 +325,23 @@ function OrdersStatsPage() {
             </div>
           )}
 
+          {cancelledProducts.length > 0 && (
+            <div className="rounded-2xl border border-border bg-background overflow-hidden">
+              <div className="px-5 py-3 border-b border-border flex items-center gap-2">
+                <Ban className="h-4 w-4 text-destructive" />
+                <p className="text-sm font-bold">Produits les plus annulés</p>
+              </div>
+              <div className="divide-y divide-border">
+                {cancelledProducts.map((p) => (
+                  <div key={p.name} className="flex items-center justify-between px-5 py-3">
+                    <p className="text-sm font-semibold truncate">{p.name}</p>
+                    <span className="text-sm font-bold text-destructive">{p.qty}x annulé</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
           {tableData.length > 0 && (
             <div className="rounded-2xl border border-border bg-background overflow-hidden">
               <div className="px-5 py-3 border-b border-border">
@@ -205,6 +358,12 @@ function OrdersStatsPage() {
                   </div>
                 ))}
               </div>
+            </div>
+          )}
+
+          {totalOrders === 0 && (
+            <div className="rounded-2xl border border-border bg-background p-10 text-center">
+              <p className="text-muted-foreground text-sm">Aucune commande sur cette période.</p>
             </div>
           )}
         </div>
