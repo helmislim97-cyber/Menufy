@@ -55,7 +55,38 @@ interface NavItem {
   icon: typeof ShoppingBag;
   labelKey: string;
   comingSoon?: boolean;
+  showNotifBadge?: boolean;
   children?: { to: string; labelKey: string }[];
+}
+
+function useNotifUnread() {
+  const [count, setCount] = useState(0);
+  const { user } = useAuth();
+  useEffect(() => {
+    if (!user) return;
+    let rid: string | null = null;
+    const compute = async () => {
+      if (!rid) {
+        const { data } = await supabase.from("restaurants").select("id").eq("owner_id", user.id).maybeSingle();
+        rid = data?.id ?? null;
+      }
+      if (!rid) return;
+      const lastSeen = Number(localStorage.getItem("menufy_notif_last_seen") ?? 0);
+      const iso = new Date(lastSeen).toISOString();
+      const [{ count: o }, { count: r }, { count: a }] = await Promise.all([
+        supabase.from("orders").select("id", { count: "exact", head: true }).eq("restaurant_id", rid).gt("created_at", iso),
+        supabase.from("reviews").select("id", { count: "exact", head: true }).eq("restaurant_id", rid).gt("created_at", iso),
+        supabase.from("assistance_requests").select("id", { count: "exact", head: true }).eq("restaurant_id", rid).gt("created_at", iso),
+      ]);
+      setCount((o ?? 0) + (r ?? 0) + (a ?? 0));
+    };
+    compute();
+    const interval = setInterval(compute, 20000);
+    const onSeen = () => compute();
+    window.addEventListener("menufy-notif-seen", onSeen);
+    return () => { clearInterval(interval); window.removeEventListener("menufy-notif-seen", onSeen); };
+  }, [user]);
+  return count;
 }
 
 interface NavGroup {
@@ -88,7 +119,7 @@ const NAV_GROUPS: NavGroup[] = [
       { to: "/dashboard/tables", icon: Table2, labelKey: "sidebar.tables" },
       { to: "/dashboard/appearance", icon: Palette, labelKey: "sidebar.appearance" },
       { to: "/dashboard/info", icon: Settings2, labelKey: "sidebar.info" },
-      { to: "/dashboard/notifications", icon: Bell, labelKey: "sidebar.notifications" },
+      { to: "/dashboard/notifications", icon: Bell, labelKey: "sidebar.notifications", showNotifBadge: true },
       { to: "/dashboard/roles", icon: Shield, labelKey: "sidebar.roles", comingSoon: true },
     ],
   },
@@ -139,6 +170,7 @@ function NavLinks({
   const { t } = useI18n();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const [openSubmenu, setOpenSubmenu] = useState<string | null>(null);
+  const notifUnread = useNotifUnread();
   const navRef = useRef<HTMLElement>(null);
 
   useEffect(() => {
@@ -192,7 +224,10 @@ function NavLinks({
                       )}
                     >
                       <item.icon className={expanded ? "h-[18px] w-[18px] shrink-0 sm:h-6 sm:w-6" : "h-5 w-5 shrink-0 sm:h-6 sm:w-6"} />
-                      {expanded && t(item.labelKey)}
+                      {expanded && <span className="flex-1">{t(item.labelKey)}</span>}
+                      {item.showNotifBadge && notifUnread > 0 && (
+                        <span className={`grid place-items-center rounded-full bg-destructive text-white text-[10px] font-bold ${expanded ? "h-5 min-w-5 px-1" : "absolute top-1 right-1 h-4 min-w-4 px-0.5"}`}>{notifUnread > 99 ? "99+" : notifUnread}</span>
+                      )}
                     </Link>
                     {expanded && hasChildren && (
                       <button
