@@ -26,14 +26,20 @@ let sharedCtx: AudioContext | null = null;
 function getCtx(): AudioContext | null {
   try {
     if (!sharedCtx) sharedCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
-    if (sharedCtx.state === "suspended") sharedCtx.resume();
     return sharedCtx;
   } catch { return null; }
 }
 
-function playOrderSound() {
+// Unlock audio on first user interaction (required by browsers)
+function unlockAudio() {
+  const ctx = getCtx();
+  if (ctx && ctx.state === "suspended") ctx.resume();
+}
+
+async function playOrderSound() {
   const ctx = getCtx();
   if (!ctx) return;
+  try { if (ctx.state === "suspended") await ctx.resume(); } catch { /* */ }
   const notes = [880, 1100, 1320];
   notes.forEach((freq, i) => {
     const osc = ctx.createOscillator();
@@ -105,6 +111,29 @@ function NotificationsPage() {
   const firstLoad = useRef(true);
 
   useEffect(() => { prefsRef.current = prefs; }, [prefs]);
+
+  // Unlock + keep audio context alive
+  useEffect(() => {
+    const unlock = () => unlockAudio();
+    window.addEventListener("click", unlock);
+    window.addEventListener("keydown", unlock);
+    window.addEventListener("touchstart", unlock);
+    // Resume when tab becomes visible again
+    const onVisible = () => { if (document.visibilityState === "visible") unlockAudio(); };
+    document.addEventListener("visibilitychange", onVisible);
+    // Keep it warm
+    const keepWarm = setInterval(() => {
+      const ctx = getCtx();
+      if (ctx && ctx.state === "suspended") ctx.resume();
+    }, 5000);
+    return () => {
+      window.removeEventListener("click", unlock);
+      window.removeEventListener("keydown", unlock);
+      window.removeEventListener("touchstart", unlock);
+      document.removeEventListener("visibilitychange", onVisible);
+      clearInterval(keepWarm);
+    };
+  }, []);
 
   useEffect(() => {
     if (!user) return;
