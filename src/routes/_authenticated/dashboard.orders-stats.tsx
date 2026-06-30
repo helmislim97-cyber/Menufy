@@ -260,46 +260,7 @@ function OrdersStatsPage() {
             )}
           </div>
 
-          {dayOfWeek.some(d => d.orders > 0) && (
-            <div className="rounded-2xl border border-border bg-background p-5">
-              <p className="text-sm font-bold mb-4 flex items-center gap-2">Commandes par jour de semaine <InfoTooltip text="Le nombre de commandes selon le jour de la semaine. Le meilleur jour est en doré. Utile pour planifier votre personnel." /></p>
-              <ResponsiveContainer width="100%" height={180}>
-                <BarChart data={dayOfWeek}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
-                  <XAxis dataKey="day" tick={{ fontSize: 11 }} />
-                  <YAxis tick={{ fontSize: 11 }} />
-                  <Tooltip />
-                  <Bar dataKey="orders" radius={[4, 4, 0, 0]}>
-                    {dayOfWeek.map((entry, i) => (
-                      <Cell key={i} fill={bestDow && entry.day === bestDow.day ? "#f59e0b" : "#7ab450"} />
-                    ))}
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-          )}
-
-          {peakHours.some(h => h.orders > 0) && (
-            <div className="rounded-2xl border border-border bg-background p-5">
-              <p className="text-sm font-bold mb-4 flex items-center gap-2">Heures de pointe <InfoTooltip text="Les heures de la journée où vous recevez le plus de commandes. L'heure la plus chargée est en rouge." /></p>
-              <ResponsiveContainer width="100%" height={180}>
-                <BarChart data={peakHours}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
-                  <XAxis dataKey="hour" tick={{ fontSize: 10 }} interval={1} />
-                  <YAxis tick={{ fontSize: 11 }} />
-                  <Tooltip />
-                  <Bar dataKey="orders" radius={[4, 4, 0, 0]}>
-                    {peakHours.map((entry, i) => (
-                      <Cell key={i} fill={entry.orders === maxPeak && maxPeak > 0 ? "#ef4444" : "#7ab450"} />
-                    ))}
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
-              <p className="text-xs text-muted-foreground mt-2 flex items-center gap-1.5">
-                <span className="h-2 w-2 rounded-full bg-[#ef4444]" /> Heure la plus chargée
-              </p>
-            </div>
-          )}
+          
 
           {topProducts.length > 0 && (
             <div className="rounded-2xl border border-border bg-background overflow-hidden">

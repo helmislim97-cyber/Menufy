@@ -263,23 +263,7 @@ function SalesPage() {
             </ResponsiveContainer>
           </div>
 
-          {/* Detail table */}
-          <div className="rounded-2xl border border-border bg-background overflow-hidden">
-            <div className="px-5 py-3 border-b border-border">
-              <p className="text-sm font-bold flex items-center gap-2">Détail par période <InfoTooltip text="Le détail de vos revenus et commandes pour chaque jour ou mois de la période sélectionnée." /></p>
-            </div>
-            <div className="divide-y divide-border max-h-80 overflow-y-auto">
-              {[...chartData].reverse().map(d => (
-                <div key={d.label} className="flex items-center justify-between px-5 py-3">
-                  <p className="text-sm font-medium">{d.label}</p>
-                  <div className="flex items-center gap-6 text-sm">
-                    <span className="text-muted-foreground">{d.orders} cmd</span>
-                    <span className="font-bold">{d.revenue.toFixed(2)} DT</span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
+          
 
           {totalRevenue === 0 && (
             <div className="rounded-2xl border border-border bg-background p-10 text-center">
