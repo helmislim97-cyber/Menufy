@@ -35,8 +35,8 @@ function CashierPage() {
   const { t } = useI18n();
   const [restaurantId, setRestaurantId] = useState<string | null>(null);
   const [orders, setOrders] = useState<Order[]>([]);
-  const knownOrderIds = useRef<Set<string>>(new Set());
-  const firstLoad = useRef(true);
+  const knownAssistIds = useRef<Set<string>>(new Set());
+  const assistFirstLoad = useRef(true);
 
   const loadOrders = async (rid: string) => {
     const { data } = await supabase
@@ -45,16 +45,7 @@ function CashierPage() {
       .eq("restaurant_id", rid)
       .in("status", ["pending", "preparing", "ready"])
       .order("created_at", { ascending: true });
-    const list = (data as Order[]) ?? [];
-
-    if (!firstLoad.current && isSoundEnabled()) {
-      const hasNew = list.some((o) => o.status === "pending" && !knownOrderIds.current.has(o.id));
-      if (hasNew) playOrderSound();
-    }
-    list.forEach((o) => knownOrderIds.current.add(o.id));
-    firstLoad.current = false;
-
-    setOrders(list);
+    setOrders((data as Order[]) ?? []);
   };
 
   useEffect(() => {
@@ -88,6 +79,33 @@ function CashierPage() {
       clearInterval(keepWarm);
     };
   }, []);
+
+  // Assistance requests — beep when a new one arrives
+  useEffect(() => {
+    if (!restaurantId) return;
+    const checkAssist = async () => {
+      const { data } = await supabase
+        .from("assistance_requests")
+        .select("id, created_at")
+        .eq("restaurant_id", restaurantId)
+        .order("created_at", { ascending: false })
+        .limit(20);
+      const list = data ?? [];
+      if (!assistFirstLoad.current && isSoundEnabled()) {
+        const hasNew = list.some((a: any) => !knownAssistIds.current.has(a.id));
+        if (hasNew) playOrderSound();
+      }
+      list.forEach((a: any) => knownAssistIds.current.add(a.id));
+      assistFirstLoad.current = false;
+    };
+    checkAssist();
+    const ch = supabase
+      .channel(`cashier-assist-${restaurantId}`)
+      .on("postgres_changes", { event: "*", schema: "public", table: "assistance_requests" }, checkAssist)
+      .subscribe();
+    const poll = setInterval(checkAssist, 15000);
+    return () => { supabase.removeChannel(ch); clearInterval(poll); };
+  }, [restaurantId]);
 
   useEffect(() => {
     if (!restaurantId) return;

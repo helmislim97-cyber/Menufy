@@ -70,6 +70,9 @@ function OrdersPage() {
   const knownAssistIds = useRef<Set<string>>(new Set());
   const assistFirstLoad = useRef(true);
 
+  const knownOrderIds = useRef<Set<string>>(new Set());
+  const orderFirstLoad = useRef(true);
+
   const loadOrders = async (rid: string) => {
     const { data } = await supabase
       .from("orders")
@@ -77,7 +80,17 @@ function OrdersPage() {
       .eq("restaurant_id", rid)
       .order("created_at", { ascending: false })
       .limit(50);
-    setOrders((data as Order[]) ?? []);
+    const list = (data as Order[]) ?? [];
+
+    // Beep on new pending order
+    if (!orderFirstLoad.current && isSoundEnabled()) {
+      const hasNew = list.some((o) => o.status === "pending" && !knownOrderIds.current.has(o.id));
+      if (hasNew) playOrderSound();
+    }
+    list.forEach((o) => knownOrderIds.current.add(o.id));
+    orderFirstLoad.current = false;
+
+    setOrders(list);
     setLoading(false);
   };
 
