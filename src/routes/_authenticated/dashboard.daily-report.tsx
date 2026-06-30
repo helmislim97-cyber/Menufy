@@ -9,6 +9,7 @@ import { format, subDays, startOfDay, endOfDay, differenceInDays } from "date-fn
 import { fr } from "date-fns/locale";
 import { Button } from "@/components/ui/button";
 import { DayPicker } from "react-day-picker";
+import "react-day-picker/style.css";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
 export const Route = createFileRoute("/_authenticated/dashboard/daily-report")({

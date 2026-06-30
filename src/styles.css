@@ -211,3 +211,102 @@
 @utility animate-fade-in {
   animation: fade-in 0.35s ease-out;
 }
+/* Modern date range calendar (react-day-picker v9) */
+.rdp-root {
+  --rdp-accent-color: var(--color-primary);
+  --rdp-accent-background-color: color-mix(in oklab, var(--color-primary) 12%, transparent);
+  --rdp-day-width: 2.5rem;
+  --rdp-day-height: 2.5rem;
+  --rdp-day_button-width: 2.5rem;
+  --rdp-day_button-height: 2.5rem;
+  --rdp-day_button-border-radius: 0.6rem;
+  --rdp-selected-border: none;
+  --rdp-range_start-color: white;
+  --rdp-range_end-color: white;
+  font-family: var(--font-sans);
+  padding: 1rem;
+  margin: 0;
+}
+
+.rdp-month_caption {
+  font-weight: 800;
+  font-size: 0.95rem;
+  padding: 0 0 0.75rem;
+  text-transform: capitalize;
+}
+
+.rdp-nav {
+  gap: 0.25rem;
+}
+
+.rdp-button_previous,
+.rdp-button_next {
+  width: 2rem;
+  height: 2rem;
+  border-radius: 0.5rem;
+  color: var(--color-foreground);
+  transition: background-color 0.15s;
+}
+.rdp-button_previous:hover,
+.rdp-button_next:hover {
+  background-color: var(--color-accent);
+}
+
+.rdp-weekday {
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--color-muted-foreground);
+  letter-spacing: 0.05em;
+}
+
+.rdp-day_button {
+  border-radius: 0.6rem;
+  font-size: 0.85rem;
+  font-weight: 500;
+  transition: background-color 0.12s, color 0.12s;
+}
+.rdp-day_button:hover {
+  background-color: var(--color-accent);
+}
+
+.rdp-today .rdp-day_button {
+  font-weight: 800;
+  color: var(--color-primary);
+}
+
+/* Range middle days */
+.rdp-range_middle {
+  background-color: var(--rdp-accent-background-color);
+  border-radius: 0;
+}
+.rdp-range_middle .rdp-day_button {
+  background-color: transparent;
+  color: var(--color-foreground);
+  border-radius: 0;
+}
+
+/* Range start / end */
+.rdp-range_start .rdp-day_button,
+.rdp-range_end .rdp-day_button {
+  background-color: var(--color-primary);
+  color: white;
+  font-weight: 700;
+}
+.rdp-range_start {
+  background: linear-gradient(to right, transparent 50%, var(--rdp-accent-background-color) 50%);
+}
+.rdp-range_end {
+  background: linear-gradient(to left, transparent 50%, var(--rdp-accent-background-color) 50%);
+}
+.rdp-range_start.rdp-range_end {
+  background: none;
+}
+
+.rdp-selected .rdp-day_button {
+  border: none;
+}
+
+.rdp-disabled {
+  opacity: 0.3;
+}
