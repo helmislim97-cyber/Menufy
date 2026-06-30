@@ -15,8 +15,8 @@ export const Route = createFileRoute("/_authenticated/dashboard/recap")({
 function KpiCard({ title, value, sub, icon: Icon, trend, tip }: { title: string; value: string; sub?: string; icon: any; trend?: number; tip?: string }) {
   return (
     <div className="rounded-2xl border border-border bg-background p-5 flex flex-col">
-      <div className="flex items-start justify-between gap-2">
-        <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground min-h-[2rem] leading-tight flex items-center gap-1.5 flex-wrap">{title}{tip && <InfoTooltip text={tip} />}</p>
+      <div className="flex items-start justify-between gap-2 min-h-[3.25rem]">
+        <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground leading-tight flex items-center gap-1.5 flex-wrap">{title}{tip && <InfoTooltip text={tip} />}</p>
         <Icon className="h-4 w-4 text-muted-foreground shrink-0 ml-1" />
       </div>
       <div className="min-h-[3rem] flex items-center mt-2 mb-2">
