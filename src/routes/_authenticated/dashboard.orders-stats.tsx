@@ -11,6 +11,7 @@ import { DayPicker } from "react-day-picker";
 import "react-day-picker/style.css";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { InfoTooltip } from "@/components/info-tooltip";
 
 export const Route = createFileRoute("/_authenticated/dashboard/orders-stats")({
   component: OrdersStatsPage,
@@ -221,7 +222,7 @@ function OrdersStatsPage() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {statusData.length > 0 && (
               <div className="rounded-2xl border border-border bg-background p-5">
-                <p className="text-sm font-bold mb-4">Répartition par statut</p>
+                <p className="text-sm font-bold mb-4 flex items-center gap-2">Répartition par statut <InfoTooltip text="Répartition de vos commandes selon leur statut : en attente, en préparation, prêt, payé ou annulé." /></p>
                 <div className="flex items-center gap-4">
                   <ResponsiveContainer width={160} height={160}>
                     <PieChart>
@@ -246,7 +247,7 @@ function OrdersStatsPage() {
 
             {orderSizeDist.some(o => o.count > 0) && (
               <div className="rounded-2xl border border-border bg-background p-5">
-                <p className="text-sm font-bold mb-4">Taille des commandes</p>
+                <p className="text-sm font-bold mb-4 flex items-center gap-2">Taille des commandes <InfoTooltip text="Combien de commandes contiennent 1 article, 2-3, 4-5 ou 6+ articles. Montre si vos clients commandent beaucoup ou peu." /></p>
                 <ResponsiveContainer width="100%" height={160}>
                   <BarChart data={orderSizeDist}>
                     <XAxis dataKey="size" tick={{ fontSize: 10 }} />
@@ -261,7 +262,7 @@ function OrdersStatsPage() {
 
           {dayOfWeek.some(d => d.orders > 0) && (
             <div className="rounded-2xl border border-border bg-background p-5">
-              <p className="text-sm font-bold mb-4">Commandes par jour de semaine</p>
+              <p className="text-sm font-bold mb-4 flex items-center gap-2">Commandes par jour de semaine <InfoTooltip text="Le nombre de commandes selon le jour de la semaine. Le meilleur jour est en doré. Utile pour planifier votre personnel." /></p>
               <ResponsiveContainer width="100%" height={180}>
                 <BarChart data={dayOfWeek}>
                   <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
@@ -280,7 +281,7 @@ function OrdersStatsPage() {
 
           {peakHours.some(h => h.orders > 0) && (
             <div className="rounded-2xl border border-border bg-background p-5">
-              <p className="text-sm font-bold mb-4">Heures de pointe</p>
+              <p className="text-sm font-bold mb-4 flex items-center gap-2">Heures de pointe <InfoTooltip text="Les heures de la journée où vous recevez le plus de commandes. L'heure la plus chargée est en rouge." /></p>
               <ResponsiveContainer width="100%" height={180}>
                 <BarChart data={peakHours}>
                   <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
@@ -303,7 +304,7 @@ function OrdersStatsPage() {
           {topProducts.length > 0 && (
             <div className="rounded-2xl border border-border bg-background overflow-hidden">
               <div className="px-5 py-3 border-b border-border">
-                <p className="text-sm font-bold">Top 10 produits</p>
+                <p className="text-sm font-bold flex items-center gap-2">Top 10 produits <InfoTooltip text="Vos 10 produits les plus vendus sur la période, classés par quantité, avec le revenu généré." /></p>
               </div>
               <div className="divide-y divide-border">
                 {topProducts.map((p, i) => (
@@ -329,7 +330,7 @@ function OrdersStatsPage() {
             <div className="rounded-2xl border border-border bg-background overflow-hidden">
               <div className="px-5 py-3 border-b border-border flex items-center gap-2">
                 <Ban className="h-4 w-4 text-destructive" />
-                <p className="text-sm font-bold">Produits les plus annulés</p>
+                <p className="text-sm font-bold flex items-center gap-2">Produits les plus annulés <InfoTooltip text="Les produits qui apparaissent le plus dans les commandes annulées. Un produit souvent annulé peut signaler un problème." /></p>
               </div>
               <div className="divide-y divide-border">
                 {cancelledProducts.map((p) => (
@@ -345,7 +346,7 @@ function OrdersStatsPage() {
           {tableData.length > 0 && (
             <div className="rounded-2xl border border-border bg-background overflow-hidden">
               <div className="px-5 py-3 border-b border-border">
-                <p className="text-sm font-bold">Performance par table</p>
+                <p className="text-sm font-bold flex items-center gap-2">Performance par table <InfoTooltip text="Les tables qui génèrent le plus de commandes et de revenus. Identifie vos meilleures places." /></p>
               </div>
               <div className="divide-y divide-border">
                 {tableData.map(t => (

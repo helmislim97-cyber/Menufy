@@ -6,6 +6,7 @@ import { DashboardPage } from "@/components/dashboard-page";
 import { TrendingUp, TrendingDown, ShoppingBag, Star, BellRing, Clock, RefreshCw } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
 import { format, subDays, startOfDay, endOfDay } from "date-fns";
+import { InfoTooltip } from "@/components/info-tooltip";
 
 export const Route = createFileRoute("/_authenticated/dashboard/recap")({
   component: RecapPage,
@@ -247,6 +248,7 @@ function RecapPage() {
               <p className="text-sm font-bold mb-1 flex items-center gap-2">
                 <span className="h-2 w-2 rounded-full bg-green-500 animate-pulse" />
                 Commandes actives
+                <InfoTooltip text="Commandes en cours de traitement aujourd'hui : en attente, en préparation ou prêtes à servir." />
                 {totalActive > 0 && <span className="ml-auto rounded-full bg-primary px-2 py-0.5 text-xs font-bold text-white">{totalActive}</span>}
               </p>
               <p className="text-xs text-muted-foreground mb-4">En attente · En préparation · Prêt</p>
@@ -282,7 +284,7 @@ function RecapPage() {
             </div>
 
             <div className="rounded-2xl border border-border bg-background p-5">
-              <p className="text-sm font-bold mb-4">Autres indicateurs</p>
+              <p className="text-sm font-bold mb-4 flex items-center gap-2">Autres indicateurs <InfoTooltip text="Indicateurs secondaires : demandes d'assistance des clients, commandes annulées et taux d'annulation du jour." /></p>
               <div className="space-y-3">
                 <div className="flex items-center justify-between rounded-xl bg-muted/40 px-3 py-2">
                   <div className="flex items-center gap-2 text-sm">
@@ -315,7 +317,7 @@ function RecapPage() {
             <div className="rounded-2xl border border-border bg-background overflow-hidden">
               <div className="px-5 py-3 border-b border-border flex items-center gap-2">
                 <span className="h-2 w-2 rounded-full bg-green-500 animate-pulse" />
-                <p className="text-sm font-bold">5 dernières commandes</p>
+                <p className="text-sm font-bold flex items-center gap-2">5 dernières commandes <InfoTooltip text="Les commandes les plus récentes reçues aujourd'hui, mises à jour en temps réel." /></p>
               </div>
               <div className="divide-y divide-border">
                 {recentOrders.map((o: any) => (
@@ -343,7 +345,7 @@ function RecapPage() {
           {/* Hourly chart */}
           {hourlyData.length > 0 && (
             <div className="rounded-2xl border border-border bg-background p-5">
-              <p className="text-sm font-bold mb-4">Revenus par heure</p>
+              <p className="text-sm font-bold mb-4 flex items-center gap-2">Revenus par heure <InfoTooltip text="Répartition de vos revenus sur les 24 heures de la journée. Identifie vos heures les plus rentables." /></p>
               <ResponsiveContainer width="100%" height={200}>
                 <BarChart data={hourlyData}>
                   <XAxis dataKey="hour" tick={{ fontSize: 11 }} />
@@ -358,7 +360,7 @@ function RecapPage() {
           {/* Top products */}
           {topProducts.length > 0 && (
             <div className="rounded-2xl border border-border bg-background p-5">
-              <p className="text-sm font-bold mb-4">Top produits aujourd'hui</p>
+              <p className="text-sm font-bold mb-4 flex items-center gap-2">Top produits aujourd'hui <InfoTooltip text="Vos 5 produits les plus vendus aujourd'hui, classés par quantité vendue." /></p>
               <div className="space-y-3">
                 {topProducts.map((p, i) => (
                   <div key={p.name} className="flex items-center gap-3">

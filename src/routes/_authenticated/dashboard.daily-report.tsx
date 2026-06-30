@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { DayPicker } from "react-day-picker";
 import "react-day-picker/style.css";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { InfoTooltip } from "@/components/info-tooltip";
 
 export const Route = createFileRoute("/_authenticated/dashboard/daily-report")({
   component: DailyReportPage,
@@ -278,7 +279,7 @@ function DailyReportPage() {
 
           {/* Revenue bar chart with best day highlighted */}
           <div className="rounded-2xl border border-border bg-background p-5">
-            <p className="text-sm font-bold mb-4">Revenus par jour</p>
+            <p className="text-sm font-bold mb-4 flex items-center gap-2">Revenus par jour <InfoTooltip text="Vos revenus pour chaque jour de la période. Le jour le plus rentable est mis en évidence en doré." /></p>
             <ResponsiveContainer width="100%" height={250}>
               <BarChart data={dailyData}>
                 <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
@@ -299,7 +300,7 @@ function DailyReportPage() {
 
           {/* Cumulative revenue */}
           <div className="rounded-2xl border border-border bg-background p-5">
-            <p className="text-sm font-bold mb-4">Revenus cumulés</p>
+            <p className="text-sm font-bold mb-4 flex items-center gap-2">Revenus cumulés <InfoTooltip text="Le total de vos revenus qui s'accumule jour après jour. Montre votre progression sur la période." /></p>
             <ResponsiveContainer width="100%" height={220}>
               <AreaChart data={cumulativeData}>
                 <defs>
@@ -319,7 +320,7 @@ function DailyReportPage() {
 
           {/* Day of week performance */}
           <div className="rounded-2xl border border-border bg-background p-5">
-            <p className="text-sm font-bold mb-4">Performance par jour de semaine</p>
+            <p className="text-sm font-bold mb-4 flex items-center gap-2">Performance par jour de semaine <InfoTooltip text="Compare vos revenus selon le jour de la semaine (lundi à dimanche). Utile pour repérer vos meilleurs jours." /></p>
             <ResponsiveContainer width="100%" height={200}>
               <BarChart data={dowData}>
                 <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
@@ -337,7 +338,7 @@ function DailyReportPage() {
 
           {/* Orders line chart */}
           <div className="rounded-2xl border border-border bg-background p-5">
-            <p className="text-sm font-bold mb-4">Commandes par jour</p>
+            <p className="text-sm font-bold mb-4 flex items-center gap-2">Commandes par jour <InfoTooltip text="Le nombre de commandes reçues chaque jour de la période." /></p>
             <ResponsiveContainer width="100%" height={200}>
               <LineChart data={dailyData}>
                 <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
@@ -352,7 +353,7 @@ function DailyReportPage() {
           {/* Detail table */}
           <div className="rounded-2xl border border-border bg-background overflow-hidden">
             <div className="px-5 py-3 border-b border-border">
-              <p className="text-sm font-bold">Détail par jour</p>
+              <p className="text-sm font-bold flex items-center gap-2">Détail par jour <InfoTooltip text="Tableau détaillé jour par jour : nombre de commandes, panier moyen et revenus totaux." /></p>
             </div>
             <div className="divide-y divide-border max-h-96 overflow-y-auto">
               {[...dailyData].reverse().map(d => (
