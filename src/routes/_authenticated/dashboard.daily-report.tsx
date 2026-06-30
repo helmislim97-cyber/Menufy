@@ -129,8 +129,10 @@ function DailyReportPage() {
   }, [restaurantId, range.from, range.to]);
 
   const exportCSV = () => {
-    const csv = ["Date,Revenus (DT),Commandes,Panier moyen (DT)", ...dailyData.map(d => `${d.date},${d.revenue.toFixed(2)},${d.orders},${d.avgOrder.toFixed(2)}`)].join("\n");
-    const blob = new Blob([csv], { type: "text/csv" });
+    const header = "Date;Revenus (DT);Commandes;Panier moyen (DT)";
+    const rows = dailyData.map(d => `="${d.date}";${d.revenue.toFixed(2)};${d.orders};${d.avgOrder.toFixed(2)}`);
+    const csv = "\uFEFF" + [header, ...rows].join("\r\n");
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
