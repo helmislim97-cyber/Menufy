@@ -147,6 +147,9 @@ function CashierPage() {
           <p className="text-sm text-muted-foreground">{t("cashier.subtitle")}</p>
         </div>
         <div className="flex items-center gap-2">
+          <span className="text-[10px] text-muted-foreground max-w-[200px] break-all">
+            DBG: rid={access.restaurantId ?? "null"} | owner={String(access.isOwner)} | roles={access.roles.join(",")} | load={String(access.loading)}
+          </span>
           <LangSwitch />
           <Link to="/dashboard/orders">
             <Button variant="outline" className="gap-1.5">
