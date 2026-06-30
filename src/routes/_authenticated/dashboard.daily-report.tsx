@@ -130,7 +130,10 @@ function DailyReportPage() {
 
   const exportCSV = () => {
     const header = "Date,Revenus (DT),Commandes,Panier moyen (DT)";
-    const rows = dailyData.map(d => `${d.date.replace("/", "-")},${d.revenue.toFixed(2)},${d.orders},${d.avgOrder.toFixed(2)}`);
+    const rows = dailyData.map((d, i) => {
+      const fullDate = format(subDays(range.to, dailyData.length - 1 - i), "dd MMMM yyyy", { locale: fr });
+      return `${fullDate},${d.revenue.toFixed(2)},${d.orders},${d.avgOrder.toFixed(2)}`;
+    });
     const csv = "\uFEFF" + [header, ...rows].join("\r\n");
     const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
     const url = URL.createObjectURL(blob);
