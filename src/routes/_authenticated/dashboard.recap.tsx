@@ -13,19 +13,21 @@ export const Route = createFileRoute("/_authenticated/dashboard/recap")({
 
 function KpiCard({ title, value, sub, icon: Icon, trend }: { title: string; value: string; sub?: string; icon: any; trend?: number }) {
   return (
-    <div className="rounded-2xl border border-border bg-background p-5 flex flex-col gap-2">
+    <div className="rounded-2xl border border-border bg-background p-5 flex flex-col">
       <div className="flex items-center justify-between">
         <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">{title}</p>
         <Icon className="h-4 w-4 text-muted-foreground" />
       </div>
-      <p className="text-3xl font-extrabold">{value}</p>
-      {trend !== undefined && (
-        <div className={`flex items-center gap-1 text-xs font-semibold ${trend >= 0 ? "text-green-600" : "text-destructive"}`}>
-          {trend >= 0 ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
-          {Math.abs(trend).toFixed(1)}% vs hier
-        </div>
-      )}
-      {sub && <p className="text-xs text-muted-foreground">{sub}</p>}
+      <p className="text-3xl font-extrabold mt-2 mb-2">{value}</p>
+      <div className="mt-auto">
+        {trend !== undefined && (
+          <div className={`flex items-center gap-1 text-xs font-semibold ${trend >= 0 ? "text-green-600" : "text-destructive"}`}>
+            {trend >= 0 ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
+            {Math.abs(trend).toFixed(1)}% vs hier
+          </div>
+        )}
+        {sub && <p className="text-xs text-muted-foreground">{sub}</p>}
+      </div>
     </div>
   );
 }
