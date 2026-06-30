@@ -237,7 +237,7 @@ function SalesPage() {
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
-                <XAxis dataKey="label" tick={{ fontSize: 10 }} interval={chartData.length > 30 ? 4 : 0} />
+                <XAxis dataKey="label" tick={{ fontSize: 10 }} interval="preserveStartEnd" minTickGap={30} />
                 <YAxis tick={{ fontSize: 11 }} />
                 <Tooltip formatter={(v: any) => `${Number(v).toFixed(2)} DT`} />
                 <Area type="monotone" dataKey="revenue" stroke="#7ab450" strokeWidth={2} fill="url(#colorRev)" />
@@ -251,7 +251,7 @@ function SalesPage() {
             <ResponsiveContainer width="100%" height={200}>
               <BarChart data={chartData}>
                 <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
-                <XAxis dataKey="label" tick={{ fontSize: 10 }} interval={chartData.length > 30 ? 4 : 0} />
+                <XAxis dataKey="label" tick={{ fontSize: 10 }} interval="preserveStartEnd" minTickGap={30} />
                 <YAxis tick={{ fontSize: 11 }} />
                 <Tooltip />
                 <Bar dataKey="revenue" radius={[4, 4, 0, 0]}>
