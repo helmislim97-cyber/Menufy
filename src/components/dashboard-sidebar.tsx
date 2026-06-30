@@ -88,7 +88,20 @@ function useNotifUnread() {
     const interval = setInterval(compute, 20000);
     const onSeen = () => compute();
     window.addEventListener("menufy-notif-seen", onSeen);
-    return () => { clearInterval(interval); window.removeEventListener("menufy-notif-seen", onSeen); };
+
+    // Realtime: update badge instantly on new activity
+    const ch = supabase
+      .channel("sidebar-notif-badge")
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "orders" }, compute)
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "reviews" }, compute)
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "assistance_requests" }, compute)
+      .subscribe();
+
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener("menufy-notif-seen", onSeen);
+      supabase.removeChannel(ch);
+    };
   }, [user]);
   return count;
 }
