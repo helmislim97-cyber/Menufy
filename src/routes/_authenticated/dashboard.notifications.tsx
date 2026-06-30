@@ -149,14 +149,19 @@ function NotificationsPage() {
     };
     load();
 
-    const channel = supabase
-      .channel("notif-feed")
-      .on("postgres_changes", { event: "*", schema: "public", table: "orders" }, load)
-      .on("postgres_changes", { event: "*", schema: "public", table: "reviews" }, load)
-      .on("postgres_changes", { event: "*", schema: "public", table: "assistance_requests" }, load)
-      .subscribe();
+    const ch1 = supabase.channel("notif-orders").on("postgres_changes", { event: "*", schema: "public", table: "orders" }, load).subscribe();
+    const ch2 = supabase.channel("notif-reviews").on("postgres_changes", { event: "*", schema: "public", table: "reviews" }, load).subscribe();
+    const ch3 = supabase.channel("notif-assist").on("postgres_changes", { event: "*", schema: "public", table: "assistance_requests" }, load).subscribe();
 
-    return () => { supabase.removeChannel(channel); };
+    // Fallback poll every 15s in case realtime misses an event
+    const poll = setInterval(load, 15000);
+
+    return () => {
+      supabase.removeChannel(ch1);
+      supabase.removeChannel(ch2);
+      supabase.removeChannel(ch3);
+      clearInterval(poll);
+    };
   }, [restaurantId]);
 
   const update = (key: keyof Prefs, value: boolean) => {
