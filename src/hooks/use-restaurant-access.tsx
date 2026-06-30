@@ -52,7 +52,8 @@ export function useRestaurantAccess(): RestaurantAccess {
       }
 
       // 2. Is the user a staff member?
-      const { data: member } = await supabase.from("team_members").select("restaurant_id, roles, status").eq("user_id", user.id).maybeSingle();
+      const { data: member, error: memberErr } = await supabase.from("team_members").select("restaurant_id, roles, status").eq("user_id", user.id).maybeSingle();
+      console.log("ACCESS DEBUG — user.id:", user.id, "member:", member, "error:", memberErr);
       if (member && member.status === "active") {
         const { data: rest } = await supabase.from("restaurants").select("name").eq("id", member.restaurant_id).maybeSingle();
         const roles = (member.roles ?? []) as RoleKey[];
