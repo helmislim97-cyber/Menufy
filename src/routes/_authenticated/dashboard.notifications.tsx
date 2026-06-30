@@ -164,6 +164,15 @@ function NotificationsPage() {
     toast.success("Tout marqué comme lu");
   };
 
+  const markOneRead = (itemTime: string) => {
+    const t = new Date(itemTime).getTime();
+    if (t <= lastSeen) return;
+    // Mark everything up to and including this item as read
+    setLastSeen(t);
+    localStorage.setItem(LAST_SEEN_KEY, String(t));
+    window.dispatchEvent(new Event("menufy-notif-seen"));
+  };
+
   const feedIcon = (type: FeedItem["type"]) => {
     switch (type) {
       case "order": return { icon: ShoppingBag, cls: "bg-primary/10 text-primary" };
@@ -284,7 +293,7 @@ function NotificationsPage() {
                         const { icon: Icon, cls } = feedIcon(item.type)!;
                         const isUnread = new Date(item.time).getTime() > lastSeen;
                         return (
-                          <div key={item.id} className={`flex items-start gap-3 px-5 py-3.5 ${isUnread ? "bg-primary/5" : ""}`}>
+                          <div key={item.id} onClick={() => markOneRead(item.time)} className={`flex items-start gap-3 px-5 py-3.5 cursor-pointer transition-colors ${isUnread ? "bg-primary/5 hover:bg-primary/10" : "hover:bg-accent/40"}`}>
                             <div className={`grid h-9 w-9 shrink-0 place-items-center rounded-xl ${cls}`}><Icon className="h-4 w-4" /></div>
                             <div className="flex-1 min-w-0">
                               <p className="text-sm font-semibold flex items-center gap-2">
