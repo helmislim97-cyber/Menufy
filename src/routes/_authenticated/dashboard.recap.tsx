@@ -217,7 +217,7 @@ function RecapPage() {
             <KpiCard title="Commandes" value={`${todayOrders}`} icon={ShoppingBag} trend={orderTrend} tip="Le nombre de commandes complétées aujourd'hui, comparé à hier." />
             <KpiCard title="Panier moyen" value={`${avgOrder.toFixed(2)} DT`} icon={TrendingUp} sub="par commande" tip="Le montant moyen dépensé par commande aujourd'hui." />
             <KpiCard title="Note moyenne" value={avgRating > 0 ? `${avgRating.toFixed(1)} ⭐` : "—"} icon={Star} sub={`Annulations: ${cancelRate.toFixed(0)}%`} tip="La note moyenne laissée par vos clients aujourd'hui, sur 5 étoiles." />
-            <KpiCard title="Même jour sem. dern." value={`${lastWeekRevenue.toFixed(2)} DT`} icon={TrendingUp} trend={weekTrend} tip="Vos revenus le même jour la semaine dernière, pour comparer." />
+            <KpiCard title="Sem. dernière" value={`${lastWeekRevenue.toFixed(2)} DT`} icon={TrendingUp} trend={weekTrend} tip="Vos revenus le même jour la semaine dernière, pour comparer." />
           </div>
 
           {/* Clients + Category */}
@@ -227,7 +227,7 @@ function RecapPage() {
                 <Clock className="h-5 w-5 text-primary" />
               </div>
               <div>
-                <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Heure de pointe</p>
+                <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">Heure de pointe <InfoTooltip text="L'heure de la journée où vous avez reçu le plus de commandes aujourd'hui." /></p>
                 <p className="text-2xl font-extrabold">{peakHour ?? "—"}</p>
               </div>
             </div>
@@ -236,7 +236,7 @@ function RecapPage() {
                 <Star className="h-5 w-5 text-primary" />
               </div>
               <div>
-                <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Meilleure catégorie</p>
+                <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">Meilleure catégorie <InfoTooltip text="La catégorie de produits qui a généré le plus de revenus aujourd'hui." /></p>
                 <p className="text-lg font-extrabold">{topCategory ?? "—"}</p>
               </div>
             </div>

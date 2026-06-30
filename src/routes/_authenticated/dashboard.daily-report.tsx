@@ -260,7 +260,7 @@ function DailyReportPage() {
                 <TrendingUp className="h-5 w-5" />
               </div>
               <div className="min-w-0">
-                <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Meilleur jour</p>
+                <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">Meilleur jour <InfoTooltip text="La date précise où vous avez généré le plus de revenus sur la période choisie." /></p>
                 <p className="text-xl font-extrabold">{bestDay?.date ?? "—"}</p>
                 {bestDay && <p className="text-xs text-muted-foreground">{bestDay.revenue.toFixed(2)} DT</p>}
               </div>
@@ -270,7 +270,7 @@ function DailyReportPage() {
                 <TrendingDown className="h-5 w-5" />
               </div>
               <div className="min-w-0">
-                <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Jour le plus faible</p>
+                <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">Jour le plus faible <InfoTooltip text="La date où vous avez généré le moins de revenus sur la période choisie." /></p>
                 <p className="text-xl font-extrabold">{worstDay?.date ?? "—"}</p>
                 {worstDay && <p className="text-xs text-muted-foreground">{worstDay.revenue.toFixed(2)} DT</p>}
               </div>
