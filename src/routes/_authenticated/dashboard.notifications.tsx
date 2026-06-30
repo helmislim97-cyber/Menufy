@@ -151,9 +151,9 @@ function NotificationsPage() {
 
     const channel = supabase
       .channel("notif-feed")
-      .on("postgres_changes", { event: "*", schema: "public", table: "orders", filter: `restaurant_id=eq.${restaurantId}` }, load)
-      .on("postgres_changes", { event: "*", schema: "public", table: "reviews", filter: `restaurant_id=eq.${restaurantId}` }, load)
-      .on("postgres_changes", { event: "*", schema: "public", table: "assistance_requests", filter: `restaurant_id=eq.${restaurantId}` }, load)
+      .on("postgres_changes", { event: "*", schema: "public", table: "orders" }, load)
+      .on("postgres_changes", { event: "*", schema: "public", table: "reviews" }, load)
+      .on("postgres_changes", { event: "*", schema: "public", table: "assistance_requests" }, load)
       .subscribe();
 
     return () => { supabase.removeChannel(channel); };
