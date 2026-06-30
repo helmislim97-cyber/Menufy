@@ -1,7 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
+import { playOrderSound, unlockAudio, setSoundEnabled, isSoundEnabled } from "@/lib/notif-sound";
 import { useI18n } from "@/lib/i18n";
 import { Button } from "@/components/ui/button";
 import { Clock, StickyNote, ChefHat, Wallet } from "lucide-react";
@@ -66,6 +67,8 @@ function OrdersPage() {
   const [restaurantId, setRestaurantId] = useState<string | null>(null);
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
+  const knownAssistIds = useRef<Set<string>>(new Set());
+  const assistFirstLoad = useRef(true);
 
   const loadOrders = async (rid: string) => {
     const { data } = await supabase
@@ -82,7 +85,7 @@ function OrdersPage() {
     if (!user) return;
     supabase
       .from("restaurants")
-      .select("id")
+      .select("id, notification_prefs")
       .eq("owner_id", user.id)
       .maybeSingle()
       .then(({ data }) => {
@@ -91,9 +94,53 @@ function OrdersPage() {
           return;
         }
         setRestaurantId(data.id);
+        setSoundEnabled(data.notification_prefs?.soundAlerts ?? true);
         loadOrders(data.id);
       });
   }, [user]);
+
+  // Unlock audio on first interaction + keep warm
+  useEffect(() => {
+    const unlock = () => unlockAudio();
+    window.addEventListener("click", unlock);
+    window.addEventListener("touchstart", unlock);
+    const onVisible = () => { if (document.visibilityState === "visible") unlockAudio(); };
+    document.addEventListener("visibilitychange", onVisible);
+    const keepWarm = setInterval(unlockAudio, 5000);
+    return () => {
+      window.removeEventListener("click", unlock);
+      window.removeEventListener("touchstart", unlock);
+      document.removeEventListener("visibilitychange", onVisible);
+      clearInterval(keepWarm);
+    };
+  }, []);
+
+  // Assistance requests — beep when a new one arrives
+  useEffect(() => {
+    if (!restaurantId) return;
+    const checkAssist = async () => {
+      const { data } = await supabase
+        .from("assistance_requests")
+        .select("id, created_at")
+        .eq("restaurant_id", restaurantId)
+        .order("created_at", { ascending: false })
+        .limit(20);
+      const list = data ?? [];
+      if (!assistFirstLoad.current && isSoundEnabled()) {
+        const hasNew = list.some((a: any) => !knownAssistIds.current.has(a.id));
+        if (hasNew) playOrderSound();
+      }
+      list.forEach((a: any) => knownAssistIds.current.add(a.id));
+      assistFirstLoad.current = false;
+    };
+    checkAssist();
+    const ch = supabase
+      .channel(`orders-assist-${restaurantId}`)
+      .on("postgres_changes", { event: "*", schema: "public", table: "assistance_requests" }, checkAssist)
+      .subscribe();
+    const poll = setInterval(checkAssist, 15000);
+    return () => { supabase.removeChannel(ch); clearInterval(poll); };
+  }, [restaurantId]);
 
   useEffect(() => {
     if (!restaurantId) return;
