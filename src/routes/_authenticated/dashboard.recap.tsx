@@ -125,11 +125,11 @@ function RecapPage() {
     setActiveStatusSummary(active);
     setDoneStatusSummary(done);
 
-    // Hourly
+    // Hourly — show all 24 hours
     const hourly: Record<number, number> = {};
     for (let i = 0; i < 24; i++) hourly[i] = 0;
     completed.forEach((o: any) => { hourly[new Date(o.created_at).getHours()] += Number(o.total); });
-    setHourlyData(Object.entries(hourly).filter(([, v]) => v > 0).map(([h, v]) => ({ hour: `${h}h`, revenue: v })));
+    setHourlyData(Object.entries(hourly).map(([h, v]) => ({ hour: `${h}h`, revenue: v })));
 
     // Top products
     const prodMap: Record<string, { qty: number; revenue: number }> = {};
