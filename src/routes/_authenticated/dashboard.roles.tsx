@@ -133,7 +133,6 @@ function RolesPage() {
     }
 
     // 2. Create the login account via Edge Function
-    const { data: { session } } = await supabase.auth.getSession();
     const { data: fnData, error: fnError } = await supabase.functions.invoke("create-staff", {
       body: {
         fullName: fullName.trim(),
@@ -142,13 +141,14 @@ function RolesPage() {
         roles: selectedRoles,
         memberId: inserted.id,
       },
-      headers: session ? { Authorization: `Bearer ${session.access_token}` } : undefined,
     });
+
+    console.log("create-staff response:", fnData, fnError);
 
     if (fnError || (fnData && fnData.error)) {
       // Roll back the team_members row if account creation failed
       await supabase.from("team_members").delete().eq("id", inserted.id);
-      toast.error(fnData?.error || "Erreur lors de la création du compte");
+      toast.error(fnData?.error || fnError?.message || "Erreur lors de la création du compte");
       setSaving(false);
       return;
     }
