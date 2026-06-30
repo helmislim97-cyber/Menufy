@@ -1,8 +1,9 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { useRestaurantAccess } from "@/hooks/use-restaurant-access";
+import { AccessGuard } from "@/components/access-guard";
 import { playOrderSound, unlockAudio, setSoundEnabled, isSoundEnabled } from "@/lib/notif-sound";
 import { useI18n } from "@/lib/i18n";
 import { LangSwitch } from "@/components/lang-switch";
@@ -10,7 +11,11 @@ import { Button } from "@/components/ui/button";
 import { Clock, StickyNote, X, ArrowRight } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/kitchen")({
-  component: KitchenPage,
+  component: () => (
+    <AccessGuard area="kitchen">
+      <KitchenPage />
+    </AccessGuard>
+  ),
 });
 
 type OrderStatus = "pending" | "preparing" | "ready" | "paid" | "cancelled";
@@ -62,18 +67,7 @@ function KitchenPage() {
   const { user } = useAuth();
   const { t } = useI18n();
   const access = useRestaurantAccess();
-  const navigate = useNavigate();
   const [restaurantId, setRestaurantId] = useState<string | null>(null);
-
-  // Access guard — only kitchen/manager/owner can see this screen
-  useEffect(() => {
-    if (access.loading) return;
-    if (!access.can.kitchen) {
-      if (access.can.cashierScreen) navigate({ to: "/cashier" });
-      else if (access.isOwner || access.can.dashboard) navigate({ to: "/dashboard" });
-      else navigate({ to: "/dashboard" });
-    }
-  }, [access.loading, access.can.kitchen]);
   const [orders, setOrders] = useState<Order[]>([]);
   const knownOrderIds = useRef<Set<string>>(new Set());
   const firstLoad = useRef(true);

@@ -2,6 +2,7 @@ import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
+
 import { useI18n } from "@/lib/i18n";
 import { LogOut, UtensilsCrossed, ShoppingBag, TrendingUp, Clock, ArrowRight, AlertTriangle, BellRing, ChevronRight } from "lucide-react";
 import { toast } from "sonner";
