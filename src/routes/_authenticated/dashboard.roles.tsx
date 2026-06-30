@@ -50,6 +50,7 @@ function RolesPage() {
   // form state
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [selectedRoles, setSelectedRoles] = useState<RoleKey[]>([]);
   const [saving, setSaving] = useState(false);
 
@@ -75,6 +76,7 @@ function RolesPage() {
     setEditing(null);
     setFullName("");
     setEmail("");
+    setPassword("");
     setSelectedRoles([]);
     setModalOpen(true);
   };
@@ -83,6 +85,7 @@ function RolesPage() {
     setEditing(m);
     setFullName(m.full_name);
     setEmail(m.email ?? "");
+    setPassword("");
     setSelectedRoles(m.roles as RoleKey[]);
     setModalOpen(true);
   };
@@ -95,9 +98,9 @@ function RolesPage() {
     if (!fullName.trim()) { toast.error("Entrez un nom"); return; }
     if (selectedRoles.length === 0) { toast.error("Sélectionnez au moins un rôle"); return; }
     if (!restaurantId) return;
-    setSaving(true);
 
     if (editing) {
+      setSaving(true);
       const { error } = await supabase.from("team_members").update({
         full_name: fullName.trim(),
         email: email.trim() || null,
@@ -105,17 +108,54 @@ function RolesPage() {
       }).eq("id", editing.id);
       if (error) toast.error("Erreur");
       else { toast.success("Membre mis à jour ✅"); loadMembers(restaurantId); setModalOpen(false); }
-    } else {
-      const { error } = await supabase.from("team_members").insert({
-        restaurant_id: restaurantId,
-        full_name: fullName.trim(),
-        email: email.trim() || null,
-        roles: selectedRoles,
-        status: "active",
-      });
-      if (error) toast.error("Erreur");
-      else { toast.success("Membre ajouté ✅"); loadMembers(restaurantId); setModalOpen(false); }
+      setSaving(false);
+      return;
     }
+
+    // New member — needs login credentials
+    if (!email.trim()) { toast.error("L'email est requis pour créer un accès"); return; }
+    if (password.length < 6) { toast.error("Le mot de passe doit faire au moins 6 caractères"); return; }
+    setSaving(true);
+
+    // 1. Insert the team_members row first
+    const { data: inserted, error: insertErr } = await supabase.from("team_members").insert({
+      restaurant_id: restaurantId,
+      full_name: fullName.trim(),
+      email: email.trim(),
+      roles: selectedRoles,
+      status: "active",
+    }).select().single();
+
+    if (insertErr || !inserted) {
+      toast.error("Erreur lors de l'ajout");
+      setSaving(false);
+      return;
+    }
+
+    // 2. Create the login account via Edge Function
+    const { data: { session } } = await supabase.auth.getSession();
+    const { data: fnData, error: fnError } = await supabase.functions.invoke("create-staff", {
+      body: {
+        fullName: fullName.trim(),
+        email: email.trim(),
+        password,
+        roles: selectedRoles,
+        memberId: inserted.id,
+      },
+      headers: session ? { Authorization: `Bearer ${session.access_token}` } : undefined,
+    });
+
+    if (fnError || (fnData && fnData.error)) {
+      // Roll back the team_members row if account creation failed
+      await supabase.from("team_members").delete().eq("id", inserted.id);
+      toast.error(fnData?.error || "Erreur lors de la création du compte");
+      setSaving(false);
+      return;
+    }
+
+    toast.success("Membre ajouté avec accès ✅");
+    loadMembers(restaurantId);
+    setModalOpen(false);
     setSaving(false);
   };
 
@@ -243,9 +283,17 @@ function RolesPage() {
                 <Input value={fullName} onChange={(e) => setFullName(e.target.value)} placeholder="Ex : Ahmed Ben Ali" className="mt-1.5" />
               </div>
               <div>
-                <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Email (optionnel)</label>
-                <Input value={email} onChange={(e) => setEmail(e.target.value)} placeholder="ahmed@exemple.com" type="email" className="mt-1.5" />
+                <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Email {!editing && "(requis pour l'accès)"}</label>
+                <Input value={email} onChange={(e) => setEmail(e.target.value)} placeholder="ahmed@exemple.com" type="email" className="mt-1.5" disabled={!!editing} />
+                {editing && <p className="mt-1 text-xs text-muted-foreground">L'email ne peut pas être modifié après création.</p>}
               </div>
+              {!editing && (
+                <div>
+                  <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Mot de passe</label>
+                  <Input value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Min. 6 caractères" type="text" className="mt-1.5" />
+                  <p className="mt-1 text-xs text-muted-foreground">Communiquez ce mot de passe à votre employé pour qu'il puisse se connecter.</p>
+                </div>
+              )}
               <div>
                 <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Rôles</label>
                 <p className="text-xs text-muted-foreground mb-2">Sélectionnez un ou plusieurs rôles.</p>
