@@ -17,11 +17,11 @@ export const Route = createFileRoute("/_authenticated/dashboard/daily-report")({
   component: DailyReportPage,
 });
 
-function StatCard({ label, value, sub, icon: Icon, trend }: { label: string; value: string; sub?: string; icon: any; trend?: number }) {
+function StatCard({ label, value, sub, icon: Icon, trend, tip }: { label: string; value: string; sub?: string; icon: any; trend?: number; tip?: string }) {
   return (
     <div className="rounded-2xl border border-border bg-background p-5 flex flex-col">
       <div className="flex items-start justify-between gap-2">
-        <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground min-h-[2rem] leading-tight">{label}</p>
+        <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground min-h-[2rem] leading-tight flex items-center gap-1.5">{label}{tip && <InfoTooltip text={tip} />}</p>
         <Icon className="h-4 w-4 text-muted-foreground shrink-0" />
       </div>
       <div className="min-h-[3rem] flex items-center mt-2 mb-2">
@@ -247,10 +247,10 @@ function DailyReportPage() {
 
           {/* KPI cards */}
           <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-            <StatCard label="Total revenus" value={`${totalRevenue.toFixed(2)} DT`} icon={TrendingUp} trend={growth} />
-            <StatCard label="Total commandes" value={`${totalOrders}`} icon={BarChart3} sub={`sur ${days} jours`} />
-            <StatCard label="Revenu moyen / jour" value={`${avgDaily.toFixed(2)} DT`} icon={CalendarIcon} sub="moyenne période" />
-            <StatCard label="Meilleur jour semaine" value={bestDow?.day ?? "—"} icon={Award} sub={bestDow ? `${bestDow.revenue.toFixed(2)} DT au total` : undefined} />
+            <StatCard label="Total revenus" value={`${totalRevenue.toFixed(2)} DT`} icon={TrendingUp} trend={growth} tip="Le total de vos revenus sur la période choisie, comparé à la période précédente de même durée." />
+            <StatCard label="Total commandes" value={`${totalOrders}`} icon={BarChart3} sub={`sur ${days} jours`} tip="Le nombre total de commandes complétées sur la période choisie." />
+            <StatCard label="Revenu moyen / jour" value={`${avgDaily.toFixed(2)} DT`} icon={CalendarIcon} sub="moyenne période" tip="La moyenne de revenus par jour : total des revenus divisé par le nombre de jours." />
+            <StatCard label="Meilleur jour semaine" value={bestDow?.day ?? "—"} icon={Award} sub={bestDow ? `${bestDow.revenue.toFixed(2)} DT au total` : undefined} tip="Le jour de la semaine (lundi à dimanche) qui génère le plus de revenus en cumulé." />
           </div>
 
           {/* Best & worst day */}

@@ -21,11 +21,11 @@ const COLORS = ["#7ab450", "#f59e0b", "#3b82f6", "#ef4444", "#8b5cf6"];
 const STATUS_LABELS: Record<string, string> = { pending: "En attente", preparing: "En préparation", ready: "Prêt", paid: "Payé", cancelled: "Annulé" };
 const DOW_LABELS = ["Dim", "Lun", "Mar", "Mer", "Jeu", "Ven", "Sam"];
 
-function StatCard({ label, value, sub, icon: Icon }: { label: string; value: string; sub?: string; icon: any }) {
+function StatCard({ label, value, sub, icon: Icon, tip }: { label: string; value: string; sub?: string; icon: any; tip?: string }) {
   return (
     <div className="rounded-2xl border border-border bg-background p-5 flex flex-col">
       <div className="flex items-start justify-between gap-2">
-        <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground min-h-[2rem] leading-tight">{label}</p>
+        <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground min-h-[2rem] leading-tight flex items-center gap-1.5">{label}{tip && <InfoTooltip text={tip} />}</p>
         <Icon className="h-4 w-4 text-muted-foreground shrink-0" />
       </div>
       <div className="min-h-[3rem] flex items-center mt-2 mb-2">
@@ -160,9 +160,6 @@ function OrdersStatsPage() {
     load();
   }, [restaurantId, range.from, range.to]);
 
-  const maxPeak = Math.max(...peakHours.map(h => h.orders), 0);
-  const bestDow = [...dayOfWeek].sort((a, b) => b.orders - a.orders)[0];
-
   return (
     <DashboardPage>
       <div className="flex items-center justify-between flex-wrap gap-3">
@@ -213,10 +210,10 @@ function OrdersStatsPage() {
 
           {/* KPI cards */}
           <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-            <StatCard label="Total commandes" value={`${totalOrders}`} icon={ShoppingBag} sub={`sur ${days} jours`} />
-            <StatCard label="Taux complétion" value={`${completionRate.toFixed(0)}%`} icon={CheckCircle2} sub="commandes livrées" />
-            <StatCard label="Taux annulation" value={`${cancelRate.toFixed(0)}%`} icon={Ban} sub="commandes annulées" />
-            <StatCard label="Articles / commande" value={avgItems.toFixed(1)} icon={Package} sub="moyenne" />
+            <StatCard label="Total commandes" value={`${totalOrders}`} icon={ShoppingBag} sub={`sur ${days} jours`} tip="Le nombre total de commandes reçues sur la période (incluant les annulées)." />
+            <StatCard label="Taux complétion" value={`${completionRate.toFixed(0)}%`} icon={CheckCircle2} sub="commandes livrées" tip="Le pourcentage de commandes complétées (non annulées). Plus c'est élevé, mieux c'est." />
+            <StatCard label="Taux annulation" value={`${cancelRate.toFixed(0)}%`} icon={Ban} sub="commandes annulées" tip="Le pourcentage de commandes annulées. Un taux élevé peut signaler un problème." />
+            <StatCard label="Articles / commande" value={avgItems.toFixed(1)} icon={Package} sub="moyenne" tip="Le nombre moyen d'articles par commande. Montre si les clients commandent beaucoup ou peu à la fois." />
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

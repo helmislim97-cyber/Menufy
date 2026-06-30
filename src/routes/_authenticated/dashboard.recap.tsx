@@ -12,11 +12,11 @@ export const Route = createFileRoute("/_authenticated/dashboard/recap")({
   component: RecapPage,
 });
 
-function KpiCard({ title, value, sub, icon: Icon, trend }: { title: string; value: string; sub?: string; icon: any; trend?: number }) {
+function KpiCard({ title, value, sub, icon: Icon, trend, tip }: { title: string; value: string; sub?: string; icon: any; trend?: number; tip?: string }) {
   return (
     <div className="rounded-2xl border border-border bg-background p-5 flex flex-col">
       <div className="flex items-start justify-between gap-2">
-        <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground min-h-[2rem] leading-tight">{title}</p>
+        <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground min-h-[2rem] leading-tight flex items-center gap-1.5">{title}{tip && <InfoTooltip text={tip} />}</p>
         <Icon className="h-4 w-4 text-muted-foreground shrink-0" />
       </div>
       <div className="min-h-[3rem] flex items-center mt-2 mb-2">
@@ -213,11 +213,11 @@ function RecapPage() {
 
           {/* KPI Cards */}
           <div className="grid grid-cols-2 gap-4 lg:grid-cols-5">
-            <KpiCard title="Chiffre d'affaires" value={`${todayRevenue.toFixed(2)} DT`} icon={TrendingUp} trend={revTrend} />
-            <KpiCard title="Commandes" value={`${todayOrders}`} icon={ShoppingBag} trend={orderTrend} />
-            <KpiCard title="Panier moyen" value={`${avgOrder.toFixed(2)} DT`} icon={TrendingUp} sub="par commande" />
-            <KpiCard title="Note moyenne" value={avgRating > 0 ? `${avgRating.toFixed(1)} ⭐` : "—"} icon={Star} sub={`Annulations: ${cancelRate.toFixed(0)}%`} />
-            <KpiCard title="Même jour sem. dern." value={`${lastWeekRevenue.toFixed(2)} DT`} icon={TrendingUp} trend={weekTrend} />
+            <KpiCard title="Chiffre d'affaires" value={`${todayRevenue.toFixed(2)} DT`} icon={TrendingUp} trend={revTrend} tip="Le total de vos revenus aujourd'hui (hors commandes annulées), comparé à hier." />
+            <KpiCard title="Commandes" value={`${todayOrders}`} icon={ShoppingBag} trend={orderTrend} tip="Le nombre de commandes complétées aujourd'hui, comparé à hier." />
+            <KpiCard title="Panier moyen" value={`${avgOrder.toFixed(2)} DT`} icon={TrendingUp} sub="par commande" tip="Le montant moyen dépensé par commande aujourd'hui." />
+            <KpiCard title="Note moyenne" value={avgRating > 0 ? `${avgRating.toFixed(1)} ⭐` : "—"} icon={Star} sub={`Annulations: ${cancelRate.toFixed(0)}%`} tip="La note moyenne laissée par vos clients aujourd'hui, sur 5 étoiles." />
+            <KpiCard title="Même jour sem. dern." value={`${lastWeekRevenue.toFixed(2)} DT`} icon={TrendingUp} trend={weekTrend} tip="Vos revenus le même jour la semaine dernière, pour comparer." />
           </div>
 
           {/* Clients + Category */}
