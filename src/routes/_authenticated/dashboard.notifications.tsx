@@ -21,26 +21,34 @@ const DEFAULT_PREFS: Prefs = {
   dailySummary: false, soundAlerts: true, channelInApp: true, channelEmail: false,
 };
 
-// Play a notification sound using Web Audio API (no file needed)
-function playOrderSound() {
+// Persistent audio context so background tabs can still play
+let sharedCtx: AudioContext | null = null;
+function getCtx(): AudioContext | null {
   try {
-    const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
-    const notes = [880, 1100, 1320];
-    notes.forEach((freq, i) => {
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-      osc.connect(gain);
-      gain.connect(ctx.destination);
-      osc.type = "sine";
-      osc.frequency.value = freq;
-      const start = ctx.currentTime + i * 0.15;
-      gain.gain.setValueAtTime(0, start);
-      gain.gain.linearRampToValueAtTime(0.25, start + 0.02);
-      gain.gain.exponentialRampToValueAtTime(0.001, start + 0.25);
-      osc.start(start);
-      osc.stop(start + 0.25);
-    });
-  } catch (e) { /* audio not available */ }
+    if (!sharedCtx) sharedCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
+    if (sharedCtx.state === "suspended") sharedCtx.resume();
+    return sharedCtx;
+  } catch { return null; }
+}
+
+function playOrderSound() {
+  const ctx = getCtx();
+  if (!ctx) return;
+  const notes = [880, 1100, 1320];
+  notes.forEach((freq, i) => {
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.type = "sine";
+    osc.frequency.value = freq;
+    const start = ctx.currentTime + i * 0.15;
+    gain.gain.setValueAtTime(0, start);
+    gain.gain.linearRampToValueAtTime(0.3, start + 0.02);
+    gain.gain.exponentialRampToValueAtTime(0.001, start + 0.3);
+    osc.start(start);
+    osc.stop(start + 0.3);
+  });
 }
 
 function Toggle({ checked, onChange }: { checked: boolean; onChange: (v: boolean) => void }) {
