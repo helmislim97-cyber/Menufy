@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
@@ -35,7 +35,19 @@ function CashierPage() {
   const { user } = useAuth();
   const { t } = useI18n();
   const access = useRestaurantAccess();
+  const navigate = useNavigate();
   const [restaurantId, setRestaurantId] = useState<string | null>(null);
+
+  // Access guard — only cashier/waiter/manager/owner can see this screen
+  useEffect(() => {
+    if (access.loading) return;
+    if (!access.can.cashierScreen) {
+      // Redirect to their allowed screen
+      if (access.can.kitchen) navigate({ to: "/kitchen" });
+      else if (access.isOwner || access.can.dashboard) navigate({ to: "/dashboard" });
+      else navigate({ to: "/dashboard" });
+    }
+  }, [access.loading, access.can.cashierScreen]);
   const [orders, setOrders] = useState<Order[]>([]);
   const knownAssistIds = useRef<Set<string>>(new Set());
   const assistFirstLoad = useRef(true);
