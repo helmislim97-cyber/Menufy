@@ -1,7 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
+import { playOrderSound, unlockAudio, setSoundEnabled, isSoundEnabled } from "@/lib/notif-sound";
 import { useI18n } from "@/lib/i18n";
 import { LangSwitch } from "@/components/lang-switch";
 import { Button } from "@/components/ui/button";
@@ -34,6 +35,8 @@ function CashierPage() {
   const { t } = useI18n();
   const [restaurantId, setRestaurantId] = useState<string | null>(null);
   const [orders, setOrders] = useState<Order[]>([]);
+  const knownOrderIds = useRef<Set<string>>(new Set());
+  const firstLoad = useRef(true);
 
   const loadOrders = async (rid: string) => {
     const { data } = await supabase
@@ -42,23 +45,49 @@ function CashierPage() {
       .eq("restaurant_id", rid)
       .in("status", ["pending", "preparing", "ready"])
       .order("created_at", { ascending: true });
-    setOrders((data as Order[]) ?? []);
+    const list = (data as Order[]) ?? [];
+
+    if (!firstLoad.current && isSoundEnabled()) {
+      const hasNew = list.some((o) => o.status === "pending" && !knownOrderIds.current.has(o.id));
+      if (hasNew) playOrderSound();
+    }
+    list.forEach((o) => knownOrderIds.current.add(o.id));
+    firstLoad.current = false;
+
+    setOrders(list);
   };
 
   useEffect(() => {
     if (!user) return;
     supabase
       .from("restaurants")
-      .select("id")
+      .select("id, notification_prefs")
       .eq("owner_id", user.id)
       .maybeSingle()
       .then(({ data }) => {
         if (data) {
           setRestaurantId(data.id);
+          setSoundEnabled(data.notification_prefs?.soundAlerts ?? true);
           loadOrders(data.id);
         }
       });
   }, [user]);
+
+  // Unlock audio on first interaction + keep warm
+  useEffect(() => {
+    const unlock = () => unlockAudio();
+    window.addEventListener("click", unlock);
+    window.addEventListener("touchstart", unlock);
+    const onVisible = () => { if (document.visibilityState === "visible") unlockAudio(); };
+    document.addEventListener("visibilitychange", onVisible);
+    const keepWarm = setInterval(unlockAudio, 5000);
+    return () => {
+      window.removeEventListener("click", unlock);
+      window.removeEventListener("touchstart", unlock);
+      document.removeEventListener("visibilitychange", onVisible);
+      clearInterval(keepWarm);
+    };
+  }, []);
 
   useEffect(() => {
     if (!restaurantId) return;
