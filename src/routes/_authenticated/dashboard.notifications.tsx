@@ -82,7 +82,14 @@ interface FeedItem {
 
 type FilterType = "all" | "order" | "review" | "assistance";
 
-const LAST_SEEN_KEY = "menufy_notif_last_seen";
+const SEEN_IDS_KEY = "menufy_notif_seen_ids";
+
+function loadSeenIds(): Set<string> {
+  try { return new Set(JSON.parse(localStorage.getItem(SEEN_IDS_KEY) ?? "[]")); } catch { return new Set(); }
+}
+function saveSeenIds(ids: Set<string>) {
+  localStorage.setItem(SEEN_IDS_KEY, JSON.stringify([...ids].slice(-500)));
+}
 
 function NotificationsPage() {
   const { user } = useAuth();
@@ -91,7 +98,7 @@ function NotificationsPage() {
   const [loading, setLoading] = useState(true);
   const [feed, setFeed] = useState<FeedItem[]>([]);
   const [filter, setFilter] = useState<FilterType>("all");
-  const [lastSeen, setLastSeen] = useState<number>(() => Number(localStorage.getItem(LAST_SEEN_KEY) ?? 0));
+  const [seenIds, setSeenIds] = useState<Set<string>>(() => loadSeenIds());
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const prefsRef = useRef<Prefs>(DEFAULT_PREFS);
   const knownIds = useRef<Set<string>>(new Set());
@@ -130,10 +137,10 @@ function NotificationsPage() {
       items.sort((a, b) => new Date(b.time).getTime() - new Date(a.time).getTime());
       const trimmed = items.slice(0, 40);
 
-      // Detect genuinely new orders for sound (skip first load)
+      // Detect genuinely new orders/assistance for sound (skip first load)
       if (!firstLoad.current && prefsRef.current.soundAlerts) {
-        const newOrder = trimmed.find(it => it.type === "order" && !knownIds.current.has(it.id));
-        if (newOrder) playOrderSound();
+        const hasNew = trimmed.some(it => (it.type === "order" || it.type === "assistance") && !knownIds.current.has(it.id));
+        if (hasNew) playOrderSound();
       }
       trimmed.forEach(it => knownIds.current.add(it.id));
       firstLoad.current = false;
@@ -165,19 +172,20 @@ function NotificationsPage() {
   };
 
   const markAllRead = () => {
-    const now = Date.now();
-    setLastSeen(now);
-    localStorage.setItem(LAST_SEEN_KEY, String(now));
+    const next = new Set(seenIds);
+    feed.forEach(it => next.add(it.id));
+    setSeenIds(next);
+    saveSeenIds(next);
     window.dispatchEvent(new Event("menufy-notif-seen"));
     toast.success("Tout marqué comme lu");
   };
 
-  const markOneRead = (itemTime: string) => {
-    const t = new Date(itemTime).getTime();
-    if (t <= lastSeen) return;
-    // Mark everything up to and including this item as read
-    setLastSeen(t);
-    localStorage.setItem(LAST_SEEN_KEY, String(t));
+  const markOneRead = (id: string) => {
+    if (seenIds.has(id)) return;
+    const next = new Set(seenIds);
+    next.add(id);
+    setSeenIds(next);
+    saveSeenIds(next);
     window.dispatchEvent(new Event("menufy-notif-seen"));
   };
 
@@ -196,7 +204,7 @@ function NotificationsPage() {
     return it.type === filter;
   });
 
-  const unreadCount = feed.filter(it => new Date(it.time).getTime() > lastSeen).length;
+  const unreadCount = feed.filter(it => !seenIds.has(it.id)).length;
 
   // Group by day
   const groups: { label: string; items: FeedItem[] }[] = [];
@@ -299,9 +307,9 @@ function NotificationsPage() {
                     <div className="divide-y divide-border">
                       {group.items.map((item) => {
                         const { icon: Icon, cls } = feedIcon(item.type)!;
-                        const isUnread = new Date(item.time).getTime() > lastSeen;
+                        const isUnread = !seenIds.has(item.id);
                         return (
-                          <div key={item.id} onClick={() => markOneRead(item.time)} className={`flex items-start gap-3 px-5 py-3.5 cursor-pointer transition-colors ${isUnread ? "bg-primary/5 hover:bg-primary/10" : "hover:bg-accent/40"}`}>
+                          <div key={item.id} onClick={() => markOneRead(item.id)} className={`flex items-start gap-3 px-5 py-3.5 cursor-pointer transition-colors ${isUnread ? "bg-primary/5 hover:bg-primary/10" : "hover:bg-accent/40"}`}>
                             <div className={`grid h-9 w-9 shrink-0 place-items-center rounded-xl ${cls}`}><Icon className="h-4 w-4" /></div>
                             <div className="flex-1 min-w-0">
                               <p className="text-sm font-semibold flex items-center gap-2">

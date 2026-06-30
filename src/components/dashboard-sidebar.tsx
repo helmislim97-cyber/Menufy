@@ -71,14 +71,18 @@ function useNotifUnread() {
         rid = data?.id ?? null;
       }
       if (!rid) return;
-      const lastSeen = Number(localStorage.getItem("menufy_notif_last_seen") ?? 0);
-      const iso = new Date(lastSeen).toISOString();
-      const [{ count: o }, { count: r }, { count: a }] = await Promise.all([
-        supabase.from("orders").select("id", { count: "exact", head: true }).eq("restaurant_id", rid).gt("created_at", iso),
-        supabase.from("reviews").select("id", { count: "exact", head: true }).eq("restaurant_id", rid).gt("created_at", iso),
-        supabase.from("assistance_requests").select("id", { count: "exact", head: true }).eq("restaurant_id", rid).gt("created_at", iso),
+      let seen: Set<string>;
+      try { seen = new Set(JSON.parse(localStorage.getItem("menufy_notif_seen_ids") ?? "[]")); } catch { seen = new Set(); }
+      const [{ data: orders }, { data: reviews }, { data: assistance }] = await Promise.all([
+        supabase.from("orders").select("id, status").eq("restaurant_id", rid).order("created_at", { ascending: false }).limit(40),
+        supabase.from("reviews").select("id").eq("restaurant_id", rid).order("created_at", { ascending: false }).limit(20),
+        supabase.from("assistance_requests").select("id").eq("restaurant_id", rid).order("created_at", { ascending: false }).limit(20),
       ]);
-      setCount((o ?? 0) + (r ?? 0) + (a ?? 0));
+      let c = 0;
+      (orders ?? []).forEach((o: any) => { const id = o.status === "cancelled" ? `c-${o.id}` : `o-${o.id}`; if (!seen.has(id)) c++; });
+      (reviews ?? []).forEach((r: any) => { if (!seen.has(`r-${r.id}`)) c++; });
+      (assistance ?? []).forEach((a: any) => { if (!seen.has(`a-${a.id}`)) c++; });
+      setCount(c);
     };
     compute();
     const interval = setInterval(compute, 20000);
