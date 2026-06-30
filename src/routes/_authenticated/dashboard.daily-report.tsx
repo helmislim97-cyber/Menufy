@@ -46,6 +46,7 @@ function DailyReportPage() {
   const [restaurantId, setRestaurantId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [range, setRange] = useState<{ from: Date; to: Date }>({ from: startOfDay(subDays(new Date(), 29)), to: new Date() });
+  const [tempRange, setTempRange] = useState<{ from?: Date; to?: Date }>({ from: range.from, to: range.to });
   const [calendarOpen, setCalendarOpen] = useState(false);
   const days = differenceInDays(range.to, range.from) + 1;
   const setPreset = (n: number) => setRange({ from: startOfDay(subDays(new Date(), n - 1)), to: new Date() });
@@ -184,27 +185,44 @@ function DailyReportPage() {
           {[7, 30, 90].map(d => (
             <button key={d} onClick={() => setPreset(d)} className={`rounded-full px-3 py-1.5 text-xs font-semibold border transition-colors ${days === d ? "bg-primary text-white border-primary" : "border-border text-muted-foreground hover:bg-accent"}`}>{d}j</button>
           ))}
-          <Popover open={calendarOpen} onOpenChange={setCalendarOpen}>
+          <Popover open={calendarOpen} onOpenChange={(open) => { setCalendarOpen(open); if (open) setTempRange({ from: range.from, to: range.to }); }}>
             <PopoverTrigger asChild>
               <button className="rounded-full px-3 py-1.5 text-xs font-semibold border border-border text-muted-foreground hover:bg-accent flex items-center gap-1.5">
                 <CalendarIcon className="h-3.5 w-3.5" />
-                {format(range.from, "dd/MM")} – {format(range.to, "dd/MM")}
+                {format(range.from, "dd/MM/yy")} – {format(range.to, "dd/MM/yy")}
               </button>
             </PopoverTrigger>
             <PopoverContent className="w-auto p-0" align="end">
               <DayPicker
                 mode="range"
                 locale={fr}
-                selected={{ from: range.from, to: range.to }}
-                disabled={{ before: subDays(new Date(), 365), after: new Date() }}
-                onSelect={(r: any) => {
-                  if (r?.from && r?.to) {
-                    setRange({ from: r.from, to: r.to });
-                    setCalendarOpen(false);
-                  }
-                }}
-                numberOfMonths={1}
+                selected={tempRange as any}
+                disabled={{ before: subDays(new Date(), 730), after: new Date() }}
+                onSelect={(r: any) => setTempRange(r ?? {})}
+                numberOfMonths={2}
               />
+              <div className="flex items-center justify-between gap-2 border-t border-border p-3">
+                <p className="text-xs text-muted-foreground">
+                  {tempRange.from && tempRange.to
+                    ? `${differenceInDays(tempRange.to, tempRange.from) + 1} jours sélectionnés`
+                    : "Sélectionnez une période"}
+                </p>
+                <div className="flex gap-2">
+                  <Button size="sm" variant="outline" onClick={() => setCalendarOpen(false)}>Annuler</Button>
+                  <Button
+                    size="sm"
+                    disabled={!tempRange.from || !tempRange.to}
+                    onClick={() => {
+                      if (tempRange.from && tempRange.to) {
+                        setRange({ from: tempRange.from, to: tempRange.to });
+                        setCalendarOpen(false);
+                      }
+                    }}
+                  >
+                    Confirmer
+                  </Button>
+                </div>
+              </div>
             </PopoverContent>
           </Popover>
           <Button size="sm" variant="outline" onClick={exportCSV} className="gap-1.5">
