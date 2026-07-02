@@ -45,9 +45,10 @@
   --color-surface: var(--surface);
   --color-surface-elevated: var(--surface-elevated);
 
-  --font-sans: "DM Sans", "Cairo", system-ui, sans-serif;
-  --font-arabic: "Cairo", "DM Sans", system-ui, sans-serif;
-  --font-display: "DM Sans", "Cairo", system-ui, sans-serif;
+  --font-sans: "Manrope", "Cairo", system-ui, sans-serif;
+  --font-arabic: "Cairo", "Manrope", system-ui, sans-serif;
+  --font-display: "Space Grotesk", "Cairo", system-ui, sans-serif;
+  --font-mono: "Space Mono", ui-monospace, monospace;
 }
 
 :root {
