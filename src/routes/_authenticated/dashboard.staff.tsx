@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import {
   Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
 } from "@/components/ui/select";
-import { UserPlus, Users, Pencil, Trash2, X, ShieldCheck } from "lucide-react";
+import { UserPlus, Users, Pencil, Trash2, X, ShieldCheck, KeyRound } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/dashboard/staff")({
@@ -112,6 +112,25 @@ function StaffPage() {
     setSaving(false);
   };
 
+  const setPin = async (m: StaffMember) => {
+    const pin = window.prompt(`PIN à 4 chiffres pour ${m.full_name}`)?.trim();
+    if (!pin) return;
+    if (!/^\d{4}$/.test(pin)) { toast.error("Le PIN doit contenir 4 chiffres"); return; }
+    const { error } = await supabase.functions.invoke("set-staff-pin", {
+      body: { staffId: m.id, pin },
+    });
+    if (error) {
+      let msg = "Échec de la définition du PIN";
+      try {
+        const body = await (error as any).context?.json?.();
+        if (body?.error) msg = body.error;
+      } catch { /* ignore */ }
+      toast.error(msg);
+      return;
+    }
+    toast.success(`PIN défini pour ${m.full_name} ✅`);
+  };
+
   const remove = async (m: StaffMember) => {
     if (!restaurantId) return;
     if (!window.confirm(`Supprimer ${m.full_name} de l'équipe ?`)) return;
@@ -165,6 +184,9 @@ function StaffPage() {
                 </div>
               </div>
               <div className="flex items-center gap-1 shrink-0">
+                <button onClick={() => setPin(m)} title="Définir le PIN" className="grid h-9 w-9 place-items-center rounded-lg text-muted-foreground hover:bg-accent">
+                  <KeyRound className="h-4 w-4" />
+                </button>
                 <button onClick={() => openEdit(m)} className="grid h-9 w-9 place-items-center rounded-lg text-muted-foreground hover:bg-accent">
                   <Pencil className="h-4 w-4" />
                 </button>
