@@ -2,9 +2,15 @@
 // Edge Function: set-staff-pin
 // ----------------------------------------------------------------------------
 // The OWNER sets/updates a staff member's 4-digit PIN.
-//   * bcrypt(pin)                    -> staff_pins.pin_hash   (for verification)
-//   * HMAC-SHA256(pin, PEPPER) hex   -> staff_pins.pin_fingerprint (unique index)
+//   * bcrypt(pin)                                 -> staff_pins.pin_hash (verify)
+//   * HMAC-SHA256(`${restaurant_id}:${pin}`, PEPPER) -> staff_pins.pin_fingerprint
+//     Restaurant-scoped on purpose: the same PIN in different restaurants yields
+//     different fingerprints (no cross-restaurant correlation / precompute).
 // The pepper is a server-only secret (STAFF_PIN_PEPPER), never in the DB/client.
+//
+// FINGERPRINT FORMULA CONTRACT — staff-pin-login (2b) MUST compute it identically:
+//     hmacHex(`${restaurant_id}:${pin}`, STAFF_PIN_PEPPER)
+// or logins will never match. The login device supplies the restaurant_id.
 //
 // Auth: caller is identified from their JWT; the write only proceeds if that
 // caller OWNS the restaurant the staff member belongs to. The privileged write
@@ -80,9 +86,9 @@ Deno.serve(async (req) => {
       .eq("id", staff.restaurant_id).eq("owner_id", user.id).maybeSingle();
     if (!owned) return json(403, { error: "Seul le propriétaire peut définir un PIN." });
 
-    // 4. hash + fingerprint
+    // 4. hash + restaurant-scoped fingerprint (formula must match staff-pin-login)
     const pin_hash = bcrypt.hashSync(pin, 10);
-    const pin_fingerprint = await hmacHex(pin, PEPPER);
+    const pin_fingerprint = await hmacHex(`${staff.restaurant_id}:${pin}`, PEPPER);
 
     // 5. upsert (one row per staff); the unique (restaurant_id, pin_fingerprint)
     //    index blocks two staff in the same restaurant sharing a PIN.
