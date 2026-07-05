@@ -15,6 +15,7 @@ import {
   Settings2,
   Bell,
   Shield,
+  ShieldCheck,
   Clock,
   FileDown,
   PieChart,
@@ -138,6 +139,7 @@ const NAV_GROUPS: NavGroup[] = [
       { to: "/dashboard/info", icon: Settings2, labelKey: "sidebar.info" },
       { to: "/dashboard/notifications", icon: Bell, labelKey: "sidebar.notifications", showNotifBadge: true },
       { to: "/dashboard/roles", icon: Shield, labelKey: "sidebar.roles" },
+      { to: "/dashboard/role-settings", icon: ShieldCheck, labelKey: "sidebar.rolePerms" },
     ],
   },
   {
