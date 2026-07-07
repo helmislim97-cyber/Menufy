@@ -92,21 +92,38 @@ Deno.serve(async (req) => {
       .select("id").eq("id", staff.restaurant_id).eq("owner_id", user.id).maybeSingle();
     if (!owned) return json(403, { error: "Seul le propriétaire peut définir un PIN." });
 
-    // 4. provision the hidden auth user on first PIN (idempotent)
+    // 4. provision the hidden auth user on first PIN (idempotent + SAFE).
+    // Only trust an existing user_id if it points at a DEDICATED hidden staff
+    // user (email @staff.menufy.app). Anything else (a legacy link from the old
+    // team flow, e.g. a real Gmail or even the OWNER's account) is refused and
+    // replaced with a fresh dedicated user — so a PIN can never map to a real
+    // login account.
+    const email = staffEmail(staffId);
     let userId: string | null = staff.user_id;
+
+    if (userId) {
+      const { data: linked } = await admin.auth.admin.getUserById(userId);
+      const linkedEmail = linked?.user?.email ?? "";
+      if (linkedEmail !== email) {
+        userId = null; // foreign/legacy/dangling link — do NOT trust it
+      }
+    }
+
     if (!userId) {
-      const email = staffEmail(staffId);
       const password = await derivePassword(staffId, AUTH_SECRET);
       const { data: created, error: cErr } = await admin.auth.admin.createUser({
         email, password, email_confirm: true,
         user_metadata: { staff_id: staffId, restaurant_id: staff.restaurant_id, kind: "pin_staff" },
       });
       if (cErr) {
-        // recover if a prior run created the user but failed to link it
+        // recover only via our exact dedicated email (never a foreign account)
         userId = await findUserIdByEmail(admin, email);
         if (!userId) return json(500, { error: "Échec de provisionnement du compte." });
-      } else {
+      } else if (created?.user?.email === email) {
         userId = created.user.id;
+      } else {
+        // defensive: createUser returned something unexpected — refuse to link
+        return json(500, { error: "Provisionnement incohérent, annulé." });
       }
       await admin.from("team_members").update({ user_id: userId }).eq("id", staffId);
     }
