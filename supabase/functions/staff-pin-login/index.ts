@@ -123,9 +123,12 @@ Deno.serve(async (req) => {
     }
 
     let staffRole: string | null = null;
+    let landingScreen = "dashboard";
     if (staff.role_id) {
-      const { data: role } = await admin.from("roles").select("key").eq("id", staff.role_id).maybeSingle();
+      const { data: role } = await admin.from("roles")
+        .select("key, landing_screen").eq("id", staff.role_id).maybeSingle();
       staffRole = role?.key ?? null;
+      landingScreen = role?.landing_screen ?? "dashboard";
     }
 
     // 6. return the real GoTrue session for the device to adopt via setSession()
@@ -135,6 +138,7 @@ Deno.serve(async (req) => {
       expires_at: signIn.session.expires_at,
       staff_id: pinRow!.staff_id,
       staff_role: staffRole,
+      landing_screen: landingScreen,
       restaurant_id: restaurantId,
     });
   } catch (_e) {
