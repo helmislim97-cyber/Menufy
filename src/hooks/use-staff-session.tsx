@@ -19,7 +19,9 @@ export function useStaffSession(
   opts?: { idleMinutes?: number },
 ) {
   const navigate = useNavigate();
-  const idleMs = (opts?.idleMinutes ?? 5) * 60 * 1000;
+  // TEMP (idle-timeout verification): 20 seconds. RESTORE the 5-minute line below.
+  const idleMs = 20_000;
+  // const idleMs = (opts?.idleMinutes ?? 5) * 60 * 1000;
 
   const endSession = useCallback(async () => {
     try { await supabase.auth.signOut(); } catch { /* ignore */ }
