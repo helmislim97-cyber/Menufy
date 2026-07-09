@@ -32,9 +32,14 @@
 -- ---------------------------------------------------------------------------
 -- 1. Reconciled helpers
 -- ---------------------------------------------------------------------------
--- current_restaurant_id(): union of the three live membership stores, priority
--- ordered. Supersedes M3's profiles-based fallback (never a live access path).
---   (1) PIN claim  (2) owner  (3) user_roles staff  (4) team_members(active)
+-- current_restaurant_id(): PURE DB-LOOKUP (Option 1 — no JWT claims). Resolves
+-- the restaurant a caller acts within, from auth.uid() only:
+--   (1) owner            — restaurants.owner_id = auth.uid()
+--   (2) legacy user_roles staff
+--   (3) PIN staff + legacy team_members staff — auth.uid() = team_members.user_id
+-- A PIN-staff GoTrue session has sub = its dedicated @staff.menufy.app auth user,
+-- whose id equals team_members.user_id, so branch (3) resolves it. No custom
+-- claims / access-token hook involved.
 CREATE OR REPLACE FUNCTION public.current_restaurant_id()
 RETURNS uuid
 LANGUAGE sql
@@ -43,9 +48,6 @@ SECURITY DEFINER
 SET search_path = public
 AS $$
   SELECT COALESCE(
-    (CASE WHEN (auth.jwt() ->> 'restaurant_id')
-                 ~* '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$'
-          THEN (auth.jwt() ->> 'restaurant_id')::uuid END),
     (SELECT r.id  FROM public.restaurants  r  WHERE r.owner_id = auth.uid() LIMIT 1),
     (SELECT ur.restaurant_id FROM public.user_roles ur
        WHERE ur.user_id = auth.uid() AND ur.restaurant_id IS NOT NULL LIMIT 1),
@@ -54,8 +56,9 @@ AS $$
   );
 $$;
 
--- is_manager_or_owner(): owner, OR PIN role owner/manager, OR (transition) a
--- manager stored in team_members.roles — since manager/waiter live only there.
+-- is_manager_or_owner(): PURE DB-LOOKUP (Option 1). True for the restaurant
+-- owner (real auth user), or a staff member whose team_members.roles includes
+-- 'manager'. A cashier/waiter/kitchen staffer resolves to false.
 CREATE OR REPLACE FUNCTION public.is_manager_or_owner()
 RETURNS boolean
 LANGUAGE sql
@@ -66,7 +69,6 @@ AS $$
   SELECT
     EXISTS (SELECT 1 FROM public.restaurants r
             WHERE r.id = public.current_restaurant_id() AND r.owner_id = auth.uid())
-    OR COALESCE((auth.jwt() ->> 'staff_role') IN ('owner', 'manager'), false)
     OR EXISTS (SELECT 1 FROM public.team_members tm
                WHERE tm.user_id = auth.uid() AND tm.status = 'active'
                  AND tm.restaurant_id = public.current_restaurant_id()
