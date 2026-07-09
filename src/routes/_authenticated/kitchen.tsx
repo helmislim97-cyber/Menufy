@@ -188,9 +188,14 @@ function KitchenPage() {
 
                 <div className="mt-3 flex-1 space-y-1.5 border-t border-border/60 pt-3">
                   {order.order_items.map((item) => (
-                    <div key={item.id} className="flex items-baseline gap-2 text-lg font-semibold">
-                      <span className="text-primary">{item.quantity}×</span>
-                      <span>{item.product_name}</span>
+                    <div key={item.id}>
+                      <div className="flex items-baseline gap-2 text-lg font-semibold">
+                        <span className="text-primary">{item.quantity}×</span>
+                        <span>{item.product_name}</span>
+                      </div>
+                      {item.notes && (
+                        <p className="ms-6 text-sm font-medium text-amber-600">— {item.notes}</p>
+                      )}
                     </div>
                   ))}
                 </div>
