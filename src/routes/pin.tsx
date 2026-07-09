@@ -10,7 +10,7 @@ export const Route = createFileRoute("/pin")({ component: PinPad });
 // landing_screen (from the role) -> app route
 const LANDING_ROUTES: Record<string, string> = {
   dashboard: "/dashboard",
-  waiter: "/cashier", // no dedicated waiter screen yet; the floor screen is /cashier
+  waiter: "/waiter",
   cashier: "/cashier",
   kitchen: "/kitchen",
 };
