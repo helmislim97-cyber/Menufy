@@ -25,7 +25,7 @@ export const Route = createFileRoute("/_authenticated/waiter")({
 
 interface Category { id: string; name: string; position: number }
 interface Product { id: string; name: string; price: number; category_id: string | null }
-interface TableRow { id: string; number: number; label: string | null }
+interface TableRow { id: string; number: number }
 interface OrderItem { id: string; product_name: string; product_price: number; quantity: number }
 interface Order { id: string; table_number: number | null; status: string; total: number; order_items: OrderItem[] }
 
@@ -64,7 +64,7 @@ function WaiterPage() {
       const [cat, prod, tbl] = await Promise.all([
         supabase.from("categories").select("id, name, position").eq("restaurant_id", rid).eq("is_active", true).order("position"),
         supabase.from("products").select("id, name, price, category_id").eq("restaurant_id", rid).eq("is_available", true).order("position"),
-        supabase.from("tables").select("id, number, label").eq("restaurant_id", rid).eq("is_active", true).order("number"),
+        supabase.from("tables").select("id, number").eq("restaurant_id", rid).eq("is_active", true).order("number"),
       ]);
       setCategories((cat.data as Category[]) ?? []);
       setProducts((prod.data as unknown as Product[]) ?? []);
@@ -284,7 +284,7 @@ function WaiterPage() {
                 <SelectContent>
                   <SelectItem value="none">{t("waiter.noTable")}</SelectItem>
                   {tables.map((tb) => (
-                    <SelectItem key={tb.id} value={String(tb.number)}>{tb.label || `${t("waiter.table")} ${tb.number}`}</SelectItem>
+                    <SelectItem key={tb.id} value={String(tb.number)}>{`${t("waiter.table")} ${tb.number}`}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
