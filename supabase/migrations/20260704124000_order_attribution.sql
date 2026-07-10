@@ -1,5 +1,5 @@
 -- ============================================================================
--- Migration 5 — order attribution + richer status set
+-- Migration 5 — order attribution + richer status set   (RE-VERIFIED for Option 1)
 -- ----------------------------------------------------------------------------
 -- Recap §3 / §11: orders carry a source (qr/manual), a fuller status lifecycle,
 -- and created_by_staff_id for attribution. Order items snapshot their modifiers.
@@ -8,38 +8,66 @@
 -- because the status set will keep growing and enums can't remove/rename/reorder
 -- values (and each ADD VALUE hits Postgres' same-transaction restriction).
 --
+-- ▶ ANTI-THEFT MODEL (the reason this migration exists):
+--   The attribution snapshot is written SERVER-SIDE and AUTHORITATIVELY. The
+--   trigger resolves the acting staff member from the SESSION identity
+--   (team_members.user_id = auth.uid() — the SAME Option-1 model M9 uses), NOT
+--   from anything the client sends. A client CANNOT omit its identity to create
+--   an untracked "ghost" sale, and CANNOT forge someone else's id to frame them:
+--   created_by_staff_id is overwritten from auth.uid() on every insert.
+--     * A staff session (sami on /waiter)  -> stamped with sami's id/name/role.
+--     * An anonymous QR customer            -> auth.uid() is NULL -> left NULL.
+--     * The owner (no team_members row)     -> left NULL (owner isn't staff).
+--
 -- Reuses : public.orders, public.order_items, public.team_members, public.roles
 -- Alters : orders.status (enum -> text +CHECK), +orders.source,
 --          +orders.created_by_staff_id, +orders.created_by_name/created_by_role,
 --          +order_items.modifiers
--- Creates: snapshot_order_creator() trigger fn (attribution snapshot on insert)
+-- Creates: snapshot_order_creator() trigger fn (authoritative attribution)
 --
--- ⚠️  PRE-CHECK — RUN THIS IN THE SQL EDITOR BEFORE APPLYING THIS MIGRATION.
---     If anything OTHER THAN orders.status references the order_status enum,
---     converting the column to text breaks that reference at query time. This
---     migration assumes the check comes back clean (only orders.status).
+-- ⚠️  PRE-CHECK — RUN ALL OF THESE IN THE SQL EDITOR BEFORE APPLYING.
+--     The enum->text conversion touches every existing order row, and the new
+--     CHECK will REJECT the whole migration if any existing row holds a status
+--     value not in the list below. So checks (e) and (f) are MANDATORY.
 --
---       -- (a) columns using the enum type
+--       -- (a) columns using the enum type (must be ONLY orders.status)
 --       select table_schema, table_name, column_name
 --       from information_schema.columns
 --       where udt_name = 'order_status';
 --
---       -- (b) functions referencing it
+--       -- (b) functions referencing it (expected: empty)
 --       select p.proname
 --       from pg_proc p join pg_namespace n on n.oid = p.pronamespace
 --       where pg_get_functiondef(p.oid) ilike '%order_status%';
 --
---       -- (c) policies referencing it
+--       -- (c) policies referencing it (expected: empty)
 --       select pol.polname, c.relname
 --       from pg_policy pol join pg_class c on c.oid = pol.polrelid
 --       where coalesce(pg_get_expr(pol.polqual,     pol.polrelid),'') ilike '%order_status%'
 --          or coalesce(pg_get_expr(pol.polwithcheck, pol.polrelid),'') ilike '%order_status%';
 --
---       -- (d) views referencing it
+--       -- (d) views referencing it (expected: empty)
 --       select table_name from information_schema.views
 --       where view_definition ilike '%order_status%';
 --
---     Expected clean result: (a) returns only orders/status; (b) (c) (d) empty.
+--       -- (e) the enum's actual values (so you know what exists today)
+--       select enumlabel from pg_enum
+--       where enumtypid = 'public.order_status'::regtype
+--       order by enumsortorder;
+--
+--       -- (f) DISTINCT status values actually present in your orders, with counts.
+--       --     EVERY value returned here MUST appear in the CHECK list in step 1.
+--       --     If any doesn't (e.g. 'completed', 'confirmed', 'delivered'),
+--       --     STOP and tell me — we add it to the CHECK before applying.
+--       select status, count(*) from public.orders group by status order by 2 desc;
+--
+--       -- (g) sanity: confirm the new columns don't already exist (expected: empty)
+--       select column_name from information_schema.columns
+--       where table_schema='public' and table_name='orders'
+--         and column_name in ('source','created_by_staff_id','created_by_name','created_by_role');
+--
+--     Expected clean result: (a) returns only orders/status; (b)(c)(d)(g) empty;
+--     (f) shows only values already in the CHECK list below.
 -- ============================================================================
 
 -- ---------- 1. status: enum -> text + CHECK (values preserved exactly) ----------
@@ -51,6 +79,7 @@ ALTER TABLE public.orders ALTER COLUMN status DROP DEFAULT;
 ALTER TABLE public.orders ALTER COLUMN status TYPE text USING status::text;
 ALTER TABLE public.orders ALTER COLUMN status SET DEFAULT 'pending';
 
+ALTER TABLE public.orders DROP CONSTRAINT IF EXISTS orders_status_check;
 ALTER TABLE public.orders
   ADD CONSTRAINT orders_status_check
   CHECK (status IN (
@@ -71,6 +100,7 @@ ALTER TABLE public.orders
 -- ---------- 2. order source (how it was entered) ----------
 ALTER TABLE public.orders
   ADD COLUMN IF NOT EXISTS source text NOT NULL DEFAULT 'qr';
+ALTER TABLE public.orders DROP CONSTRAINT IF EXISTS orders_source_check;
 ALTER TABLE public.orders
   ADD CONSTRAINT orders_source_check CHECK (source IN ('qr', 'manual'));
 
@@ -91,24 +121,58 @@ ALTER TABLE public.orders
   ADD COLUMN IF NOT EXISTS created_by_role text;
 CREATE INDEX IF NOT EXISTS idx_orders_created_by_staff ON public.orders (created_by_staff_id);
 
--- Fill the snapshot authoritatively from created_by_staff_id, so it always
--- matches the referenced staff and can't be spoofed by client-sent values.
--- BEFORE INSERT ONLY: the ON DELETE SET NULL above triggers an internal UPDATE
--- that must NOT touch the snapshot, or we'd erase the very audit trail we want.
+-- Authoritative attribution. The staff member is resolved from the SESSION
+-- (auth.uid() -> team_members.user_id), NOT from client-sent values, so the
+-- client can neither omit its identity (ghost sale) nor forge another's (frame).
+-- auth.uid() works inside a SECURITY DEFINER trigger: it reads the request JWT
+-- GUC, which is independent of the executing role (same basis as M9's helpers).
+--
+-- BEFORE INSERT ONLY: the ON DELETE SET NULL above fires an internal UPDATE that
+-- must NOT re-run this, or a later staff deletion would erase the snapshot we
+-- are keeping precisely to survive that deletion.
 CREATE OR REPLACE FUNCTION public.snapshot_order_creator()
 RETURNS TRIGGER
 LANGUAGE plpgsql
 SECURITY DEFINER
 SET search_path = public
 AS $$
+DECLARE
+  v_uid      uuid := auth.uid();
+  v_staff_id uuid;
+  v_name     text;
+  v_role     text;
 BEGIN
-  IF NEW.created_by_staff_id IS NOT NULL THEN
-    SELECT tm.full_name, r.key
-      INTO NEW.created_by_name, NEW.created_by_role
+  -- Who is acting? Resolve the staff row for this session, scoped to THIS
+  -- order's restaurant (a staff of restaurant A can't attribute in B).
+  IF v_uid IS NOT NULL THEN
+    SELECT tm.id, tm.full_name, r.key
+      INTO v_staff_id, v_name, v_role
     FROM public.team_members tm
     LEFT JOIN public.roles r ON r.id = tm.role_id
-    WHERE tm.id = NEW.created_by_staff_id;
+    WHERE tm.user_id = v_uid
+      AND tm.restaurant_id = NEW.restaurant_id
+      AND tm.status = 'active'
+    LIMIT 1;
   END IF;
+
+  IF v_staff_id IS NOT NULL THEN
+    -- Staff-created order: stamp attribution AUTHORITATIVELY (overwrite any
+    -- client-sent value). A staff-entered order is a manual order by definition,
+    -- never an anonymous QR scan — so also fix the source if it says 'qr'.
+    NEW.created_by_staff_id := v_staff_id;
+    NEW.created_by_name     := v_name;
+    NEW.created_by_role     := v_role;
+    IF NEW.source IS NULL OR NEW.source = 'qr' THEN
+      NEW.source := 'manual';
+    END IF;
+  ELSE
+    -- No staff identity (anonymous QR customer, or the owner who has no
+    -- team_members row): never trust a client-sent creator. Leave it NULL.
+    NEW.created_by_staff_id := NULL;
+    NEW.created_by_name     := NULL;
+    NEW.created_by_role     := NULL;
+  END IF;
+
   RETURN NEW;
 END;
 $$;
