@@ -170,9 +170,11 @@ function WaiterPage() {
       method: "cash",
       amount_due: Number(o.total),
     }));
-    const { error } = await supabase.from("payments").insert(rows);
-    if (error) {
-      // Never mark paid without a payment record: restore the order and stop.
+    // Require positive confirmation that EVERY payment row was written (not just
+    // "no error") before flipping status — an order must never be marked paid
+    // without its payment record.
+    const { data: inserted, error } = await supabase.from("payments").insert(rows).select("id");
+    if (error || !inserted || inserted.length !== rows.length) {
       toast.error(t("cashier.payError"));
       loadOrders(restaurantId);
       return;
