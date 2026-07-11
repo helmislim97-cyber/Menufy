@@ -121,16 +121,10 @@ function WaiterPage() {
   const submitOrder = async () => {
     if (!restaurantId || cartLines.length === 0) return;
     setSubmitting(true);
-    // A manual walk-in order entered by a waiter.
-    // ┌── TODO (M5 — IMMEDIATE NEXT PRIORITY after this screen) ───────────────┐
-    // │ Once order attribution ships, this insert MUST also set:               │
-    // │   source: 'manual',                                                    │
-    // │   created_by_staff_id: <the current staff member's team_members.id>    │
-    // │     (resolve via team_members where user_id = auth.uid())              │
-    // │ A manual order with NO created_by_staff_id is exactly the untracked-   │
-    // │ sale theft vector the anti-theft model exists to prevent. Do NOT ship  │
-    // │ manual entry to production without this.                               │
-    // └────────────────────────────────────────────────────────────────────────┘
+    // Manual walk-in order entered by a waiter. We only declare source here;
+    // attribution (created_by_staff_id/name/role) is stamped AUTHORITATIVELY by
+    // the snapshot_order_creator() trigger from auth.uid() — the client cannot
+    // omit or forge it. (M5)
     const { data: order, error } = await supabase
       .from("orders")
       .insert({
@@ -139,6 +133,7 @@ function WaiterPage() {
         status: "pending",
         total: cartTotal,
         notes: note.trim() || null,
+        source: "manual",
       })
       .select("id")
       .single();
