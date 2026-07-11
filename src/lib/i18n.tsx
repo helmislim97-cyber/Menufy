@@ -236,6 +236,7 @@ const fr: Dict = {
   "cashier.openCashier": "Mode caisse",
   "cashier.ordersCount": "commande(s)",
   "cashier.confirmPaid": "Marquer cette table comme payée ?",
+  "cashier.payError": "Échec de l'enregistrement du paiement. Réessayez.",
 
   "settings.editRestaurant": "Modifier",
   "settings.editRestaurantTitle": "Modifier le restaurant",
@@ -736,6 +737,7 @@ const ar: Dict = {
   "cashier.openCashier": "وضع الصندوق",
   "cashier.ordersCount": "طلب(ات)",
   "cashier.confirmPaid": "تعليم هذه الطاولة كمدفوعة؟",
+  "cashier.payError": "فشل تسجيل الدفع. أعد المحاولة.",
 
   "settings.editRestaurant": "تعديل",
   "settings.editRestaurantTitle": "تعديل المطعم",

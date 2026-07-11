@@ -235,6 +235,7 @@ export const en: Record<string, string> = {
   "cashier.openCashier": "Cashier mode",
   "cashier.ordersCount": "order(s)",
   "cashier.confirmPaid": "Mark this table as paid?",
+  "cashier.payError": "Failed to record the payment. Try again.",
 
   "settings.editRestaurant": "Edit",
   "settings.editRestaurantTitle": "Edit restaurant",

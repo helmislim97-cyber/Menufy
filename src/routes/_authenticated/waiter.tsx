@@ -155,9 +155,28 @@ function WaiterPage() {
     loadOrders(restaurantId);
   };
 
-  const markPaid = async (orderIds: string[]) => {
+  const markPaid = async (tableOrders: Order[]) => {
     if (!window.confirm(t("cashier.confirmPaid"))) return;
-    setOrders((prev) => prev.filter((o) => !orderIds.includes(o.id)));
+    if (!restaurantId) return;
+    const orderIds = tableOrders.map((o) => o.id);
+    setOrders((prev) => prev.filter((o) => !orderIds.includes(o.id))); // optimistic
+
+    // Record one payment per order. settled_by_* is stamped AUTHORITATIVELY by
+    // trg_payments_snapshot_handlers from auth.uid() — we send only the details.
+    // ── v1 is cash-only; a method picker + amount_tendered/change_given go here ──
+    const rows = tableOrders.map((o) => ({
+      restaurant_id: restaurantId,
+      order_id: o.id,
+      method: "cash",
+      amount_due: Number(o.total),
+    }));
+    const { error } = await supabase.from("payments").insert(rows);
+    if (error) {
+      // Never mark paid without a payment record: restore the order and stop.
+      toast.error(t("cashier.payError"));
+      loadOrders(restaurantId);
+      return;
+    }
     await supabase.from("orders").update({ status: "paid" }).in("id", orderIds);
   };
 
@@ -213,7 +232,7 @@ function WaiterPage() {
                   <span className="text-lg font-extrabold text-gold">{tbl.total.toFixed(2)} DT</span>
                 </div>
                 {access.can.markPaid && (
-                  <Button onClick={() => markPaid(tbl.orders.map((o) => o.id))} className="mt-3 h-11 w-full gap-2 font-bold">
+                  <Button onClick={() => markPaid(tbl.orders)} className="mt-3 h-11 w-full gap-2 font-bold">
                     <Wallet className="h-5 w-5" /> {t("waiter.markPaid")}
                   </Button>
                 )}

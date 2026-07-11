@@ -11,6 +11,7 @@ import { useI18n } from "@/lib/i18n";
 import { LangSwitch } from "@/components/lang-switch";
 import { Button } from "@/components/ui/button";
 import { Wallet, Receipt } from "lucide-react";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/cashier")({
   component: () => (
@@ -142,9 +143,28 @@ function CashierPage() {
       .sort((a, b) => a.tableNumber - b.tableNumber);
   }, [orders]);
 
-  const markPaid = async (orderIds: string[]) => {
+  const markPaid = async (tableOrders: Order[]) => {
     if (!window.confirm(t("cashier.confirmPaid"))) return;
-    setOrders((prev) => prev.filter((o) => !orderIds.includes(o.id)));
+    if (!restaurantId) return;
+    const orderIds = tableOrders.map((o) => o.id);
+    setOrders((prev) => prev.filter((o) => !orderIds.includes(o.id))); // optimistic
+
+    // Record one payment per order. settled_by_* is stamped AUTHORITATIVELY by
+    // trg_payments_snapshot_handlers from auth.uid() — we send only the details.
+    // ── v1 is cash-only; a method picker + amount_tendered/change_given go here ──
+    const rows = tableOrders.map((o) => ({
+      restaurant_id: restaurantId,
+      order_id: o.id,
+      method: "cash",
+      amount_due: Number(o.total),
+    }));
+    const { error } = await supabase.from("payments").insert(rows);
+    if (error) {
+      // Never mark paid without a payment record: restore the order and stop.
+      toast.error(t("cashier.payError"));
+      loadOrders(restaurantId);
+      return;
+    }
     await supabase.from("orders").update({ status: "paid" }).in("id", orderIds);
   };
   return (
@@ -203,7 +223,7 @@ function CashierPage() {
                 </div>
 
                 <Button
-                  onClick={() => markPaid(table.orders.map((o) => o.id))}
+                  onClick={() => markPaid(table.orders)}
                   className="mt-4 h-12 w-full gap-2 text-base font-bold"
                 >
                   <Wallet className="h-5 w-5" />
