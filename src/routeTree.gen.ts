@@ -33,6 +33,7 @@ import { Route as AuthenticatedDashboardMenuRouteImport } from './routes/_authen
 import { Route as AuthenticatedDashboardInfoRouteImport } from './routes/_authenticated/dashboard.info'
 import { Route as AuthenticatedDashboardDailyReportRouteImport } from './routes/_authenticated/dashboard.daily-report'
 import { Route as AuthenticatedDashboardAssistanceRouteImport } from './routes/_authenticated/dashboard.assistance'
+import { Route as AuthenticatedDashboardApprovalsRouteImport } from './routes/_authenticated/dashboard.approvals'
 import { Route as AuthenticatedDashboardAppearanceRouteImport } from './routes/_authenticated/dashboard.appearance'
 
 const PinRoute = PinRouteImport.update({
@@ -170,6 +171,12 @@ const AuthenticatedDashboardAssistanceRoute =
     path: '/assistance',
     getParentRoute: () => AuthenticatedDashboardRoute,
   } as any)
+const AuthenticatedDashboardApprovalsRoute =
+  AuthenticatedDashboardApprovalsRouteImport.update({
+    id: '/approvals',
+    path: '/approvals',
+    getParentRoute: () => AuthenticatedDashboardRoute,
+  } as any)
 const AuthenticatedDashboardAppearanceRoute =
   AuthenticatedDashboardAppearanceRouteImport.update({
     id: '/appearance',
@@ -186,6 +193,7 @@ export interface FileRoutesByFullPath {
   '/kitchen': typeof AuthenticatedKitchenRoute
   '/waiter': typeof AuthenticatedWaiterRoute
   '/dashboard/appearance': typeof AuthenticatedDashboardAppearanceRoute
+  '/dashboard/approvals': typeof AuthenticatedDashboardApprovalsRoute
   '/dashboard/assistance': typeof AuthenticatedDashboardAssistanceRoute
   '/dashboard/daily-report': typeof AuthenticatedDashboardDailyReportRoute
   '/dashboard/info': typeof AuthenticatedDashboardInfoRoute
@@ -211,6 +219,7 @@ export interface FileRoutesByTo {
   '/kitchen': typeof AuthenticatedKitchenRoute
   '/waiter': typeof AuthenticatedWaiterRoute
   '/dashboard/appearance': typeof AuthenticatedDashboardAppearanceRoute
+  '/dashboard/approvals': typeof AuthenticatedDashboardApprovalsRoute
   '/dashboard/assistance': typeof AuthenticatedDashboardAssistanceRoute
   '/dashboard/daily-report': typeof AuthenticatedDashboardDailyReportRoute
   '/dashboard/info': typeof AuthenticatedDashboardInfoRoute
@@ -239,6 +248,7 @@ export interface FileRoutesById {
   '/_authenticated/kitchen': typeof AuthenticatedKitchenRoute
   '/_authenticated/waiter': typeof AuthenticatedWaiterRoute
   '/_authenticated/dashboard/appearance': typeof AuthenticatedDashboardAppearanceRoute
+  '/_authenticated/dashboard/approvals': typeof AuthenticatedDashboardApprovalsRoute
   '/_authenticated/dashboard/assistance': typeof AuthenticatedDashboardAssistanceRoute
   '/_authenticated/dashboard/daily-report': typeof AuthenticatedDashboardDailyReportRoute
   '/_authenticated/dashboard/info': typeof AuthenticatedDashboardInfoRoute
@@ -267,6 +277,7 @@ export interface FileRouteTypes {
     | '/kitchen'
     | '/waiter'
     | '/dashboard/appearance'
+    | '/dashboard/approvals'
     | '/dashboard/assistance'
     | '/dashboard/daily-report'
     | '/dashboard/info'
@@ -292,6 +303,7 @@ export interface FileRouteTypes {
     | '/kitchen'
     | '/waiter'
     | '/dashboard/appearance'
+    | '/dashboard/approvals'
     | '/dashboard/assistance'
     | '/dashboard/daily-report'
     | '/dashboard/info'
@@ -319,6 +331,7 @@ export interface FileRouteTypes {
     | '/_authenticated/kitchen'
     | '/_authenticated/waiter'
     | '/_authenticated/dashboard/appearance'
+    | '/_authenticated/dashboard/approvals'
     | '/_authenticated/dashboard/assistance'
     | '/_authenticated/dashboard/daily-report'
     | '/_authenticated/dashboard/info'
@@ -515,6 +528,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedDashboardAssistanceRouteImport
       parentRoute: typeof AuthenticatedDashboardRoute
     }
+    '/_authenticated/dashboard/approvals': {
+      id: '/_authenticated/dashboard/approvals'
+      path: '/approvals'
+      fullPath: '/dashboard/approvals'
+      preLoaderRoute: typeof AuthenticatedDashboardApprovalsRouteImport
+      parentRoute: typeof AuthenticatedDashboardRoute
+    }
     '/_authenticated/dashboard/appearance': {
       id: '/_authenticated/dashboard/appearance'
       path: '/appearance'
@@ -527,6 +547,7 @@ declare module '@tanstack/react-router' {
 
 interface AuthenticatedDashboardRouteChildren {
   AuthenticatedDashboardAppearanceRoute: typeof AuthenticatedDashboardAppearanceRoute
+  AuthenticatedDashboardApprovalsRoute: typeof AuthenticatedDashboardApprovalsRoute
   AuthenticatedDashboardAssistanceRoute: typeof AuthenticatedDashboardAssistanceRoute
   AuthenticatedDashboardDailyReportRoute: typeof AuthenticatedDashboardDailyReportRoute
   AuthenticatedDashboardInfoRoute: typeof AuthenticatedDashboardInfoRoute
@@ -548,6 +569,7 @@ const AuthenticatedDashboardRouteChildren: AuthenticatedDashboardRouteChildren =
   {
     AuthenticatedDashboardAppearanceRoute:
       AuthenticatedDashboardAppearanceRoute,
+    AuthenticatedDashboardApprovalsRoute: AuthenticatedDashboardApprovalsRoute,
     AuthenticatedDashboardAssistanceRoute:
       AuthenticatedDashboardAssistanceRoute,
     AuthenticatedDashboardDailyReportRoute:
