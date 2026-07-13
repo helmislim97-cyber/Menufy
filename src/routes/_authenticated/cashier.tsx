@@ -10,7 +10,7 @@ import { playOrderSound, unlockAudio, setSoundEnabled, isSoundEnabled } from "@/
 import { useI18n } from "@/lib/i18n";
 import { LangSwitch } from "@/components/lang-switch";
 import { Button } from "@/components/ui/button";
-import { Wallet, Receipt } from "lucide-react";
+import { Wallet, Receipt, ChevronDown, ChevronUp } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/cashier")({
@@ -39,6 +39,19 @@ interface Order {
   order_items: OrderItem[];
 }
 
+interface Payment {
+  id: string;
+  order_id: string;
+  amount_due: number;
+  method: string;
+  created_at: string;
+  settled_by_name: string | null;
+}
+
+function timeShort(iso: string) {
+  return new Date(iso).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+}
+
 function CashierPage() {
   const { user } = useAuth();
   const { t } = useI18n();
@@ -46,6 +59,9 @@ function CashierPage() {
   const { exit } = useStaffSession(access);
   const [restaurantId, setRestaurantId] = useState<string | null>(null);
   const [orders, setOrders] = useState<Order[]>([]);
+  const [payments, setPayments] = useState<Payment[]>([]);
+  const [payTables, setPayTables] = useState<Record<string, number | null>>({});
+  const [showPayments, setShowPayments] = useState(false);
   const knownAssistIds = useRef<Set<string>>(new Set());
   const assistFirstLoad = useRef(true);
 
@@ -59,6 +75,30 @@ function CashierPage() {
     setOrders((data as Order[]) ?? []);
   };
 
+  // Today's completed payments, for the "Recent payments" panel (2a).
+  const loadPayments = async (rid: string) => {
+    const start = new Date();
+    start.setHours(0, 0, 0, 0);
+    const { data } = await supabase
+      .from("payments")
+      .select("id, order_id, amount_due, method, created_at, settled_by_name")
+      .eq("restaurant_id", rid)
+      .eq("status", "completed")
+      .gte("created_at", start.toISOString())
+      .order("created_at", { ascending: false })
+      .limit(50);
+    const list = (data as Payment[]) ?? [];
+    setPayments(list);
+    // resolve each payment's table via its order (payments has no table_number)
+    const orderIds = [...new Set(list.map((p) => p.order_id).filter(Boolean))];
+    if (orderIds.length) {
+      const { data: ord } = await supabase.from("orders").select("id, table_number").in("id", orderIds);
+      setPayTables(Object.fromEntries(((ord as { id: string; table_number: number | null }[]) ?? []).map((o) => [o.id, o.table_number])));
+    } else {
+      setPayTables({});
+    }
+  };
+
   useEffect(() => {
     if (access.loading || !access.restaurantId) return;
     setRestaurantId(access.restaurantId);
@@ -66,7 +106,22 @@ function CashierPage() {
       setSoundEnabled(data?.notification_prefs?.soundAlerts ?? true);
     });
     loadOrders(access.restaurantId);
+    if (access.can.markPaid) loadPayments(access.restaurantId);
   }, [access.loading, access.restaurantId]);
+
+  // Keep the payments panel fresh (only for those who can take payment).
+  useEffect(() => {
+    if (!restaurantId || !access.can.markPaid) return;
+    const ch = supabase
+      .channel(`cashier-payments-${restaurantId}`)
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "payments", filter: `restaurant_id=eq.${restaurantId}` },
+        () => loadPayments(restaurantId),
+      )
+      .subscribe();
+    return () => { supabase.removeChannel(ch); };
+  }, [restaurantId, access.can.markPaid]);
 
   // Unlock audio on first interaction + keep warm
   useEffect(() => {
@@ -234,6 +289,48 @@ function CashierPage() {
               </div>
             );
           })}
+        </div>
+      )}
+
+      {/* Recent payments (today) — read-only for now (2a). Only shown to staff
+          who can take payment; RLS still governs the real boundary. */}
+      {access.can.markPaid && (
+        <div className="mt-6">
+          <button
+            onClick={() => setShowPayments((s) => !s)}
+            className="flex w-full items-center justify-between rounded-2xl border border-border bg-surface px-4 py-3 text-left"
+          >
+            <span className="flex items-center gap-2 font-bold">
+              <Receipt className="h-5 w-5 text-muted-foreground" />
+              {t("cashier.recentPayments")}
+              <span className="rounded-full bg-muted px-2 py-0.5 text-xs font-semibold text-muted-foreground">
+                {payments.length}
+              </span>
+            </span>
+            {showPayments ? <ChevronUp className="h-5 w-5" /> : <ChevronDown className="h-5 w-5" />}
+          </button>
+
+          {showPayments && (
+            payments.length === 0 ? (
+              <p className="mt-3 text-center text-sm text-muted-foreground">{t("cashier.noPayments")}</p>
+            ) : (
+              <div className="mt-3 space-y-2">
+                {payments.map((p) => (
+                  <div key={p.id} className="flex items-center justify-between rounded-xl border border-border bg-surface px-4 py-3">
+                    <div className="min-w-0">
+                      <p className="text-sm font-bold">
+                        {Number(p.amount_due).toFixed(2)} DT
+                        <span className="ms-2 text-xs font-medium text-muted-foreground">{t(`cashier.method.${p.method}`)}</span>
+                      </p>
+                      <p className="mt-0.5 text-xs text-muted-foreground">
+                        {t("cashier.table")} {payTables[p.order_id] ?? "—"} · {p.settled_by_name ?? "—"} · {timeShort(p.created_at)}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )
+          )}
         </div>
       )}
     </div>
