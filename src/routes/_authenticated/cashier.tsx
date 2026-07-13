@@ -10,6 +10,7 @@ import { playOrderSound, unlockAudio, setSoundEnabled, isSoundEnabled } from "@/
 import { useI18n } from "@/lib/i18n";
 import { LangSwitch } from "@/components/lang-switch";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Wallet, Receipt, ChevronDown, ChevronUp } from "lucide-react";
 import { toast } from "sonner";
 
@@ -62,6 +63,11 @@ function CashierPage() {
   const [payments, setPayments] = useState<Payment[]>([]);
   const [payTables, setPayTables] = useState<Record<string, number | null>>({});
   const [showPayments, setShowPayments] = useState(false);
+  const [pendingVoidIds, setPendingVoidIds] = useState<Set<string>>(new Set());
+  const [voidModal, setVoidModal] = useState<Payment | null>(null);
+  const [voidReason, setVoidReason] = useState("customer_refund");
+  const [voidNote, setVoidNote] = useState("");
+  const [voidBusy, setVoidBusy] = useState(false);
   const knownAssistIds = useRef<Set<string>>(new Set());
   const assistFirstLoad = useRef(true);
 
@@ -99,6 +105,20 @@ function CashierPage() {
     }
   };
 
+  // payment_ids that already have an OPEN (pending) void request — for the
+  // duplicate guard / "Void requested" state.
+  const loadPendingVoids = async (rid: string) => {
+    const { data } = await supabase
+      .from("order_change_requests")
+      .select("payment_id")
+      .eq("restaurant_id", rid)
+      .eq("action", "void_payment")
+      .eq("status", "pending");
+    setPendingVoidIds(
+      new Set(((data as { payment_id: string | null }[]) ?? []).map((r) => r.payment_id).filter(Boolean) as string[]),
+    );
+  };
+
   useEffect(() => {
     if (access.loading || !access.restaurantId) return;
     setRestaurantId(access.restaurantId);
@@ -106,10 +126,13 @@ function CashierPage() {
       setSoundEnabled(data?.notification_prefs?.soundAlerts ?? true);
     });
     loadOrders(access.restaurantId);
-    if (access.can.markPaid) loadPayments(access.restaurantId);
+    if (access.can.markPaid) {
+      loadPayments(access.restaurantId);
+      loadPendingVoids(access.restaurantId);
+    }
   }, [access.loading, access.restaurantId]);
 
-  // Keep the payments panel fresh (only for those who can take payment).
+  // Keep the payments panel + void state fresh (only for those who can take payment).
   useEffect(() => {
     if (!restaurantId || !access.can.markPaid) return;
     const ch = supabase
@@ -118,6 +141,11 @@ function CashierPage() {
         "postgres_changes",
         { event: "*", schema: "public", table: "payments", filter: `restaurant_id=eq.${restaurantId}` },
         () => loadPayments(restaurantId),
+      )
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "order_change_requests", filter: `restaurant_id=eq.${restaurantId}` },
+        () => loadPendingVoids(restaurantId),
       )
       .subscribe();
     return () => { supabase.removeChannel(ch); };
@@ -224,6 +252,34 @@ function CashierPage() {
     }
     await supabase.from("orders").update({ status: "paid" }).in("id", orderIds);
   };
+
+  // Raise a void_payment change request. The client sends minimal data; the
+  // trg_ocr_stamp_creator trigger stamps requested_by from the session, and the
+  // DB partial-unique index blocks a concurrent duplicate.
+  const submitVoidRequest = async () => {
+    if (!voidModal || !restaurantId) return;
+    setVoidBusy(true);
+    const payment = voidModal;
+    const { error } = await supabase.from("order_change_requests").insert({
+      restaurant_id: restaurantId,
+      order_id: payment.order_id,
+      action: "void_payment",
+      payment_id: payment.id,
+      reason: voidReason,
+      note: voidNote.trim() || null,
+    });
+    setVoidBusy(false);
+    if (error) {
+      toast.error(error.message || t("approvals.error")); // e.g. duplicate blocked by the index
+      return;
+    }
+    setPendingVoidIds((prev) => new Set(prev).add(payment.id));
+    toast.success(t("cashier.voidRequestedToast"));
+    setVoidModal(null);
+    setVoidReason("customer_refund");
+    setVoidNote("");
+  };
+
   return (
     <div className="min-h-screen bg-background p-4">
       <header className="mb-4 flex items-center justify-between">
@@ -316,7 +372,7 @@ function CashierPage() {
             ) : (
               <div className="mt-3 space-y-2">
                 {payments.map((p) => (
-                  <div key={p.id} className="flex items-center justify-between rounded-xl border border-border bg-surface px-4 py-3">
+                  <div key={p.id} className="flex items-center justify-between gap-3 rounded-xl border border-border bg-surface px-4 py-3">
                     <div className="min-w-0">
                       <p className="text-sm font-bold">
                         {Number(p.amount_due).toFixed(2)} DT
@@ -326,11 +382,67 @@ function CashierPage() {
                         {t("cashier.table")} {payTables[p.order_id] ?? "—"} · {p.settled_by_name ?? "—"} · {timeShort(p.created_at)}
                       </p>
                     </div>
+                    {pendingVoidIds.has(p.id) ? (
+                      <span className="shrink-0 rounded-full bg-amber-500/10 px-2.5 py-1 text-xs font-bold text-amber-600">
+                        {t("cashier.voidRequested")}
+                      </span>
+                    ) : (
+                      <Button
+                        onClick={() => { setVoidReason("customer_refund"); setVoidNote(""); setVoidModal(p); }}
+                        variant="outline"
+                        className="h-8 shrink-0 px-3 text-xs font-semibold"
+                      >
+                        {t("cashier.requestVoid")}
+                      </Button>
+                    )}
                   </div>
                 ))}
               </div>
             )
           )}
+        </div>
+      )}
+
+      {/* Request-void modal */}
+      {voidModal && (
+        <div
+          className="fixed inset-0 z-50 grid place-items-center bg-black/50 p-4"
+          onClick={() => { if (!voidBusy) setVoidModal(null); }}
+        >
+          <div className="w-full max-w-sm rounded-2xl border border-border bg-background p-5" onClick={(e) => e.stopPropagation()}>
+            <h2 className="text-lg font-extrabold">{t("cashier.voidModalTitle")}</h2>
+            <p className="mt-1 text-sm text-muted-foreground">
+              {Number(voidModal.amount_due).toFixed(2)} DT · {t(`cashier.method.${voidModal.method}`)}
+            </p>
+
+            <label className="mt-4 block text-xs font-semibold text-muted-foreground">{t("approvals.reason")}</label>
+            <select
+              value={voidReason}
+              onChange={(e) => setVoidReason(e.target.value)}
+              className="mt-1 w-full rounded-xl border border-border bg-surface px-3 py-2.5 text-sm"
+            >
+              <option value="customer_refund">{t("cashier.voidReason.customer_refund")}</option>
+              <option value="wrong_order">{t("cashier.voidReason.wrong_order")}</option>
+              <option value="entry_mistake">{t("cashier.voidReason.entry_mistake")}</option>
+              <option value="other">{t("cashier.voidReason.other")}</option>
+            </select>
+
+            <Input
+              value={voidNote}
+              onChange={(e) => setVoidNote(e.target.value)}
+              placeholder={t("waiter.note")}
+              className="mt-3"
+            />
+
+            <div className="mt-4 flex gap-2">
+              <Button onClick={submitVoidRequest} disabled={voidBusy} className="h-11 flex-1 font-bold">
+                {t("cashier.confirm")}
+              </Button>
+              <Button onClick={() => setVoidModal(null)} disabled={voidBusy} variant="outline" className="h-11 flex-1 font-bold">
+                {t("cashier.cancel")}
+              </Button>
+            </div>
+          </div>
         </div>
       )}
     </div>
