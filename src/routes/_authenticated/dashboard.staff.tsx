@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { AccessGuard } from "@/components/access-guard";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
@@ -12,7 +13,11 @@ import { UserPlus, Users, Pencil, Trash2, X, ShieldCheck, KeyRound } from "lucid
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/dashboard/staff")({
-  component: StaffPage,
+  component: () => (
+    <AccessGuard area="owner">
+      <StaffPage />
+    </AccessGuard>
+  ),
 });
 
 interface RoleOption { id: string; key: string; name: string }

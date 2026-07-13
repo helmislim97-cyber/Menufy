@@ -17,6 +17,9 @@ export interface RestaurantAccess {
     markPaid: boolean;       // mark orders as paid
     handleAssistance: boolean;
     manageSettings: boolean; // menu, settings, roles, etc.
+    manageRoles: boolean;    // edit ROLE DEFINITIONS (owner-only for now; the
+                             // seam that becomes permission-driven once the
+                             // roles.permissions jsonb feeds enforcement)
   };
 }
 
@@ -28,7 +31,7 @@ export function useRestaurantAccess(): RestaurantAccess {
     restaurantName: null,
     isOwner: false,
     roles: [],
-    can: { dashboard: false, kitchen: false, cashierScreen: false, markPaid: false, handleAssistance: false, manageSettings: false },
+    can: { dashboard: false, kitchen: false, cashierScreen: false, markPaid: false, handleAssistance: false, manageSettings: false, manageRoles: false },
   });
 
   useEffect(() => {
@@ -46,7 +49,7 @@ export function useRestaurantAccess(): RestaurantAccess {
           restaurantName: owned.name,
           isOwner: true,
           roles: ["owner"],
-          can: { dashboard: true, kitchen: true, cashierScreen: true, markPaid: true, handleAssistance: true, manageSettings: true },
+          can: { dashboard: true, kitchen: true, cashierScreen: true, markPaid: true, handleAssistance: true, manageSettings: true, manageRoles: true },
         });
         return;
       }
@@ -70,6 +73,7 @@ export function useRestaurantAccess(): RestaurantAccess {
             markPaid: roles.includes("cashier") || roles.includes("manager"),
             handleAssistance: roles.includes("waiter") || roles.includes("cashier") || roles.includes("manager"),
             manageSettings: roles.includes("manager"),
+            manageRoles: false, // never a staff capability — owner-only (see above)
           },
         });
         return;

@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { AccessGuard } from "@/components/access-guard";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
@@ -24,7 +25,11 @@ function defaultHours(): OpeningHours {
 }
 
 export const Route = createFileRoute("/_authenticated/dashboard/info")({
-  component: InfoPage,
+  component: () => (
+    <AccessGuard area="owner">
+      <InfoPage />
+    </AccessGuard>
+  ),
 });
 
 interface Restaurant {

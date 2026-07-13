@@ -60,6 +60,7 @@ interface NavItem {
   comingSoon?: boolean;
   showNotifBadge?: boolean;
   showApprovalBadge?: boolean;
+  ownerOnly?: boolean;
   children?: { to: string; labelKey: string }[];
 }
 
@@ -171,10 +172,10 @@ const NAV_GROUPS: NavGroup[] = [
       { to: "/dashboard/menu", icon: UtensilsCrossed, labelKey: "sidebar.menu" },
       { to: "/dashboard/tables", icon: Table2, labelKey: "sidebar.tables" },
       { to: "/dashboard/appearance", icon: Palette, labelKey: "sidebar.appearance" },
-      { to: "/dashboard/info", icon: Settings2, labelKey: "sidebar.info" },
+      { to: "/dashboard/info", icon: Settings2, labelKey: "sidebar.info", ownerOnly: true },
       { to: "/dashboard/notifications", icon: Bell, labelKey: "sidebar.notifications", showNotifBadge: true },
-      { to: "/dashboard/role-settings", icon: ShieldCheck, labelKey: "sidebar.rolePerms" },
-      { to: "/dashboard/staff", icon: Users, labelKey: "sidebar.staff" },
+      { to: "/dashboard/role-settings", icon: ShieldCheck, labelKey: "sidebar.rolePerms", ownerOnly: true },
+      { to: "/dashboard/staff", icon: Users, labelKey: "sidebar.staff", ownerOnly: true },
     ],
   },
   {
@@ -225,6 +226,7 @@ function NavLinks({
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const [openSubmenu, setOpenSubmenu] = useState<string | null>(null);
   const approvalCount = useApprovalPendingCount();
+  const access = useRestaurantAccess();
   const navRef = useRef<HTMLElement>(null);
 
   useEffect(() => {
@@ -245,7 +247,9 @@ function NavLinks({
             <p className="px-3 text-[11px] font-bold uppercase tracking-wider text-muted-foreground/70">{t(group.titleKey)}</p>
           )}
           <div className="mt-1 space-y-0.5">
-            {group.items.map((item) => {
+            {group.items
+              .filter((item) => !item.ownerOnly || access.isOwner)
+              .map((item) => {
               const active = pathname === item.to || (item.to !== "/dashboard" && pathname.startsWith(item.to + "/"));
               if (item.comingSoon) {
                 return (

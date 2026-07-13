@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { AccessGuard } from "@/components/access-guard";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
@@ -16,7 +17,11 @@ import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/dashboard/role-settings")({
-  component: RoleSettingsPage,
+  component: () => (
+    <AccessGuard area="owner">
+      <RoleSettingsPage />
+    </AccessGuard>
+  ),
 });
 
 // ---- permission contract (mirrors the M1 seed / DB jsonb) -------------------
