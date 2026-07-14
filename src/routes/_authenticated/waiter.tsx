@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/select";
 import { Plus, Minus, X, Send, Wallet } from "lucide-react";
 import { toast } from "sonner";
+import { CancelRequestButton } from "@/components/cancel-request";
 
 export const Route = createFileRoute("/_authenticated/waiter")({
   component: () => (
@@ -238,6 +239,16 @@ function WaiterPage() {
                     <Wallet className="h-5 w-5" /> {t("waiter.markPaid")}
                   </Button>
                 )}
+
+                <CancelRequestButton
+                  restaurantId={restaurantId}
+                  className="mt-2 h-10 w-full gap-1.5 text-sm font-semibold"
+                  orders={tbl.orders.map((o) => ({
+                    id: o.id,
+                    total: Number(o.total),
+                    itemCount: o.order_items.reduce((s, it) => s + it.quantity, 0),
+                  }))}
+                />
               </div>
             );
           })}

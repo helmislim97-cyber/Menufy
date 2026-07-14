@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Wallet, Receipt, ChevronDown, ChevronUp } from "lucide-react";
 import { toast } from "sonner";
+import { CancelRequestButton } from "@/components/cancel-request";
 
 export const Route = createFileRoute("/_authenticated/cashier")({
   component: () => (
@@ -342,6 +343,17 @@ function CashierPage() {
                   <Wallet className="h-5 w-5" />
                   {t("cashier.markPaid")}
                 </Button>
+
+                <CancelRequestButton
+                  restaurantId={restaurantId}
+                  className="mt-2 h-10 w-full gap-1.5 text-sm font-semibold"
+                  orders={table.orders.map((o) => ({
+                    id: o.id,
+                    total: Number(o.total),
+                    createdAt: o.created_at,
+                    itemCount: o.order_items.reduce((s, it) => s + it.quantity, 0),
+                  }))}
+                />
               </div>
             );
           })}
