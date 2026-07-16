@@ -1,14 +1,20 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { useRestaurantAccess } from "@/hooks/use-restaurant-access";
+import { useStaffSession } from "@/hooks/use-staff-session";
+import { StaffExitButton } from "@/components/staff-exit-button";
 import { AccessGuard } from "@/components/access-guard";
 import { playOrderSound, unlockAudio, setSoundEnabled, isSoundEnabled } from "@/lib/notif-sound";
 import { useI18n } from "@/lib/i18n";
 import { LangSwitch } from "@/components/lang-switch";
 import { Button } from "@/components/ui/button";
-import { X, Wallet, Receipt } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Wallet, Receipt, ChevronDown, ChevronUp } from "lucide-react";
+import { toast } from "sonner";
+import { CancelRequestButton } from "@/components/cancel-request";
+import { EditRequestButton } from "@/components/edit-request";
 
 export const Route = createFileRoute("/_authenticated/cashier")({
   component: () => (
@@ -36,12 +42,34 @@ interface Order {
   order_items: OrderItem[];
 }
 
+interface Payment {
+  id: string;
+  order_id: string;
+  amount_due: number;
+  method: string;
+  created_at: string;
+  settled_by_name: string | null;
+}
+
+function timeShort(iso: string) {
+  return new Date(iso).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+}
+
 function CashierPage() {
   const { user } = useAuth();
   const { t } = useI18n();
   const access = useRestaurantAccess();
+  const { exit } = useStaffSession(access);
   const [restaurantId, setRestaurantId] = useState<string | null>(null);
   const [orders, setOrders] = useState<Order[]>([]);
+  const [payments, setPayments] = useState<Payment[]>([]);
+  const [payTables, setPayTables] = useState<Record<string, number | null>>({});
+  const [showPayments, setShowPayments] = useState(false);
+  const [pendingVoidIds, setPendingVoidIds] = useState<Set<string>>(new Set());
+  const [voidModal, setVoidModal] = useState<Payment | null>(null);
+  const [voidReason, setVoidReason] = useState("customer_refund");
+  const [voidNote, setVoidNote] = useState("");
+  const [voidBusy, setVoidBusy] = useState(false);
   const knownAssistIds = useRef<Set<string>>(new Set());
   const assistFirstLoad = useRef(true);
 
@@ -55,6 +83,44 @@ function CashierPage() {
     setOrders((data as Order[]) ?? []);
   };
 
+  // Today's completed payments, for the "Recent payments" panel (2a).
+  const loadPayments = async (rid: string) => {
+    const start = new Date();
+    start.setHours(0, 0, 0, 0);
+    const { data } = await supabase
+      .from("payments")
+      .select("id, order_id, amount_due, method, created_at, settled_by_name")
+      .eq("restaurant_id", rid)
+      .eq("status", "completed")
+      .gte("created_at", start.toISOString())
+      .order("created_at", { ascending: false })
+      .limit(50);
+    const list = (data as Payment[]) ?? [];
+    setPayments(list);
+    // resolve each payment's table via its order (payments has no table_number)
+    const orderIds = [...new Set(list.map((p) => p.order_id).filter(Boolean))];
+    if (orderIds.length) {
+      const { data: ord } = await supabase.from("orders").select("id, table_number").in("id", orderIds);
+      setPayTables(Object.fromEntries(((ord as { id: string; table_number: number | null }[]) ?? []).map((o) => [o.id, o.table_number])));
+    } else {
+      setPayTables({});
+    }
+  };
+
+  // payment_ids that already have an OPEN (pending) void request — for the
+  // duplicate guard / "Void requested" state.
+  const loadPendingVoids = async (rid: string) => {
+    const { data } = await supabase
+      .from("order_change_requests")
+      .select("payment_id")
+      .eq("restaurant_id", rid)
+      .eq("action", "void_payment")
+      .eq("status", "pending");
+    setPendingVoidIds(
+      new Set(((data as { payment_id: string | null }[]) ?? []).map((r) => r.payment_id).filter(Boolean) as string[]),
+    );
+  };
+
   useEffect(() => {
     if (access.loading || !access.restaurantId) return;
     setRestaurantId(access.restaurantId);
@@ -62,7 +128,30 @@ function CashierPage() {
       setSoundEnabled(data?.notification_prefs?.soundAlerts ?? true);
     });
     loadOrders(access.restaurantId);
+    if (access.can.markPaid) {
+      loadPayments(access.restaurantId);
+      loadPendingVoids(access.restaurantId);
+    }
   }, [access.loading, access.restaurantId]);
+
+  // Keep the payments panel + void state fresh (only for those who can take payment).
+  useEffect(() => {
+    if (!restaurantId || !access.can.markPaid) return;
+    const ch = supabase
+      .channel(`cashier-payments-${restaurantId}`)
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "payments", filter: `restaurant_id=eq.${restaurantId}` },
+        () => loadPayments(restaurantId),
+      )
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "order_change_requests", filter: `restaurant_id=eq.${restaurantId}` },
+        () => loadPendingVoids(restaurantId),
+      )
+      .subscribe();
+    return () => { supabase.removeChannel(ch); };
+  }, [restaurantId, access.can.markPaid]);
 
   // Unlock audio on first interaction + keep warm
   useEffect(() => {
@@ -139,11 +228,60 @@ function CashierPage() {
       .sort((a, b) => a.tableNumber - b.tableNumber);
   }, [orders]);
 
-  const markPaid = async (orderIds: string[]) => {
+  const markPaid = async (tableOrders: Order[]) => {
     if (!window.confirm(t("cashier.confirmPaid"))) return;
-    setOrders((prev) => prev.filter((o) => !orderIds.includes(o.id)));
+    if (!restaurantId) return;
+    const orderIds = tableOrders.map((o) => o.id);
+    setOrders((prev) => prev.filter((o) => !orderIds.includes(o.id))); // optimistic
+
+    // Record one payment per order. settled_by_* is stamped AUTHORITATIVELY by
+    // trg_payments_snapshot_handlers from auth.uid() — we send only the details.
+    // ── v1 is cash-only; a method picker + amount_tendered/change_given go here ──
+    const rows = tableOrders.map((o) => ({
+      restaurant_id: restaurantId,
+      order_id: o.id,
+      method: "cash",
+      amount_due: Number(o.total),
+    }));
+    // Require positive confirmation that EVERY payment row was written (not just
+    // "no error") before flipping status — an order must never be marked paid
+    // without its payment record.
+    const { data: inserted, error } = await supabase.from("payments").insert(rows).select("id");
+    if (error || !inserted || inserted.length !== rows.length) {
+      toast.error(t("cashier.payError"));
+      loadOrders(restaurantId);
+      return;
+    }
     await supabase.from("orders").update({ status: "paid" }).in("id", orderIds);
   };
+
+  // Raise a void_payment change request. The client sends minimal data; the
+  // trg_ocr_stamp_creator trigger stamps requested_by from the session, and the
+  // DB partial-unique index blocks a concurrent duplicate.
+  const submitVoidRequest = async () => {
+    if (!voidModal || !restaurantId) return;
+    setVoidBusy(true);
+    const payment = voidModal;
+    const { error } = await supabase.from("order_change_requests").insert({
+      restaurant_id: restaurantId,
+      order_id: payment.order_id,
+      action: "void_payment",
+      payment_id: payment.id,
+      reason: voidReason,
+      note: voidNote.trim() || null,
+    });
+    setVoidBusy(false);
+    if (error) {
+      toast.error(error.message || t("approvals.error")); // e.g. duplicate blocked by the index
+      return;
+    }
+    setPendingVoidIds((prev) => new Set(prev).add(payment.id));
+    toast.success(t("cashier.voidRequestedToast"));
+    setVoidModal(null);
+    setVoidReason("customer_refund");
+    setVoidNote("");
+  };
+
   return (
     <div className="min-h-screen bg-background p-4">
       <header className="mb-4 flex items-center justify-between">
@@ -153,12 +291,7 @@ function CashierPage() {
         </div>
         <div className="flex items-center gap-2">
           <LangSwitch />
-          <Link to="/dashboard/orders">
-            <Button variant="outline" className="gap-1.5">
-              <X className="h-4 w-4" />
-              {t("cashier.exit")}
-            </Button>
-          </Link>
+          <StaffExitButton isOwner={access.isOwner} onExit={exit} />
         </div>
       </header>
 
@@ -205,15 +338,136 @@ function CashierPage() {
                 </div>
 
                 <Button
-                  onClick={() => markPaid(table.orders.map((o) => o.id))}
+                  onClick={() => markPaid(table.orders)}
                   className="mt-4 h-12 w-full gap-2 text-base font-bold"
                 >
                   <Wallet className="h-5 w-5" />
                   {t("cashier.markPaid")}
                 </Button>
+
+                <CancelRequestButton
+                  restaurantId={restaurantId}
+                  className="mt-2 h-10 w-full gap-1.5 text-sm font-semibold"
+                  orders={table.orders.map((o) => ({
+                    id: o.id,
+                    total: Number(o.total),
+                    createdAt: o.created_at,
+                    itemCount: o.order_items.reduce((s, it) => s + it.quantity, 0),
+                  }))}
+                />
+
+                <EditRequestButton
+                  restaurantId={restaurantId}
+                  className="mt-2 h-10 w-full gap-1.5 text-sm font-semibold"
+                  orders={table.orders.map((o) => ({
+                    id: o.id,
+                    total: Number(o.total),
+                    items: o.order_items.map((it) => ({
+                      id: it.id, name: it.product_name, price: Number(it.product_price), qty: it.quantity,
+                    })),
+                  }))}
+                />
               </div>
             );
           })}
+        </div>
+      )}
+
+      {/* Recent payments (today) — read-only for now (2a). Only shown to staff
+          who can take payment; RLS still governs the real boundary. */}
+      {access.can.markPaid && (
+        <div className="mt-6">
+          <button
+            onClick={() => setShowPayments((s) => !s)}
+            className="flex w-full items-center justify-between rounded-2xl border border-border bg-surface px-4 py-3 text-left"
+          >
+            <span className="flex items-center gap-2 font-bold">
+              <Receipt className="h-5 w-5 text-muted-foreground" />
+              {t("cashier.recentPayments")}
+              <span className="rounded-full bg-muted px-2 py-0.5 text-xs font-semibold text-muted-foreground">
+                {payments.length}
+              </span>
+            </span>
+            {showPayments ? <ChevronUp className="h-5 w-5" /> : <ChevronDown className="h-5 w-5" />}
+          </button>
+
+          {showPayments && (
+            payments.length === 0 ? (
+              <p className="mt-3 text-center text-sm text-muted-foreground">{t("cashier.noPayments")}</p>
+            ) : (
+              <div className="mt-3 space-y-2">
+                {payments.map((p) => (
+                  <div key={p.id} className="flex items-center justify-between gap-3 rounded-xl border border-border bg-surface px-4 py-3">
+                    <div className="min-w-0">
+                      <p className="text-sm font-bold">
+                        {Number(p.amount_due).toFixed(2)} DT
+                        <span className="ms-2 text-xs font-medium text-muted-foreground">{t(`cashier.method.${p.method}`)}</span>
+                      </p>
+                      <p className="mt-0.5 text-xs text-muted-foreground">
+                        {t("cashier.table")} {payTables[p.order_id] ?? "—"} · {p.settled_by_name ?? "—"} · {timeShort(p.created_at)}
+                      </p>
+                    </div>
+                    {pendingVoidIds.has(p.id) ? (
+                      <span className="shrink-0 rounded-full bg-amber-500/10 px-2.5 py-1 text-xs font-bold text-amber-600">
+                        {t("cashier.voidRequested")}
+                      </span>
+                    ) : (
+                      <Button
+                        onClick={() => { setVoidReason("customer_refund"); setVoidNote(""); setVoidModal(p); }}
+                        variant="outline"
+                        className="h-8 shrink-0 px-3 text-xs font-semibold"
+                      >
+                        {t("cashier.requestVoid")}
+                      </Button>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )
+          )}
+        </div>
+      )}
+
+      {/* Request-void modal */}
+      {voidModal && (
+        <div
+          className="fixed inset-0 z-50 grid place-items-center bg-black/50 p-4"
+          onClick={() => { if (!voidBusy) setVoidModal(null); }}
+        >
+          <div className="w-full max-w-sm rounded-2xl border border-border bg-background p-5" onClick={(e) => e.stopPropagation()}>
+            <h2 className="text-lg font-extrabold">{t("cashier.voidModalTitle")}</h2>
+            <p className="mt-1 text-sm text-muted-foreground">
+              {Number(voidModal.amount_due).toFixed(2)} DT · {t(`cashier.method.${voidModal.method}`)}
+            </p>
+
+            <label className="mt-4 block text-xs font-semibold text-muted-foreground">{t("approvals.reason")}</label>
+            <select
+              value={voidReason}
+              onChange={(e) => setVoidReason(e.target.value)}
+              className="mt-1 w-full rounded-xl border border-border bg-surface px-3 py-2.5 text-sm"
+            >
+              <option value="customer_refund">{t("cashier.voidReason.customer_refund")}</option>
+              <option value="wrong_order">{t("cashier.voidReason.wrong_order")}</option>
+              <option value="entry_mistake">{t("cashier.voidReason.entry_mistake")}</option>
+              <option value="other">{t("cashier.voidReason.other")}</option>
+            </select>
+
+            <Input
+              value={voidNote}
+              onChange={(e) => setVoidNote(e.target.value)}
+              placeholder={t("waiter.note")}
+              className="mt-3"
+            />
+
+            <div className="mt-4 flex gap-2">
+              <Button onClick={submitVoidRequest} disabled={voidBusy} className="h-11 flex-1 font-bold">
+                {t("cashier.confirm")}
+              </Button>
+              <Button onClick={() => setVoidModal(null)} disabled={voidBusy} variant="outline" className="h-11 flex-1 font-bold">
+                {t("cashier.cancel")}
+              </Button>
+            </div>
+          </div>
         </div>
       )}
     </div>

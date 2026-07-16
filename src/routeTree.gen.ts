@@ -9,17 +9,20 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as PinRouteImport } from './routes/pin'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AuthenticatedWaiterRouteImport } from './routes/_authenticated/waiter'
 import { Route as AuthenticatedKitchenRouteImport } from './routes/_authenticated/kitchen'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedCashierRouteImport } from './routes/_authenticated/cashier'
 import { Route as AuthenticatedDashboardIndexRouteImport } from './routes/_authenticated/dashboard.index'
 import { Route as MenuRestaurantIdTableNumberRouteImport } from './routes/menu.$restaurantId.$tableNumber'
 import { Route as AuthenticatedDashboardTablesRouteImport } from './routes/_authenticated/dashboard.tables'
+import { Route as AuthenticatedDashboardStaffRouteImport } from './routes/_authenticated/dashboard.staff'
 import { Route as AuthenticatedDashboardSalesRouteImport } from './routes/_authenticated/dashboard.sales'
-import { Route as AuthenticatedDashboardRolesRouteImport } from './routes/_authenticated/dashboard.roles'
+import { Route as AuthenticatedDashboardRoleSettingsRouteImport } from './routes/_authenticated/dashboard.role-settings'
 import { Route as AuthenticatedDashboardRecapRouteImport } from './routes/_authenticated/dashboard.recap'
 import { Route as AuthenticatedDashboardProfileRouteImport } from './routes/_authenticated/dashboard.profile'
 import { Route as AuthenticatedDashboardPasswordRouteImport } from './routes/_authenticated/dashboard.password'
@@ -30,8 +33,14 @@ import { Route as AuthenticatedDashboardMenuRouteImport } from './routes/_authen
 import { Route as AuthenticatedDashboardInfoRouteImport } from './routes/_authenticated/dashboard.info'
 import { Route as AuthenticatedDashboardDailyReportRouteImport } from './routes/_authenticated/dashboard.daily-report'
 import { Route as AuthenticatedDashboardAssistanceRouteImport } from './routes/_authenticated/dashboard.assistance'
+import { Route as AuthenticatedDashboardApprovalsRouteImport } from './routes/_authenticated/dashboard.approvals'
 import { Route as AuthenticatedDashboardAppearanceRouteImport } from './routes/_authenticated/dashboard.appearance'
 
+const PinRoute = PinRouteImport.update({
+  id: '/pin',
+  path: '/pin',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
   path: '/auth',
@@ -45,6 +54,11 @@ const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedWaiterRoute = AuthenticatedWaiterRouteImport.update({
+  id: '/waiter',
+  path: '/waiter',
+  getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedKitchenRoute = AuthenticatedKitchenRouteImport.update({
   id: '/kitchen',
@@ -79,16 +93,22 @@ const AuthenticatedDashboardTablesRoute =
     path: '/tables',
     getParentRoute: () => AuthenticatedDashboardRoute,
   } as any)
+const AuthenticatedDashboardStaffRoute =
+  AuthenticatedDashboardStaffRouteImport.update({
+    id: '/staff',
+    path: '/staff',
+    getParentRoute: () => AuthenticatedDashboardRoute,
+  } as any)
 const AuthenticatedDashboardSalesRoute =
   AuthenticatedDashboardSalesRouteImport.update({
     id: '/sales',
     path: '/sales',
     getParentRoute: () => AuthenticatedDashboardRoute,
   } as any)
-const AuthenticatedDashboardRolesRoute =
-  AuthenticatedDashboardRolesRouteImport.update({
-    id: '/roles',
-    path: '/roles',
+const AuthenticatedDashboardRoleSettingsRoute =
+  AuthenticatedDashboardRoleSettingsRouteImport.update({
+    id: '/role-settings',
+    path: '/role-settings',
     getParentRoute: () => AuthenticatedDashboardRoute,
   } as any)
 const AuthenticatedDashboardRecapRoute =
@@ -151,6 +171,12 @@ const AuthenticatedDashboardAssistanceRoute =
     path: '/assistance',
     getParentRoute: () => AuthenticatedDashboardRoute,
   } as any)
+const AuthenticatedDashboardApprovalsRoute =
+  AuthenticatedDashboardApprovalsRouteImport.update({
+    id: '/approvals',
+    path: '/approvals',
+    getParentRoute: () => AuthenticatedDashboardRoute,
+  } as any)
 const AuthenticatedDashboardAppearanceRoute =
   AuthenticatedDashboardAppearanceRouteImport.update({
     id: '/appearance',
@@ -161,10 +187,13 @@ const AuthenticatedDashboardAppearanceRoute =
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/pin': typeof PinRoute
   '/cashier': typeof AuthenticatedCashierRoute
   '/dashboard': typeof AuthenticatedDashboardRouteWithChildren
   '/kitchen': typeof AuthenticatedKitchenRoute
+  '/waiter': typeof AuthenticatedWaiterRoute
   '/dashboard/appearance': typeof AuthenticatedDashboardAppearanceRoute
+  '/dashboard/approvals': typeof AuthenticatedDashboardApprovalsRoute
   '/dashboard/assistance': typeof AuthenticatedDashboardAssistanceRoute
   '/dashboard/daily-report': typeof AuthenticatedDashboardDailyReportRoute
   '/dashboard/info': typeof AuthenticatedDashboardInfoRoute
@@ -175,8 +204,9 @@ export interface FileRoutesByFullPath {
   '/dashboard/password': typeof AuthenticatedDashboardPasswordRoute
   '/dashboard/profile': typeof AuthenticatedDashboardProfileRoute
   '/dashboard/recap': typeof AuthenticatedDashboardRecapRoute
-  '/dashboard/roles': typeof AuthenticatedDashboardRolesRoute
+  '/dashboard/role-settings': typeof AuthenticatedDashboardRoleSettingsRoute
   '/dashboard/sales': typeof AuthenticatedDashboardSalesRoute
+  '/dashboard/staff': typeof AuthenticatedDashboardStaffRoute
   '/dashboard/tables': typeof AuthenticatedDashboardTablesRoute
   '/menu/$restaurantId/$tableNumber': typeof MenuRestaurantIdTableNumberRoute
   '/dashboard/': typeof AuthenticatedDashboardIndexRoute
@@ -184,9 +214,12 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/pin': typeof PinRoute
   '/cashier': typeof AuthenticatedCashierRoute
   '/kitchen': typeof AuthenticatedKitchenRoute
+  '/waiter': typeof AuthenticatedWaiterRoute
   '/dashboard/appearance': typeof AuthenticatedDashboardAppearanceRoute
+  '/dashboard/approvals': typeof AuthenticatedDashboardApprovalsRoute
   '/dashboard/assistance': typeof AuthenticatedDashboardAssistanceRoute
   '/dashboard/daily-report': typeof AuthenticatedDashboardDailyReportRoute
   '/dashboard/info': typeof AuthenticatedDashboardInfoRoute
@@ -197,8 +230,9 @@ export interface FileRoutesByTo {
   '/dashboard/password': typeof AuthenticatedDashboardPasswordRoute
   '/dashboard/profile': typeof AuthenticatedDashboardProfileRoute
   '/dashboard/recap': typeof AuthenticatedDashboardRecapRoute
-  '/dashboard/roles': typeof AuthenticatedDashboardRolesRoute
+  '/dashboard/role-settings': typeof AuthenticatedDashboardRoleSettingsRoute
   '/dashboard/sales': typeof AuthenticatedDashboardSalesRoute
+  '/dashboard/staff': typeof AuthenticatedDashboardStaffRoute
   '/dashboard/tables': typeof AuthenticatedDashboardTablesRoute
   '/menu/$restaurantId/$tableNumber': typeof MenuRestaurantIdTableNumberRoute
   '/dashboard': typeof AuthenticatedDashboardIndexRoute
@@ -208,10 +242,13 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
+  '/pin': typeof PinRoute
   '/_authenticated/cashier': typeof AuthenticatedCashierRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRouteWithChildren
   '/_authenticated/kitchen': typeof AuthenticatedKitchenRoute
+  '/_authenticated/waiter': typeof AuthenticatedWaiterRoute
   '/_authenticated/dashboard/appearance': typeof AuthenticatedDashboardAppearanceRoute
+  '/_authenticated/dashboard/approvals': typeof AuthenticatedDashboardApprovalsRoute
   '/_authenticated/dashboard/assistance': typeof AuthenticatedDashboardAssistanceRoute
   '/_authenticated/dashboard/daily-report': typeof AuthenticatedDashboardDailyReportRoute
   '/_authenticated/dashboard/info': typeof AuthenticatedDashboardInfoRoute
@@ -222,8 +259,9 @@ export interface FileRoutesById {
   '/_authenticated/dashboard/password': typeof AuthenticatedDashboardPasswordRoute
   '/_authenticated/dashboard/profile': typeof AuthenticatedDashboardProfileRoute
   '/_authenticated/dashboard/recap': typeof AuthenticatedDashboardRecapRoute
-  '/_authenticated/dashboard/roles': typeof AuthenticatedDashboardRolesRoute
+  '/_authenticated/dashboard/role-settings': typeof AuthenticatedDashboardRoleSettingsRoute
   '/_authenticated/dashboard/sales': typeof AuthenticatedDashboardSalesRoute
+  '/_authenticated/dashboard/staff': typeof AuthenticatedDashboardStaffRoute
   '/_authenticated/dashboard/tables': typeof AuthenticatedDashboardTablesRoute
   '/menu/$restaurantId/$tableNumber': typeof MenuRestaurantIdTableNumberRoute
   '/_authenticated/dashboard/': typeof AuthenticatedDashboardIndexRoute
@@ -233,10 +271,13 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/auth'
+    | '/pin'
     | '/cashier'
     | '/dashboard'
     | '/kitchen'
+    | '/waiter'
     | '/dashboard/appearance'
+    | '/dashboard/approvals'
     | '/dashboard/assistance'
     | '/dashboard/daily-report'
     | '/dashboard/info'
@@ -247,8 +288,9 @@ export interface FileRouteTypes {
     | '/dashboard/password'
     | '/dashboard/profile'
     | '/dashboard/recap'
-    | '/dashboard/roles'
+    | '/dashboard/role-settings'
     | '/dashboard/sales'
+    | '/dashboard/staff'
     | '/dashboard/tables'
     | '/menu/$restaurantId/$tableNumber'
     | '/dashboard/'
@@ -256,9 +298,12 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/auth'
+    | '/pin'
     | '/cashier'
     | '/kitchen'
+    | '/waiter'
     | '/dashboard/appearance'
+    | '/dashboard/approvals'
     | '/dashboard/assistance'
     | '/dashboard/daily-report'
     | '/dashboard/info'
@@ -269,8 +314,9 @@ export interface FileRouteTypes {
     | '/dashboard/password'
     | '/dashboard/profile'
     | '/dashboard/recap'
-    | '/dashboard/roles'
+    | '/dashboard/role-settings'
     | '/dashboard/sales'
+    | '/dashboard/staff'
     | '/dashboard/tables'
     | '/menu/$restaurantId/$tableNumber'
     | '/dashboard'
@@ -279,10 +325,13 @@ export interface FileRouteTypes {
     | '/'
     | '/_authenticated'
     | '/auth'
+    | '/pin'
     | '/_authenticated/cashier'
     | '/_authenticated/dashboard'
     | '/_authenticated/kitchen'
+    | '/_authenticated/waiter'
     | '/_authenticated/dashboard/appearance'
+    | '/_authenticated/dashboard/approvals'
     | '/_authenticated/dashboard/assistance'
     | '/_authenticated/dashboard/daily-report'
     | '/_authenticated/dashboard/info'
@@ -293,8 +342,9 @@ export interface FileRouteTypes {
     | '/_authenticated/dashboard/password'
     | '/_authenticated/dashboard/profile'
     | '/_authenticated/dashboard/recap'
-    | '/_authenticated/dashboard/roles'
+    | '/_authenticated/dashboard/role-settings'
     | '/_authenticated/dashboard/sales'
+    | '/_authenticated/dashboard/staff'
     | '/_authenticated/dashboard/tables'
     | '/menu/$restaurantId/$tableNumber'
     | '/_authenticated/dashboard/'
@@ -304,11 +354,19 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
+  PinRoute: typeof PinRoute
   MenuRestaurantIdTableNumberRoute: typeof MenuRestaurantIdTableNumberRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/pin': {
+      id: '/pin'
+      path: '/pin'
+      fullPath: '/pin'
+      preLoaderRoute: typeof PinRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/auth': {
       id: '/auth'
       path: '/auth'
@@ -329,6 +387,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/waiter': {
+      id: '/_authenticated/waiter'
+      path: '/waiter'
+      fullPath: '/waiter'
+      preLoaderRoute: typeof AuthenticatedWaiterRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/kitchen': {
       id: '/_authenticated/kitchen'
@@ -372,6 +437,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedDashboardTablesRouteImport
       parentRoute: typeof AuthenticatedDashboardRoute
     }
+    '/_authenticated/dashboard/staff': {
+      id: '/_authenticated/dashboard/staff'
+      path: '/staff'
+      fullPath: '/dashboard/staff'
+      preLoaderRoute: typeof AuthenticatedDashboardStaffRouteImport
+      parentRoute: typeof AuthenticatedDashboardRoute
+    }
     '/_authenticated/dashboard/sales': {
       id: '/_authenticated/dashboard/sales'
       path: '/sales'
@@ -379,11 +451,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedDashboardSalesRouteImport
       parentRoute: typeof AuthenticatedDashboardRoute
     }
-    '/_authenticated/dashboard/roles': {
-      id: '/_authenticated/dashboard/roles'
-      path: '/roles'
-      fullPath: '/dashboard/roles'
-      preLoaderRoute: typeof AuthenticatedDashboardRolesRouteImport
+    '/_authenticated/dashboard/role-settings': {
+      id: '/_authenticated/dashboard/role-settings'
+      path: '/role-settings'
+      fullPath: '/dashboard/role-settings'
+      preLoaderRoute: typeof AuthenticatedDashboardRoleSettingsRouteImport
       parentRoute: typeof AuthenticatedDashboardRoute
     }
     '/_authenticated/dashboard/recap': {
@@ -456,6 +528,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedDashboardAssistanceRouteImport
       parentRoute: typeof AuthenticatedDashboardRoute
     }
+    '/_authenticated/dashboard/approvals': {
+      id: '/_authenticated/dashboard/approvals'
+      path: '/approvals'
+      fullPath: '/dashboard/approvals'
+      preLoaderRoute: typeof AuthenticatedDashboardApprovalsRouteImport
+      parentRoute: typeof AuthenticatedDashboardRoute
+    }
     '/_authenticated/dashboard/appearance': {
       id: '/_authenticated/dashboard/appearance'
       path: '/appearance'
@@ -468,6 +547,7 @@ declare module '@tanstack/react-router' {
 
 interface AuthenticatedDashboardRouteChildren {
   AuthenticatedDashboardAppearanceRoute: typeof AuthenticatedDashboardAppearanceRoute
+  AuthenticatedDashboardApprovalsRoute: typeof AuthenticatedDashboardApprovalsRoute
   AuthenticatedDashboardAssistanceRoute: typeof AuthenticatedDashboardAssistanceRoute
   AuthenticatedDashboardDailyReportRoute: typeof AuthenticatedDashboardDailyReportRoute
   AuthenticatedDashboardInfoRoute: typeof AuthenticatedDashboardInfoRoute
@@ -478,8 +558,9 @@ interface AuthenticatedDashboardRouteChildren {
   AuthenticatedDashboardPasswordRoute: typeof AuthenticatedDashboardPasswordRoute
   AuthenticatedDashboardProfileRoute: typeof AuthenticatedDashboardProfileRoute
   AuthenticatedDashboardRecapRoute: typeof AuthenticatedDashboardRecapRoute
-  AuthenticatedDashboardRolesRoute: typeof AuthenticatedDashboardRolesRoute
+  AuthenticatedDashboardRoleSettingsRoute: typeof AuthenticatedDashboardRoleSettingsRoute
   AuthenticatedDashboardSalesRoute: typeof AuthenticatedDashboardSalesRoute
+  AuthenticatedDashboardStaffRoute: typeof AuthenticatedDashboardStaffRoute
   AuthenticatedDashboardTablesRoute: typeof AuthenticatedDashboardTablesRoute
   AuthenticatedDashboardIndexRoute: typeof AuthenticatedDashboardIndexRoute
 }
@@ -488,6 +569,7 @@ const AuthenticatedDashboardRouteChildren: AuthenticatedDashboardRouteChildren =
   {
     AuthenticatedDashboardAppearanceRoute:
       AuthenticatedDashboardAppearanceRoute,
+    AuthenticatedDashboardApprovalsRoute: AuthenticatedDashboardApprovalsRoute,
     AuthenticatedDashboardAssistanceRoute:
       AuthenticatedDashboardAssistanceRoute,
     AuthenticatedDashboardDailyReportRoute:
@@ -502,8 +584,10 @@ const AuthenticatedDashboardRouteChildren: AuthenticatedDashboardRouteChildren =
     AuthenticatedDashboardPasswordRoute: AuthenticatedDashboardPasswordRoute,
     AuthenticatedDashboardProfileRoute: AuthenticatedDashboardProfileRoute,
     AuthenticatedDashboardRecapRoute: AuthenticatedDashboardRecapRoute,
-    AuthenticatedDashboardRolesRoute: AuthenticatedDashboardRolesRoute,
+    AuthenticatedDashboardRoleSettingsRoute:
+      AuthenticatedDashboardRoleSettingsRoute,
     AuthenticatedDashboardSalesRoute: AuthenticatedDashboardSalesRoute,
+    AuthenticatedDashboardStaffRoute: AuthenticatedDashboardStaffRoute,
     AuthenticatedDashboardTablesRoute: AuthenticatedDashboardTablesRoute,
     AuthenticatedDashboardIndexRoute: AuthenticatedDashboardIndexRoute,
   }
@@ -517,12 +601,14 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedCashierRoute: typeof AuthenticatedCashierRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRouteWithChildren
   AuthenticatedKitchenRoute: typeof AuthenticatedKitchenRoute
+  AuthenticatedWaiterRoute: typeof AuthenticatedWaiterRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedCashierRoute: AuthenticatedCashierRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRouteWithChildren,
   AuthenticatedKitchenRoute: AuthenticatedKitchenRoute,
+  AuthenticatedWaiterRoute: AuthenticatedWaiterRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =
@@ -532,6 +618,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
+  PinRoute: PinRoute,
   MenuRestaurantIdTableNumberRoute: MenuRestaurantIdTableNumberRoute,
 }
 export const routeTree = rootRouteImport

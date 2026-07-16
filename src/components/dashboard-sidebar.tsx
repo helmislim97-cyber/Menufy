@@ -14,7 +14,9 @@ import {
   Palette,
   Settings2,
   Bell,
-  Shield,
+  ShieldCheck,
+  ClipboardCheck,
+  Users,
   Clock,
   FileDown,
   PieChart,
@@ -29,6 +31,7 @@ import {
 } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
 import { useAuth } from "@/hooks/use-auth";
+import { useRestaurantAccess } from "@/hooks/use-restaurant-access";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { cn } from "@/lib/utils";
 
@@ -56,6 +59,8 @@ interface NavItem {
   labelKey: string;
   comingSoon?: boolean;
   showNotifBadge?: boolean;
+  showApprovalBadge?: boolean;
+  ownerOnly?: boolean;
   children?: { to: string; labelKey: string }[];
 }
 
@@ -106,6 +111,37 @@ function useNotifUnread() {
   return count;
 }
 
+// Count of pending approval requests, for the sidebar badge. Resolves the
+// restaurant via useRestaurantAccess so it works for the owner AND a manager
+// (maha), and updates live off the change-request realtime channel.
+function useApprovalPendingCount() {
+  const access = useRestaurantAccess();
+  const [count, setCount] = useState(0);
+  useEffect(() => {
+    if (access.loading || !access.restaurantId) return;
+    const rid = access.restaurantId;
+    const load = async () => {
+      const { count: c } = await supabase
+        .from("order_change_requests")
+        .select("id", { count: "exact", head: true })
+        .eq("restaurant_id", rid)
+        .eq("status", "pending");
+      setCount(c ?? 0);
+    };
+    load();
+    const ch = supabase
+      .channel(`approvals-badge-${rid}`)
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "order_change_requests", filter: `restaurant_id=eq.${rid}` },
+        load,
+      )
+      .subscribe();
+    return () => { supabase.removeChannel(ch); };
+  }, [access.loading, access.restaurantId]);
+  return count;
+}
+
 interface NavGroup {
   titleKey: string;
   items: NavItem[];
@@ -126,6 +162,7 @@ const NAV_GROUPS: NavGroup[] = [
         ],
       },
       { to: "/dashboard/assistance", icon: BellRing, labelKey: "sidebar.assistance" },
+      { to: "/dashboard/approvals", icon: ClipboardCheck, labelKey: "sidebar.approvals", showApprovalBadge: true },
       { to: "/dashboard/loyalty", icon: Heart, labelKey: "sidebar.loyalty", comingSoon: true },
     ],
   },
@@ -135,9 +172,10 @@ const NAV_GROUPS: NavGroup[] = [
       { to: "/dashboard/menu", icon: UtensilsCrossed, labelKey: "sidebar.menu" },
       { to: "/dashboard/tables", icon: Table2, labelKey: "sidebar.tables" },
       { to: "/dashboard/appearance", icon: Palette, labelKey: "sidebar.appearance" },
-      { to: "/dashboard/info", icon: Settings2, labelKey: "sidebar.info" },
+      { to: "/dashboard/info", icon: Settings2, labelKey: "sidebar.info", ownerOnly: true },
       { to: "/dashboard/notifications", icon: Bell, labelKey: "sidebar.notifications", showNotifBadge: true },
-      { to: "/dashboard/roles", icon: Shield, labelKey: "sidebar.roles" },
+      { to: "/dashboard/role-settings", icon: ShieldCheck, labelKey: "sidebar.rolePerms", ownerOnly: true },
+      { to: "/dashboard/staff", icon: Users, labelKey: "sidebar.staff", ownerOnly: true },
     ],
   },
   {
@@ -187,6 +225,8 @@ function NavLinks({
   const { t } = useI18n();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const [openSubmenu, setOpenSubmenu] = useState<string | null>(null);
+  const approvalCount = useApprovalPendingCount();
+  const access = useRestaurantAccess();
   const navRef = useRef<HTMLElement>(null);
 
   useEffect(() => {
@@ -207,7 +247,9 @@ function NavLinks({
             <p className="px-3 text-[11px] font-bold uppercase tracking-wider text-muted-foreground/70">{t(group.titleKey)}</p>
           )}
           <div className="mt-1 space-y-0.5">
-            {group.items.map((item) => {
+            {group.items
+              .filter((item) => !item.ownerOnly || access.isOwner)
+              .map((item) => {
               const active = pathname === item.to || (item.to !== "/dashboard" && pathname.startsWith(item.to + "/"));
               if (item.comingSoon) {
                 return (
@@ -234,13 +276,24 @@ function NavLinks({
                       onClick={onNavigate}
                       title={!expanded ? t(item.labelKey) : undefined}
                       className={cn(
-                        "flex flex-1 items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors sm:text-base sm:py-3",
+                        "relative flex flex-1 items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors sm:text-base sm:py-3",
                         !expanded && "h-11 w-11 sm:h-12 sm:w-12 justify-center px-0 mx-auto",
                         active ? "bg-accent text-foreground" : "text-muted-foreground hover:bg-accent/50 hover:text-foreground",
                       )}
                     >
                       <item.icon className={expanded ? "h-[18px] w-[18px] shrink-0 sm:h-6 sm:w-6" : "h-5 w-5 shrink-0 sm:h-6 sm:w-6"} />
-                      {expanded && t(item.labelKey)}
+                      {expanded && <span className="flex-1 truncate">{t(item.labelKey)}</span>}
+                      {item.showApprovalBadge && approvalCount > 0 && (
+                        expanded ? (
+                          <span className="ms-auto grid h-5 min-w-5 place-items-center rounded-full bg-primary px-1.5 text-[11px] font-bold text-primary-foreground">
+                            {approvalCount}
+                          </span>
+                        ) : (
+                          <span className="absolute right-1 top-1 grid h-4 min-w-4 place-items-center rounded-full bg-primary px-1 text-[9px] font-bold text-primary-foreground">
+                            {approvalCount}
+                          </span>
+                        )
+                      )}
                     </Link>
                     {expanded && hasChildren && (
                       <button

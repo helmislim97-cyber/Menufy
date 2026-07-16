@@ -2,7 +2,7 @@ import { useEffect, type ReactNode } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { useRestaurantAccess } from "@/hooks/use-restaurant-access";
 
-type Area = "dashboard" | "kitchen" | "cashier";
+type Area = "dashboard" | "kitchen" | "cashier" | "owner";
 
 // Wraps a screen and only renders it if the user's role allows that area.
 // Otherwise redirects to the user's correct home screen (no flash).
@@ -14,6 +14,7 @@ export function AccessGuard({ area, children }: { area: Area; children: ReactNod
     area === "dashboard" ? (access.isOwner || access.can.dashboard) :
     area === "kitchen" ? access.can.kitchen :
     area === "cashier" ? access.can.cashierScreen :
+    area === "owner" ? access.isOwner :
     false;
 
   useEffect(() => {
