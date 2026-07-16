@@ -14,6 +14,7 @@ export const Route = createFileRoute("/_authenticated/dashboard/approvals")({
 
 type Action = "cancel" | "edit" | "void_payment";
 
+interface EditLine { order_item_id: string; name: string; price: number; from: number; to: number }
 interface ChangeRequest {
   id: string;
   action: Action;
@@ -24,6 +25,7 @@ interface ChangeRequest {
   created_at: string;
   order_id: string;
   payment_id: string | null;
+  requested_changes: { kind?: string; lines?: EditLine[] } | null;
 }
 interface OrderCtx { id: string; table_number: number | null; total: number }
 interface PaymentCtx { id: string; amount_due: number; method: string }
@@ -53,7 +55,7 @@ function ApprovalsPage() {
   const load = async (rid: string) => {
     const { data } = await supabase
       .from("order_change_requests")
-      .select("id, action, reason, note, requested_by_name, requested_by_role, created_at, order_id, payment_id")
+      .select("id, action, reason, note, requested_by_name, requested_by_role, created_at, order_id, payment_id, requested_changes")
       .eq("restaurant_id", rid)
       .eq("status", "pending")
       .order("created_at", { ascending: true });
@@ -135,6 +137,9 @@ function ApprovalsPage() {
             const order = orders[r.order_id];
             const payment = r.payment_id ? payments[r.payment_id] : null;
             const Icon = ACTION_ICON[r.action];
+            const editLines = r.action === "edit" ? (r.requested_changes?.lines ?? []) : [];
+            const oldTotal = order ? Number(order.total) : 0;
+            const newTotal = oldTotal + editLines.reduce((s, l) => s + Number(l.price) * (l.to - l.from), 0);
             return (
               <div key={r.id} className="rounded-2xl border border-border bg-surface p-4">
                 <div className="flex flex-wrap items-start justify-between gap-3">
@@ -155,6 +160,22 @@ function ApprovalsPage() {
                       {t("approvals.requestedBy")} {r.requested_by_name ?? "—"}
                       {r.requested_by_role ? ` (${r.requested_by_role})` : ""}
                     </p>
+                    {editLines.length > 0 && (
+                      <div className="mt-2 rounded-lg border border-border/60 bg-background p-2 text-xs">
+                        {editLines.map((l) => (
+                          <div key={l.order_item_id} className="flex items-center justify-between gap-2">
+                            <span className="truncate">{l.name}</span>
+                            <span className={l.to === 0 ? "font-bold text-destructive" : "font-semibold"}>
+                              {l.from}× → {l.to}×{l.to === 0 ? ` (${t("approvals.removed")})` : ""}
+                            </span>
+                          </div>
+                        ))}
+                        <div className="mt-1 flex items-center justify-between border-t border-border/60 pt-1 font-bold">
+                          <span>{t("approvals.newTotal")}</span>
+                          <span>{oldTotal.toFixed(2)} → {newTotal.toFixed(2)} DT</span>
+                        </div>
+                      </div>
+                    )}
                     {r.reason && <p className="mt-1 text-xs text-muted-foreground">{t("approvals.reason")}: {r.reason}</p>}
                     {r.note && <p className="mt-0.5 text-xs text-muted-foreground">{t("approvals.note")}: {r.note}</p>}
                   </div>

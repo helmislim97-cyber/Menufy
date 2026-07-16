@@ -15,6 +15,7 @@ import {
 import { Plus, Minus, X, Send, Wallet } from "lucide-react";
 import { toast } from "sonner";
 import { CancelRequestButton } from "@/components/cancel-request";
+import { EditRequestButton } from "@/components/edit-request";
 
 export const Route = createFileRoute("/_authenticated/waiter")({
   component: () => (
@@ -247,6 +248,18 @@ function WaiterPage() {
                     id: o.id,
                     total: Number(o.total),
                     itemCount: o.order_items.reduce((s, it) => s + it.quantity, 0),
+                  }))}
+                />
+
+                <EditRequestButton
+                  restaurantId={restaurantId}
+                  className="mt-2 h-10 w-full gap-1.5 text-sm font-semibold"
+                  orders={tbl.orders.map((o) => ({
+                    id: o.id,
+                    total: Number(o.total),
+                    items: o.order_items.map((it) => ({
+                      id: it.id, name: it.product_name, price: Number(it.product_price), qty: it.quantity,
+                    })),
                   }))}
                 />
               </div>
